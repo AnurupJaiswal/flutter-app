@@ -1,0 +1,705 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:get/get.dart';
+import 'package:lala_ai/utils/extensions.dart';
+import 'package:lala_ai/utils/theme/color_constant.dart';
+import 'package:lala_ai/utils/theme/text_style.dart';
+
+class CW {
+  static PreferredSizeWidget commonAppbar({
+    bool isNotHomepage = true,
+    Widget? leadingWidget,
+    Widget? titleWidget,
+    Widget? lastWidget,
+    List<Widget>? actions,
+    double height = 56,
+    String title = "",
+    Color? themeColor,
+    Color? backgroundColor,
+    bool wantBackIcon = true,
+    VoidCallback? onBackTap,
+  }) {
+    final isDark = CC.isDark;
+    return PreferredSize(
+      preferredSize: Size(double.infinity, height),
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+          statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: Container(
+            height: height,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            decoration: BoxDecoration(
+              color: backgroundColor ?? CC.background,
+              boxShadow: [
+                BoxShadow(
+                  color: isDark
+                      ? Colors.black.withValues(alpha: 0.4)
+                      : Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                // Leading
+                if (leadingWidget != null)
+                  leadingWidget
+                else if (wantBackIcon && isNotHomepage)
+                  Builder(
+                    builder: (ctx) => GestureDetector(
+                      onTap: onBackTap ?? () {
+                        if (Navigator.of(ctx).canPop()) {
+                          Navigator.of(ctx).pop();
+                        } else {
+                          Get.back();
+                        }
+                      },
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        margin: const EdgeInsets.only(right: 10),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : Colors.black.withValues(alpha: 0.04),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.arrow_back_rounded,
+                            size: 18,
+                            color: CC.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  const SizedBox(width: 8),
+
+                // Title
+                Expanded(
+                  child: titleWidget ??
+                      Text(
+                        title,
+                        textAlign: TextAlign.left,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TS.sectionTitle(
+                          color: themeColor ?? CC.textPrimary,
+                          fontSize: 16,
+                        ).copyWith(fontWeight: FontWeight.w700),
+                      ),
+                ),
+
+                // Actions
+                if (actions != null)
+                  ...actions
+                else if (lastWidget != null)
+                  lastWidget,
+
+                const SizedBox(width: 4),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+
+  /// Standardized Card Component for Lala AI Design System
+  static Widget commonCard({
+    required Widget child,
+    EdgeInsetsGeometry? padding,
+    EdgeInsetsGeometry? margin,
+    Color? backgroundColor,
+    Color? borderColor,
+    double borderRadius = 14,
+    VoidCallback? onTap,
+  }) {
+    final cardChild = Container(
+      padding: padding ?? const EdgeInsets.all(16),
+      margin: margin,
+      decoration: BoxDecoration(
+        color: backgroundColor ?? CC.surface,
+        borderRadius: BorderRadius.circular(borderRadius),
+        border: Border.all(
+          color: borderColor ?? CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: CC.isDark ? Colors.black.withValues(alpha: 0.35) : Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: child,
+    );
+
+    if (onTap != null) {
+      return Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(borderRadius),
+          child: cardChild,
+        ),
+      );
+    }
+    return cardChild;
+  }
+
+  /// Standardized AI Tip / Insight Card Component
+  static Widget aiTipCard({
+    required String title,
+    required String message,
+    IconData icon = Icons.lightbulb_outline_rounded,
+    EdgeInsetsGeometry? margin,
+  }) {
+    return Container(
+      margin: margin,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: CC.tealSubtle,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: CC.primary.withValues(alpha: 0.25), width: 1),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: CC.primary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: CC.primary, size: 20),
+          ),
+          14.width,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: TS.caption(color: CC.primary, fontWeight: FontWeight.w700).copyWith(fontSize: 12)),
+                4.height,
+                Text(
+                  message,
+                  style: TS.bodySmall(color: CC.textPrimary).copyWith(height: 1.35),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Refined Common Button
+  static Widget commonBtn({
+    required String title,
+    required VoidCallback? onTap,
+    Color? color,
+    Color? textColor,
+    Color? borderColor,
+    double height = 48,
+    double? width,
+    bool isLoading = false,
+    Widget? leadingImage,
+    Widget? lastWidget,
+    bool isOutlined = false,
+  }) {
+    final bg = isOutlined ? CC.surface : (color ?? CC.primary);
+    final border = isOutlined ? (borderColor ?? CC.stroke) : Colors.transparent;
+    final fg = textColor ?? (isOutlined ? CC.textPrimary : CC.whiteText);
+
+    return SizedBox(
+      height: height,
+      width: width ?? double.infinity,
+      child: Material(
+        color: bg,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: isLoading ? null : onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: border, width: isOutlined ? 1 : 0),
+            ),
+            child: isLoading
+                ? Center(
+                    child: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(fg),
+                      ),
+                    ),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (leadingImage != null) ...[
+                        leadingImage,
+                        8.width,
+                      ],
+                      Flexible(
+                        child: Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TS.button(color: fg),
+                        ),
+                      ),
+                      if (lastWidget != null) ...[
+                        8.width,
+                        lastWidget,
+                      ],
+                    ],
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Refined Common Text Form Field
+  static Widget commonTextFormField({
+    required TextEditingController controller,
+    required String hintText,
+    IconData? prefixIcon,
+    String? labelText,
+    String? Function(String?)? validator,
+    TextInputType? keyboardType,
+    TextInputAction? textInputAction,
+    bool obscureText = false,
+    Widget? suffixIcon,
+    void Function(String)? onFieldSubmitted,
+    void Function(String)? onChanged,
+    FocusNode? focusNode,
+    bool autoFocus = false,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (labelText != null) ...[
+          Text(
+            labelText,
+            style: TS.bodySmall(color: CC.textSecondary, fontWeight: FontWeight.w600),
+          ),
+          6.height,
+        ],
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          textInputAction: textInputAction,
+          obscureText: obscureText,
+          focusNode: focusNode,
+          autofocus: autoFocus,
+          onChanged: onChanged,
+          style: TS.body(color: CC.textPrimary),
+          cursorColor: CC.primary,
+          decoration: InputDecoration(
+            isDense: true,
+            hintText: hintText,
+            hintStyle: TS.body(color: CC.grey),
+            filled: true,
+            fillColor: CC.inputBackground,
+            prefixIcon: prefixIcon != null
+                ? Icon(prefixIcon, size: 18, color: CC.grey)
+                : null,
+            suffixIcon: suffixIcon,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: CC.stroke, width: 0.7),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: CC.borderFocused, width: 1.5),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: CC.error, width: 0.7),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: CC.error, width: 1.5),
+            ),
+            errorStyle: TS.caption(color: CC.errorText),
+          ),
+          validator: validator,
+          onFieldSubmitted: onFieldSubmitted,
+        ),
+      ],
+    );
+  }
+
+  /// Refined Search Input Field
+  static Widget commonSearchField({
+    TextEditingController? controller,
+    String hintText = "Search...",
+    ValueChanged<String>? onChanged,
+    ValueChanged<String>? onSubmitted,
+    Widget? prefixIcon,
+    Widget? suffixIcon,
+  }) {
+    return TextFormField(
+      controller: controller,
+      onChanged: onChanged,
+      onFieldSubmitted: onSubmitted,
+      style: TS.bodySmall(color: CC.textPrimary),
+      cursorColor: CC.primary,
+      decoration: InputDecoration(
+        isDense: true,
+        hintText: hintText,
+        hintStyle: TS.bodySmall(color: CC.grey),
+        filled: true,
+        fillColor: CC.searchBackground,
+        prefixIcon: prefixIcon ??
+            Icon(Icons.search_rounded, size: 16, color: CC.grey),
+        suffixIcon: suffixIcon,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: CC.stroke, width: 0.7),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: CC.borderFocused, width: 1.2),
+        ),
+      ),
+    );
+  }
+
+  /// Minimal Avatar Icon
+  static Widget aiAvatar({
+    double size = 28,
+    bool isAssistant = true,
+    String? userInitial,
+  }) {
+    if (isAssistant) {
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: CC.tealSubtle,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: CC.primary.withValues(alpha: 0.3), width: 0.7),
+        ),
+        child: Icon(
+          Icons.auto_awesome_rounded,
+          color: CC.primary,
+          size: size * 0.54,
+        ),
+      );
+    }
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: CC.surface,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: CC.stroke, width: 0.7),
+      ),
+      child: Center(
+        child: Text(
+          (userInitial != null && userInitial.isNotEmpty) ? userInitial[0].toUpperCase() : "U",
+          style: TS.caption(color: CC.textSecondary, fontWeight: FontWeight.w700),
+        ),
+      ),
+    );
+  }
+
+  /// Custom BottomSheet System matching Manage Categories design standard
+  static void showCustomBottomSheet({
+    required BuildContext context,
+    required String title,
+    required List<Widget> children,
+    IconData? titleIcon,
+    String? subtitle,
+  }) {
+    Get.bottomSheet(
+      SafeArea(
+        child: Material(
+          color: CC.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Drag Handle
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: CC.stroke,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+
+                // Header Bar (Surgically aligned to Manage Categories standard)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          if (titleIcon != null) ...[
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: CC.primary.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(titleIcon, color: CC.primary, size: 18),
+                            ),
+                            10.width,
+                          ],
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  title,
+                                  style: TS.sectionTitle(
+                                    color: CC.textPrimary,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                                if (subtitle != null && subtitle.isNotEmpty) ...[
+                                  4.height,
+                                  Text(
+                                    subtitle,
+                                    style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 12),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    12.width,
+                    GestureDetector(
+                      onTap: () => Get.back(),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: CC.isDark
+                              ? Colors.white.withValues(alpha: 0.1)
+                              : Colors.black.withValues(alpha: 0.05),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.close_rounded,
+                          color: CC.textPrimary,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                16.height,
+
+                ...children,
+              ],
+            ),
+          ),
+        ),
+      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+    );
+  }
+
+  /// Reusable Logout Confirmation Bottom Sheet
+  static void showLogoutSheet({
+    required BuildContext context,
+    required VoidCallback onConfirm,
+  }) {
+    Get.bottomSheet(
+      SafeArea(
+        child: Material(
+          color: CC.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Drag handle
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 20),
+                    decoration: BoxDecoration(
+                      color: CC.stroke,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                // Icon
+                Container(
+                  width: 68,
+                  height: 68,
+                  decoration: BoxDecoration(
+                    color: CC.primary.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.logout_rounded, color: CC.primary, size: 32),
+                ),
+                20.height,
+                Text(
+                  "Log Out?",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: CC.textPrimary,
+                  ),
+                ),
+                10.height,
+                Text(
+                  "Are you sure you want to log out?\nYou'll need to sign in again to access your account.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: CC.textSecondary,
+                    height: 1.5,
+                  ),
+                ),
+                28.height,
+                Row(
+                  children: [
+                    Expanded(
+                      child: CW.commonBtn(
+                        title: "Cancel",
+                        isOutlined: true,
+                        height: 48,
+                        onTap: () => Get.back(),
+                      ),
+                    ),
+                    12.width,
+                    Expanded(
+                      child: CW.commonBtn(
+                        title: "Log Out",
+                        height: 48,
+                        color: CC.primary,
+                        onTap: () {
+                          Get.back();
+                          onConfirm();
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+    );
+  }
+
+  /// Official Instagram Brand Icon
+  static Widget instagramIcon({double size = 26}) {
+    final innerPadding = size * 0.18;
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFF833AB4),
+            Color(0xFFFD1D1D),
+            Color(0xFFFCB045),
+          ],
+          begin: Alignment.bottomLeft,
+          end: Alignment.topRight,
+        ),
+        borderRadius: BorderRadius.circular(size * 0.28),
+      ),
+      child: Center(
+        child: SizedBox(
+          width: size - innerPadding * 2,
+          height: size - innerPadding * 2,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(size * 0.16),
+                  border: Border.all(color: Colors.white, width: (size * 0.065).clamp(1.2, 3.0)),
+                ),
+              ),
+              Container(
+                width: size * 0.28,
+                height: size * 0.28,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: (size * 0.06).clamp(1.1, 2.8)),
+                ),
+              ),
+              Positioned(
+                top: size * 0.06,
+                right: size * 0.06,
+                child: Container(
+                  width: size * 0.07,
+                  height: size * 0.07,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Official YouTube Brand Icon
+  static Widget youtubeIcon({double size = 26}) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: const Color(0xFFFF0000),
+        borderRadius: BorderRadius.circular(size * 0.26),
+      ),
+      child: Center(
+        child: Icon(
+          Icons.play_arrow_rounded,
+          color: Colors.white,
+          size: size * 0.72,
+        ),
+      ),
+    );
+  }
+}
