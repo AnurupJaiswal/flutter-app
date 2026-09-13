@@ -65,16 +65,17 @@ class _MessageComposerState extends State<MessageComposer> {
   void _openVoiceInputSheet() {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: false,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => _ComposerVoiceSheet(
+      builder: (sheetContext) => _ComposerVoiceSheet(
         onSpeechResult: (spokenText) {
           widget.controller.text = spokenText;
           widget.controller.selection = TextSelection.fromPosition(
             TextPosition(offset: spokenText.length),
           );
           _onTextChanged();
-          Navigator.pop(context);
+          CW.dismissBottomSheet(sheetContext);
           AppToast.success("Voice transcribed successfully!");
         },
       ),
@@ -553,7 +554,7 @@ class _ComposerVoiceSheetState extends State<_ComposerVoiceSheet>
                     height: 46,
                     onTap: () {
                       _stopListening();
-                      Navigator.pop(context);
+                      CW.dismissBottomSheet(context);
                     },
                   ),
                 ),

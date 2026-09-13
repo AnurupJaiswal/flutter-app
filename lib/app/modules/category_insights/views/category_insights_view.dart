@@ -445,7 +445,7 @@ class CategoryInsightsView extends StatelessWidget {
                   color: CC.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(item.icon, color: CC.primary, size: 20),
+                child: Icon(item.icon, color: CC.textPrimary, size: 20),
               ),
               14.width,
               Expanded(

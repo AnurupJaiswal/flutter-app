@@ -100,8 +100,18 @@ class DiscoverView extends GetView<DiscoverController> {
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: CC.surface,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: CC.stroke, width: 0.7),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),

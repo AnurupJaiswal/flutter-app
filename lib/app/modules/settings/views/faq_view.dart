@@ -148,12 +148,12 @@ class _FaqViewState extends State<FaqView> {
         CW.commonBtn(
           title: "Send Message",
           onTap: () {
-            Get.back();
+            CW.dismissBottomSheet();
             CM.showToast("Support ticket created! We'll reply shortly.");
           },
         ),
       ],
-    );
+    ).then((_) => msgController.dispose());
   }
 
   @override
@@ -414,8 +414,8 @@ class _FaqViewState extends State<FaqView> {
             color: CC.isDark
                 ? Colors.black.withValues(alpha: 0.45)
                 : Colors.black.withValues(alpha: 0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),

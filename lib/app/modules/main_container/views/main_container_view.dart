@@ -52,6 +52,12 @@ class MainContainerView extends GetView<MainContainerController> {
             bottomNavigationBar: Obx(() => Container(
               decoration: BoxDecoration(
                 color: CC.surface,
+                border: Border(
+                  top: BorderSide(
+                    color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+                    width: 0.8,
+                  ),
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: CC.isDark ? Colors.black.withValues(alpha: 0.5) : Colors.black.withValues(alpha: 0.08),

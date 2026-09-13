@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lala_ai/app/data/models/category_insights_model.dart';
 import 'package:lala_ai/utils/app_toast.dart';
+import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
@@ -451,20 +452,21 @@ class CategoryInsightsController extends GetxController {
 
     showModalBottomSheet(
       context: context,
+      useRootNavigator: false,
       isScrollControlled: true,
       backgroundColor: CC.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) {
+      builder: (sheetContext) {
         return Padding(
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
           ),
           child: Container(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
             constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.75,
+              maxHeight: MediaQuery.of(sheetContext).size.height * 0.75,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -511,7 +513,7 @@ class CategoryInsightsController extends GetxController {
                     ),
                     12.width,
                     GestureDetector(
-                      onTap: () => Get.back(),
+                      onTap: () => CW.dismissBottomSheet(sheetContext),
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
@@ -621,7 +623,7 @@ class CategoryInsightsController extends GetxController {
                         } else {
                           selectedCategory.value = "";
                         }
-                        Get.back();
+                        CW.dismissBottomSheet(sheetContext);
                         AppToast.success("Categories updated successfully!");
                       },
                       style: ElevatedButton.styleFrom(

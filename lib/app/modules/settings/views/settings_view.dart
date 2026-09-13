@@ -28,7 +28,7 @@ class SettingsView extends GetView<SettingsController> {
             title: "Settings",
             actions: [
               IconButton(
-                icon: Icon(Icons.logout_rounded, color: CC.primary, size: 22),
+                icon: Icon(Icons.logout_rounded, color: CC.textPrimary, size: 22),
                 tooltip: "Log Out",
                 onPressed: () => CW.showLogoutSheet(
                   context: context,
@@ -196,10 +196,10 @@ class SettingsView extends GetView<SettingsController> {
         boxShadow: [
           BoxShadow(
             color: CC.isDark
-                ? Colors.black.withValues(alpha: 0.35)
-                : Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+                ? Colors.black.withValues(alpha: 0.45)
+                : Colors.black.withValues(alpha: 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -227,7 +227,7 @@ class SettingsView extends GetView<SettingsController> {
     required VoidCallback onTap,
     Color? tileColor,
   }) {
-    final color = tileColor ?? CC.primary;
+    final iconColor = tileColor ?? CC.textPrimary;
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -238,10 +238,10 @@ class SettingsView extends GetView<SettingsController> {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
+                color: (tileColor ?? CC.primary).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: color, size: 18),
+              child: Icon(icon, color: iconColor, size: 18),
             ),
             14.width,
             Expanded(
@@ -280,7 +280,7 @@ class SettingsView extends GetView<SettingsController> {
               color: CC.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: CC.primary, size: 18),
+            child: Icon(icon, color: CC.textPrimary, size: 18),
           ),
           14.width,
           Expanded(
@@ -324,7 +324,7 @@ class SettingsView extends GetView<SettingsController> {
               color: CC.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: CC.primary, size: 18),
+            child: Icon(icon, color: CC.textPrimary, size: 18),
           ),
           14.width,
           Expanded(child: Text(title, style: TS.bodySmall(color: CC.textPrimary, fontWeight: FontWeight.w600))),
@@ -350,7 +350,7 @@ class SettingsView extends GetView<SettingsController> {
                 color: CC.primary.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(Icons.palette_outlined, color: CC.primary, size: 18),
+              child: Icon(Icons.palette_outlined, color: CC.textPrimary, size: 18),
             ),
             14.width,
             Expanded(
@@ -441,7 +441,7 @@ class SettingsView extends GetView<SettingsController> {
                       child: CW.commonBtn(
                         title: "Cancel",
                         isOutlined: true,
-                        onTap: () => Get.back(),
+                        onTap: () => CW.dismissBottomSheet(),
                       ),
                     ),
                     12.width,
@@ -451,7 +451,7 @@ class SettingsView extends GetView<SettingsController> {
                         color: CC.primary,
                         onTap: () {
                           themeService.setThemeMode(selectedThemeKey);
-                          Get.back();
+                          CW.dismissBottomSheet();
                         },
                       ),
                     ),
@@ -789,7 +789,7 @@ class SettingsView extends GetView<SettingsController> {
                       child: CW.commonBtn(
                         title: "Cancel",
                         isOutlined: true,
-                        onTap: () => Get.back(),
+                        onTap: () => CW.dismissBottomSheet(),
                       ),
                     ),
                     12.width,
@@ -800,7 +800,7 @@ class SettingsView extends GetView<SettingsController> {
                         textColor: isConfirmed ? Colors.white : Colors.white.withValues(alpha: 0.6),
                         onTap: isConfirmed
                             ? () {
-                                Get.back();
+                                CW.dismissBottomSheet();
                                 controller.deleteAccount();
                               }
                             : null,
@@ -855,11 +855,11 @@ class SettingsView extends GetView<SettingsController> {
         CW.commonBtn(
           title: "Send Message",
           onTap: () {
-            Get.back();
+            CW.dismissBottomSheet();
             CM.showToast("Support ticket created! We'll reply shortly.");
           },
         ),
       ],
-    );
+    ).then((_) => msgController.dispose());
   }
 }

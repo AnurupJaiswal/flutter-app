@@ -18,28 +18,6 @@ class SplashView extends GetView<SplashController> {
         child: SafeArea(
           child: Stack(
             children: [
-              // Soft ambient glow behind the badge
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: Align(
-                    alignment: const Alignment(0, -0.15),
-                    child: Container(
-                      width: 280,
-                      height: 280,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: RadialGradient(
-                          colors: [
-                            CC.primary.withValues(alpha: 0.12),
-                            CC.primary.withValues(alpha: 0.0),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
               // Central content
               Center(
                 child: Padding(
@@ -68,21 +46,23 @@ class SplashView extends GetView<SplashController> {
                             color: CC.surface,
                             borderRadius: BorderRadius.circular(18),
                             border: Border.all(
-                              color: CC.primary.withValues(alpha: 0.25),
+                              color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
                               width: 0.8,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: CC.primary.withValues(alpha: 0.14),
-                                blurRadius: 28,
-                                spreadRadius: 1,
+                                color: CC.isDark
+                                    ? Colors.black.withValues(alpha: 0.35)
+                                    : Colors.black.withValues(alpha: 0.08),
+                                blurRadius: 14,
+                                offset: const Offset(0, 4),
                               ),
                             ],
                           ),
                           child: Center(
                             child: Icon(
                               Icons.auto_awesome_rounded,
-                              color: CC.primary,
+                              color: CC.textPrimary,
                               size: 30,
                             ),
                           ),

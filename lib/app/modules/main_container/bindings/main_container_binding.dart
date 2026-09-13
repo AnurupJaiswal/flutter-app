@@ -21,7 +21,7 @@ class MainContainerBinding extends Bindings {
 
     // Repositories
     Get.lazyPut<TrendRepository>(() => MockTrendRepository());
-    Get.lazyPut<AnalyticsRepository>(() => MockAnalyticsRepository());
+    Get.put<AnalyticsRepository>(MockAnalyticsRepository(), permanent: true);
     Get.lazyPut<DiscoverRepository>(() => MockDiscoverRepository());
     Get.lazyPut<SavedRepository>(() => MockSavedRepository());
 
@@ -32,7 +32,7 @@ class MainContainerBinding extends Bindings {
     // Controllers
     Get.lazyPut<HomeController>(() => HomeController(trendRepository: Get.find()));
     Get.lazyPut<TrendingController>(() => TrendingController(trendRepository: Get.find()));
-    Get.lazyPut<AnalyticsController>(() => AnalyticsController(analyticsRepository: Get.find()));
+    Get.lazyPut<AnalyticsController>(() => AnalyticsController());
     Get.lazyPut<DiscoverController>(() => DiscoverController(
           discoverRepository: Get.find(),
           savedRepository: Get.find(),

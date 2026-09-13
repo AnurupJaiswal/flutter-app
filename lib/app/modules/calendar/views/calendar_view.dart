@@ -37,7 +37,7 @@ class CalendarView extends GetView<CalendarController> {
                     ),
                     child: Icon(
                       Icons.edit_calendar_rounded,
-                      color: CC.primary,
+                      color: CC.textPrimary,
                       size: 18,
                     ),
                   ),
@@ -70,17 +70,17 @@ class CalendarView extends GetView<CalendarController> {
                       _buildFilterPills(),
                       20.height,
 
-                      // ── Today's Posts Section ───────────────────────────────
+                      // ── Posts Section for Selected Date ─────────────────────
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            "Today's Posts",
-                            style: TS.sectionTitle(
-                              color: CC.textPrimary,
-                              fontSize: 16,
-                            ),
-                          ),
+                          Obx(() => Text(
+                                "Posts for ${controller.selectedDateFormatted}",
+                                style: TS.sectionTitle(
+                                  color: CC.textPrimary,
+                                  fontSize: 16,
+                                ),
+                              )),
                           Obx(() => Text(
                                 "${controller.filteredTodayPosts.length} post",
                                 style: TS.caption(
@@ -94,7 +94,7 @@ class CalendarView extends GetView<CalendarController> {
                       Obx(() {
                         final list = controller.filteredTodayPosts;
                         if (list.isEmpty) {
-                          return _buildEmptySection("No today posts for this filter");
+                          return _buildEmptySection("No scheduled posts for ${controller.selectedDateFormatted}");
                         }
                         return Column(
                           children: list
@@ -172,7 +172,9 @@ class CalendarView extends GetView<CalendarController> {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: CC.primary.withValues(alpha: 0.35),
+                            color: CC.isDark
+                                ? Colors.black.withValues(alpha: 0.45)
+                                : Colors.black.withValues(alpha: 0.12),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           ),
@@ -196,13 +198,18 @@ class CalendarView extends GetView<CalendarController> {
     );
   }
 
-  /// Month Header & Horizontal Weekly Day Selector
+  /// Month Header & Day Selector (Clean non-overlapping layout with smooth date scrolling)
   Widget _buildMonthAndWeeklyStrip(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: CC.surface,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
             color: CC.isDark
@@ -216,114 +223,151 @@ class CalendarView extends GetView<CalendarController> {
       child: Column(
         children: [
           // Month navigation title
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: Icon(Icons.chevron_left_rounded,
-                    color: CC.textPrimary, size: 22),
-                onPressed: () => controller.previousMonth(),
-                splashRadius: 18,
-              ),
-              Obx(() => Text(
-                    controller.currentMonthName,
-                    style: TS.sectionTitle(
-                      color: CC.textPrimary,
-                      fontSize: 16,
-                    ),
-                  )),
-              IconButton(
-                icon: Icon(Icons.chevron_right_rounded,
-                    color: CC.textPrimary, size: 22),
-                onPressed: () => controller.nextMonth(),
-                splashRadius: 18,
-              ),
-            ],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.chevron_left_rounded,
+                      color: CC.textPrimary, size: 22),
+                  onPressed: () => controller.previousMonth(),
+                  splashRadius: 18,
+                  tooltip: "Previous Month",
+                ),
+                Obx(() => Text(
+                      controller.currentMonthName,
+                      style: TS.sectionTitle(
+                        color: CC.textPrimary,
+                        fontSize: 16,
+                      ),
+                    )),
+                IconButton(
+                  icon: Icon(Icons.chevron_right_rounded,
+                      color: CC.textPrimary, size: 22),
+                  onPressed: () => controller.nextMonth(),
+                  splashRadius: 18,
+                  tooltip: "Next Month",
+                ),
+              ],
+            ),
           ),
-          14.height,
+          8.height,
 
-          // Days of the week row
-          Obx(() {
-            final days = controller.daysList;
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: days.map((item) {
-                final dayStr = item["day"] as String;
-                final dateNum = item["date"] as int;
-                final fullDate = item["fullDate"] as DateTime;
-                final isSelected = item["isSelected"] as bool;
-                final hasDot = item["hasDot"] as bool;
-                final dotColorType = item["dotColor"] as String;
-
-                Color dotColor = CC.primary;
-                if (dotColorType == "amber") {
-                  dotColor = Colors.amber;
-                }
-
-                return GestureDetector(
-                  onTap: () => controller.selectDay(fullDate),
-                  child: Column(
-                    children: [
-                      Text(
-                        dayStr,
-                        style: TS
-                            .caption(
-                              color: isSelected
-                                  ? CC.textPrimary
-                                  : CC.textSecondary,
-                              fontWeight: isSelected
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
-                            )
-                            .copyWith(fontSize: 12),
-                      ),
-                      8.height,
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: isSelected ? CC.primary : Colors.transparent,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Text(
-                            "$dateNum",
-                            style: TS.bodySmall(
-                              color: isSelected
-                                  ? Colors.white
-                                  : CC.textPrimary,
-                              fontWeight: isSelected
-                                  ? FontWeight.w700
-                                  : FontWeight.w600,
-                            ).copyWith(fontSize: 14),
-                          ),
-                        ),
-                      ),
-                      4.height,
-                      // Indicator Dot below day
-                      Container(
-                        width: 4,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? CC.primary
-                              : (hasDot
-                                  ? dotColor
-                                  : Colors.transparent),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            );
-          }),
+          // Days Container
+          _buildMonthStripView(),
         ],
       ),
     );
   }
+
+  /// Horizontal Scrollable Month Strip (All days 1..30/31)
+  Widget _buildMonthStripView() {
+    return Obx(() {
+      final days = controller.daysList;
+      return SizedBox(
+        height: 76,
+        child: ListView.separated(
+          controller: controller.scrollController,
+          scrollDirection: Axis.horizontal,
+          clipBehavior: Clip.antiAlias,
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          itemCount: days.length,
+          separatorBuilder: (_, __) => 6.width,
+          itemBuilder: (context, index) {
+            final item = days[index];
+            final dayStr = item["day"] as String;
+            final dateNum = item["date"] as int;
+            final fullDate = item["fullDate"] as DateTime;
+            final isSelected = item["isSelected"] as bool;
+            final hasDot = item["hasDot"] as bool;
+            final dotColorType = item["dotColor"] as String;
+
+            Color dotColor = CC.primary;
+            if (dotColorType == "amber") {
+              dotColor = Colors.amber;
+            }
+
+            return GestureDetector(
+              onTap: () => controller.selectDay(fullDate),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                width: 44,
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? CC.primary.withValues(alpha: 0.12)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  border: isSelected
+                      ? Border.all(color: CC.primary, width: 1.2)
+                      : null,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      dayStr,
+                      style: TS
+                          .caption(
+                            color: isSelected
+                                ? CC.primary
+                                : CC.textSecondary,
+                            fontWeight: isSelected
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                          )
+                          .copyWith(fontSize: 11),
+                    ),
+                    3.height,
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      width: 30,
+                      height: 30,
+                      decoration: BoxDecoration(
+                        color: isSelected ? CC.primary : Colors.transparent,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          "$dateNum",
+                          style: TS.bodySmall(
+                            color: isSelected
+                                ? Colors.white
+                                : CC.textPrimary,
+                            fontWeight: isSelected
+                                ? FontWeight.w700
+                                : FontWeight.w600,
+                          ).copyWith(fontSize: 13),
+                        ),
+                      ),
+                    ),
+                    2.height,
+                    Container(
+                      width: 4,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? CC.primary
+                            : (hasDot
+                                ? dotColor
+                                : Colors.transparent),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      );
+    });
+  }
+
+
 
   /// Filter Category Pills
   Widget _buildFilterPills() {
@@ -415,10 +459,10 @@ class CalendarView extends GetView<CalendarController> {
         boxShadow: [
           BoxShadow(
             color: CC.isDark
-                ? Colors.black.withValues(alpha: 0.3)
-                : Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+                ? Colors.black.withValues(alpha: 0.45)
+                : Colors.black.withValues(alpha: 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -699,10 +743,10 @@ class CalendarView extends GetView<CalendarController> {
                 "hashtags": "#LalaAI #AITools #Shorts #ContentCreator",
               });
             }
-            Get.back();
+            CW.dismissBottomSheet();
           },
         ),
       ],
-    );
+    ).then((_) => titleCtrl.dispose());
   }
 }

@@ -11,6 +11,9 @@ class AppTheme {
       brightness: Brightness.light,
       fontFamily: fontFamily ?? TS.fontFamily,
       scaffoldBackgroundColor: CC.lightBackground,
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
+      splashFactory: NoSplash.splashFactory,
       colorScheme: const ColorScheme.light(
         primary: CC.lightPrimary,
         secondary: CC.lightSecondary,
@@ -20,18 +23,19 @@ class AppTheme {
         onSecondary: CC.whiteText,
         onSurface: CC.lightPrimaryText,
       ),
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: CC.lightSurface,
-        elevation: 0,
+        elevation: 3,
+        shadowColor: Colors.black.withValues(alpha: 0.12),
         centerTitle: true,
-        iconTheme: IconThemeData(color: CC.lightPrimaryText),
-        titleTextStyle: TextStyle(
+        iconTheme: const IconThemeData(color: CC.lightPrimaryText),
+        titleTextStyle: const TextStyle(
           color: CC.lightPrimaryText,
           fontSize: 16,
           fontFamily: TS.fontFamily,
           fontWeight: FontWeight.w700,
         ),
-        systemOverlayStyle: SystemUiOverlayStyle(
+        systemOverlayStyle: const SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
           statusBarIconBrightness: Brightness.dark,
           statusBarBrightness: Brightness.light,
@@ -45,9 +49,10 @@ class AppTheme {
       ),
       cardTheme: CardThemeData(
         color: CC.lightSurface,
-        elevation: 0,
+        elevation: 4,
+        shadowColor: Colors.black.withValues(alpha: 0.12),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(14),
           side: const BorderSide(color: CC.lightStroke, width: 0.8),
         ),
       ),
@@ -124,6 +129,9 @@ class AppTheme {
       brightness: Brightness.dark,
       fontFamily: fontFamily ?? TS.fontFamily,
       scaffoldBackgroundColor: CC.darkBackground,
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
+      splashFactory: NoSplash.splashFactory,
       colorScheme: const ColorScheme.dark(
         primary: CC.darkPrimary,
         secondary: CC.darkSecondary,
@@ -133,18 +141,19 @@ class AppTheme {
         onSecondary: Colors.black,
         onSurface: CC.darkPrimaryText,
       ),
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: CC.darkBg2,
-        elevation: 0,
+        elevation: 4,
+        shadowColor: Colors.black.withValues(alpha: 0.6),
         centerTitle: true,
-        iconTheme: IconThemeData(color: CC.darkPrimaryText),
-        titleTextStyle: TextStyle(
+        iconTheme: const IconThemeData(color: CC.darkPrimaryText),
+        titleTextStyle: const TextStyle(
           color: CC.darkPrimaryText,
           fontSize: 16,
           fontFamily: TS.fontFamily,
           fontWeight: FontWeight.w700,
         ),
-        systemOverlayStyle: SystemUiOverlayStyle(
+        systemOverlayStyle: const SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
           statusBarIconBrightness: Brightness.light,
           statusBarBrightness: Brightness.dark,
@@ -158,9 +167,10 @@ class AppTheme {
       ),
       cardTheme: CardThemeData(
         color: CC.darkComment,
-        elevation: 0,
+        elevation: 4,
+        shadowColor: Colors.black.withValues(alpha: 0.5),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(14),
           side: const BorderSide(color: CC.darkStroke, width: 0.8),
         ),
       ),
@@ -172,7 +182,7 @@ class AppTheme {
         ),
       ),
       bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: CC.darkComment,
+        backgroundColor: CC.darkBottomSheet,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(16)),

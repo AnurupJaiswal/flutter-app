@@ -75,14 +75,14 @@ void main() {
       expect(prefs.getString(ThemeService.themeKey), equals(ThemeService.themeDark));
 
       // Verify Approved Dark Colors
-      expect(CC.primary, equals(const Color(0xFF00AFBE)));
-      expect(CC.background, equals(const Color(0xFF000000)));
-      expect(CC.surface, equals(const Color(0xFF181818)));
-      expect(CC.stroke, equals(const Color(0xFF515151)));
-      expect(CC.textPrimary, equals(const Color(0xFFFBFBFB)));
-      expect(CC.textSecondary, equals(const Color(0xFFC7C7C7)));
-      expect(CC.error, equals(const Color(0xFFFF000F)));
-      expect(CC.success, equals(const Color(0xFF1CB403)));
+      expect(CC.primary, equals(const Color(0xFF00AFC0)));
+      expect(CC.background, equals(const Color(0xFF050505)));
+      expect(CC.surface, equals(const Color(0xFF121212)));
+      expect(CC.stroke, equals(const Color(0xFF252525)));
+      expect(CC.textPrimary, equals(const Color(0xFFF5F5F5)));
+      expect(CC.textSecondary, equals(const Color(0xFFA8A8A8)));
+      expect(CC.error, equals(const Color(0xFFEF4444)));
+      expect(CC.success, equals(const Color(0xFF22C55E)));
 
       // Switch to Light
       await themeService.setThemeMode(ThemeService.themeLight);
@@ -143,7 +143,7 @@ void main() {
       expect(themeService.currentThemeSetting, equals(ThemeService.themeSystem));
       expect(themeService.effectiveBrightness, equals(Brightness.dark));
       expect(themeService.isDarkMode, isTrue);
-      expect(CC.background, equals(const Color(0xFF000000)));
+      expect(CC.background, equals(const Color(0xFF050505)));
 
       // System changes back to Light
       tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
@@ -211,7 +211,7 @@ void main() {
       expect(themeService.currentThemeSetting, equals(ThemeService.themeSystem));
       expect(themeService.effectiveBrightness, equals(Brightness.dark));
       expect(themeService.isDarkMode, isTrue);
-      expect(CC.background, equals(const Color(0xFF000000)));
+      expect(CC.background, equals(const Color(0xFF050505)));
     });
   });
 
@@ -231,7 +231,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Check section label and theme tile
-      expect(find.text("APPEARANCE"), findsOneWidget);
+      expect(find.text("Appearance"), findsWidgets);
       expect(find.text("Theme"), findsOneWidget);
       expect(find.text("System Default"), findsOneWidget);
 

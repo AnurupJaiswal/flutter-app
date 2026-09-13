@@ -35,7 +35,7 @@ class ChatDrawerSidebar extends GetView<ChatController> {
                     icon: Icon(Icons.close_rounded, color: CC.textSecondary, size: 18),
                     splashRadius: 16,
                     visualDensity: VisualDensity.compact,
-                    onPressed: () => Navigator.of(context).maybePop(),
+                    onPressed: () => _closeDrawer(context),
                   ),
                 ],
               ),
@@ -43,43 +43,18 @@ class ChatDrawerSidebar extends GetView<ChatController> {
 
             // 2. New Chat Action Button
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               child: CW.commonBtn(
                 title: "New Chat",
-                height: 40,
+                height: 42,
                 leadingImage: const Icon(Icons.add_rounded, size: 18, color: CC.whiteText),
                 onTap: () {
-                  Navigator.of(context).maybePop();
+                  _closeDrawer(context);
                   controller.startNewChat();
                 },
               ),
             ),
-
-            // 3. Search Chat History Field
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              child: CW.commonSearchField(
-                controller: controller.searchInputController,
-                hintText: "Search history...",
-                onChanged: (val) => controller.searchQuery.value = val,
-                suffixIcon: Obx(() {
-                  if (controller.searchQuery.value.isEmpty) {
-                    return const SizedBox.shrink();
-                  }
-                  return IconButton(
-                    icon: Icon(Icons.clear_rounded, size: 14, color: CC.grey),
-                    splashRadius: 14,
-                    padding: EdgeInsets.zero,
-                    onPressed: () {
-                      controller.searchInputController.clear();
-                      controller.searchQuery.value = '';
-                    },
-                  );
-                }),
-              ),
-            ),
-
-            Divider(color: CC.stroke, height: 12, thickness: 0.7),
+            8.height,
 
             // 4. Chronological Flat List
             Expanded(
@@ -191,24 +166,28 @@ class ChatDrawerSidebar extends GetView<ChatController> {
       return Container(
         margin: const EdgeInsets.only(bottom: 2),
         decoration: BoxDecoration(
-          color: isActive ? CC.tealSubtle : Colors.transparent,
-          borderRadius: BorderRadius.circular(6),
-          border: isActive
-              ? Border.all(color: CC.primary.withValues(alpha: 0.3), width: 0.7)
-              : null,
+          color: isActive
+              ? (CC.isDark ? Colors.white.withValues(alpha: 0.1) : CC.primary.withValues(alpha: 0.12))
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
         ),
         child: ListTile(
           dense: true,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
           visualDensity: const VisualDensity(horizontal: -2, vertical: -3),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          leading: Icon(
+            Icons.chat_bubble_outline_rounded,
+            size: 15,
+            color: isActive ? CC.primary : CC.textSecondary,
+          ),
           title: Text(
             session.title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TS.bodySmall(
-              color: isActive ? CC.primary : CC.textPrimary,
-              fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
+              color: isActive ? (CC.isDark ? CC.textPrimary : CC.primary) : CC.textPrimary,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
             ),
           ),
           trailing: PopupMenuButton<String>(
@@ -253,12 +232,22 @@ class ChatDrawerSidebar extends GetView<ChatController> {
             ],
           ),
           onTap: () {
-            Navigator.of(context).maybePop();
+            _closeDrawer(context);
             controller.openChat(session);
           },
         ),
       );
     });
+  }
+
+  void _closeDrawer(BuildContext context) {
+    try {
+      if (Scaffold.of(context).isDrawerOpen) {
+        Scaffold.of(context).closeDrawer();
+        return;
+      }
+    } catch (_) {}
+    Navigator.of(context).maybePop();
   }
 
   void _showRenameDialog(BuildContext context, ChatSessionModel session) {

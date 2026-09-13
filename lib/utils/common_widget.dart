@@ -35,13 +35,28 @@ class CW {
             padding: const EdgeInsets.symmetric(horizontal: 8),
             decoration: BoxDecoration(
               color: backgroundColor ?? CC.background,
+              border: Border(
+                bottom: BorderSide(
+                  color: CC.stroke.withValues(alpha: isDark ? 0.35 : 0.6),
+                  width: 1.0,
+                ),
+              ),
               boxShadow: [
                 BoxShadow(
                   color: isDark
-                      ? Colors.black.withValues(alpha: 0.4)
+                      ? Colors.black.withValues(alpha: 0.75)
+                      : Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                  spreadRadius: 0,
+                ),
+                BoxShadow(
+                  color: isDark
+                      ? Colors.black.withValues(alpha: 0.45)
                       : Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 8,
+                  blurRadius: 4,
                   offset: const Offset(0, 2),
+                  spreadRadius: 0,
                 ),
               ],
             ),
@@ -136,9 +151,16 @@ class CW {
         ),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.35) : Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: CC.isDark ? Colors.black.withValues(alpha: 0.25) : Colors.black.withValues(alpha: 0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+            spreadRadius: 0,
           ),
         ],
       ),
@@ -151,6 +173,8 @@ class CW {
         borderRadius: BorderRadius.circular(borderRadius),
         child: InkWell(
           onTap: onTap,
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
           borderRadius: BorderRadius.circular(borderRadius),
           child: cardChild,
         ),
@@ -173,6 +197,13 @@ class CW {
         color: CC.tealSubtle,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: CC.primary.withValues(alpha: 0.25), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: CC.isDark ? Colors.black.withValues(alpha: 0.35) : Colors.black.withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,7 +214,7 @@ class CW {
               color: CC.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: CC.primary, size: 20),
+            child: Icon(icon, color: CC.textPrimary, size: 20),
           ),
           14.width,
           Expanded(
@@ -425,281 +456,255 @@ class CW {
     );
   }
 
+  /// Universal and safe BottomSheet dismissal helper.
+  /// Guarantees that only the currently active BottomSheet is dismissed,
+  /// without popping or corrupting the underlying screen route stack.
+  static void dismissBottomSheet([BuildContext? sheetContext]) {
+    if (sheetContext != null && sheetContext.mounted) {
+      final modalRoute = ModalRoute.of(sheetContext);
+      if (modalRoute != null && modalRoute.isCurrent) {
+        Navigator.of(sheetContext).pop();
+        return;
+      }
+    }
+    if (Get.isBottomSheetOpen == true || Get.isDialogOpen == true) {
+      Get.back();
+      return;
+    }
+    if (sheetContext != null && sheetContext.mounted) {
+      final nav = Navigator.of(sheetContext, rootNavigator: false);
+      if (nav.canPop()) {
+        nav.pop();
+      }
+    }
+  }
+
   /// Custom BottomSheet System matching Manage Categories design standard
-  static void showCustomBottomSheet({
+  static Future<T?> showCustomBottomSheet<T>({
     required BuildContext context,
     required String title,
     required List<Widget> children,
     IconData? titleIcon,
     String? subtitle,
   }) {
-    Get.bottomSheet(
-      SafeArea(
-        child: Material(
-          color: CC.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Drag Handle
-                Center(
-                  child: Container(
-                    width: 36,
-                    height: 4,
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: CC.stroke,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-
-                // Header Bar (Surgically aligned to Manage Categories standard)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          if (titleIcon != null) ...[
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: CC.primary.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Icon(titleIcon, color: CC.primary, size: 18),
-                            ),
-                            10.width,
-                          ],
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  title,
-                                  style: TS.sectionTitle(
-                                    color: CC.textPrimary,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                if (subtitle != null && subtitle.isNotEmpty) ...[
-                                  4.height,
-                                  Text(
-                                    subtitle,
-                                    style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 12),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    12.width,
-                    GestureDetector(
-                      onTap: () => Get.back(),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: CC.isDark
-                              ? Colors.white.withValues(alpha: 0.1)
-                              : Colors.black.withValues(alpha: 0.05),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.close_rounded,
-                          color: CC.textPrimary,
-                          size: 18,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                16.height,
-
-                ...children,
-              ],
-            ),
-          ),
-        ),
-      ),
+    return showModalBottomSheet<T>(
+      context: context,
+      useRootNavigator: false,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Material(
+            color: CC.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Drag Handle
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: CC.stroke,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+
+                  // Header Bar (Surgically aligned to Manage Categories standard)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            if (titleIcon != null) ...[
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: CC.primary.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(titleIcon, color: CC.textPrimary, size: 18),
+                              ),
+                              10.width,
+                            ],
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    title,
+                                    style: TS.sectionTitle(
+                                      color: CC.textPrimary,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                  if (subtitle != null && subtitle.isNotEmpty) ...[
+                                    4.height,
+                                    Text(
+                                      subtitle,
+                                      style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 12),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      12.width,
+                      GestureDetector(
+                        onTap: () => dismissBottomSheet(sheetContext),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: CC.isDark
+                                ? Colors.white.withValues(alpha: 0.1)
+                                : Colors.black.withValues(alpha: 0.05),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.close_rounded,
+                            color: CC.textPrimary,
+                            size: 18,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  16.height,
+
+                  ...children,
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
   /// Reusable Logout Confirmation Bottom Sheet
-  static void showLogoutSheet({
+  static Future<T?> showLogoutSheet<T>({
     required BuildContext context,
     required VoidCallback onConfirm,
   }) {
-    Get.bottomSheet(
-      SafeArea(
-        child: Material(
-          color: CC.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Drag handle
-                Center(
-                  child: Container(
-                    width: 36,
-                    height: 4,
-                    margin: const EdgeInsets.only(bottom: 20),
-                    decoration: BoxDecoration(
-                      color: CC.stroke,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                // Icon
-                Container(
-                  width: 68,
-                  height: 68,
-                  decoration: BoxDecoration(
-                    color: CC.primary.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.logout_rounded, color: CC.primary, size: 32),
-                ),
-                20.height,
-                Text(
-                  "Log Out?",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: CC.textPrimary,
-                  ),
-                ),
-                10.height,
-                Text(
-                  "Are you sure you want to log out?\nYou'll need to sign in again to access your account.",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: CC.textSecondary,
-                    height: 1.5,
-                  ),
-                ),
-                28.height,
-                Row(
-                  children: [
-                    Expanded(
-                      child: CW.commonBtn(
-                        title: "Cancel",
-                        isOutlined: true,
-                        height: 48,
-                        onTap: () => Get.back(),
-                      ),
-                    ),
-                    12.width,
-                    Expanded(
-                      child: CW.commonBtn(
-                        title: "Log Out",
-                        height: 48,
-                        color: CC.primary,
-                        onTap: () {
-                          Get.back();
-                          onConfirm();
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+    return showModalBottomSheet<T>(
+      context: context,
+      useRootNavigator: false,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Material(
+            color: CC.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Drag handle
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 20),
+                      decoration: BoxDecoration(
+                        color: CC.stroke,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  // Icon
+                  Container(
+                    width: 68,
+                    height: 68,
+                    decoration: BoxDecoration(
+                      color: CC.primary.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.logout_rounded, color: CC.primary, size: 32),
+                  ),
+                  20.height,
+                  Text(
+                    "Log Out?",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: CC.textPrimary,
+                    ),
+                  ),
+                  10.height,
+                  Text(
+                    "Are you sure you want to log out?\nYou'll need to sign in again to access your account.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: CC.textSecondary,
+                      height: 1.5,
+                    ),
+                  ),
+                  28.height,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CW.commonBtn(
+                          title: "Cancel",
+                          isOutlined: true,
+                          height: 48,
+                          onTap: () => dismissBottomSheet(sheetContext),
+                        ),
+                      ),
+                      12.width,
+                      Expanded(
+                        child: CW.commonBtn(
+                          title: "Log Out",
+                          height: 48,
+                          color: CC.primary,
+                          onTap: () {
+                            dismissBottomSheet(sheetContext);
+                            onConfirm();
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
   /// Official Instagram Brand Icon
   static Widget instagramIcon({double size = 26}) {
-    final innerPadding = size * 0.18;
-    return Container(
+    return Image.asset(
+      'assets/icons/img_instagram.png',
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Color(0xFF833AB4),
-            Color(0xFFFD1D1D),
-            Color(0xFFFCB045),
-          ],
-          begin: Alignment.bottomLeft,
-          end: Alignment.topRight,
-        ),
-        borderRadius: BorderRadius.circular(size * 0.28),
-      ),
-      child: Center(
-        child: SizedBox(
-          width: size - innerPadding * 2,
-          height: size - innerPadding * 2,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(size * 0.16),
-                  border: Border.all(color: Colors.white, width: (size * 0.065).clamp(1.2, 3.0)),
-                ),
-              ),
-              Container(
-                width: size * 0.28,
-                height: size * 0.28,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: (size * 0.06).clamp(1.1, 2.8)),
-                ),
-              ),
-              Positioned(
-                top: size * 0.06,
-                right: size * 0.06,
-                child: Container(
-                  width: size * 0.07,
-                  height: size * 0.07,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      fit: BoxFit.contain,
     );
   }
 
   /// Official YouTube Brand Icon
   static Widget youtubeIcon({double size = 26}) {
-    return Container(
+    return Image.asset(
+      'assets/icons/img_youtube.png',
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        color: const Color(0xFFFF0000),
-        borderRadius: BorderRadius.circular(size * 0.26),
-      ),
-      child: Center(
-        child: Icon(
-          Icons.play_arrow_rounded,
-          color: Colors.white,
-          size: size * 0.72,
-        ),
-      ),
+      fit: BoxFit.contain,
     );
   }
 }

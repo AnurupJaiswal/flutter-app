@@ -44,7 +44,7 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView> {
                   _platformCard(
                     platform: "YouTube",
                     handle: "@alexcreators",
-                    brandIcon: CW.youtubeIcon(size: 28),
+                    brandIcon: CW.youtubeIcon(size: 40),
                     status: isYtConnected ? "Connected" : "Disconnected",
                     statusColor: isYtConnected ? CC.success : CC.error,
                     isConnected: isYtConnected,
@@ -56,7 +56,7 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView> {
                   _platformCard(
                     platform: "Instagram",
                     handle: "@alex_reels",
-                    brandIcon: CW.instagramIcon(size: 28),
+                    brandIcon: CW.instagramIcon(size: 40),
                     status: isIgConnected ? "Connected" : "Re-auth Required",
                     statusColor: isIgConnected ? CC.success : CC.insightful,
                     isConnected: isIgConnected,
@@ -95,11 +95,15 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView> {
       decoration: BoxDecoration(
         color: CC.surface,
         borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -168,11 +172,15 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView> {
       decoration: BoxDecoration(
         color: CC.surface,
         borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+            color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -184,7 +192,7 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView> {
               color: CC.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: CC.primary, size: 20),
+            child: Icon(icon, color: CC.textPrimary, size: 20),
           ),
           12.width,
           Expanded(

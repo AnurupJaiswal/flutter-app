@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:lala_ai/app/modules/settings/views/settings_view.dart';
 import 'package:lala_ai/app/routes/app_routes.dart';
 import 'package:lala_ai/utils/common_methods.dart';
+import 'package:lala_ai/utils/common_widget.dart';
 
 class AppNavigationService extends GetxService {
   static AppNavigationService get to => Get.find<AppNavigationService>();
@@ -81,18 +82,24 @@ class AppNavigationService extends GetxService {
 
   /// Android & iOS System Back Button Handler for MainContainer Shell
   Future<bool> handleSystemBack(int currentTabIndex, Function(int) onSwitchToDefaultTab) async {
-    // 1. If a dialog, bottom sheet, or modal is currently open, dismiss it first
-    if (Get.isDialogOpen == true || Get.isBottomSheetOpen == true) {
-      Get.back();
+    final currentKey = tabNavigatorKeys[currentTabIndex];
+
+    // 1. Check if the active tab's nested navigator can pop (pops attached BottomSheet or nested screen route)
+    if (currentKey?.currentState != null && currentKey!.currentState!.canPop()) {
+      currentKey.currentState!.pop();
+      return false; // Handled back gesture
+    }
+
+    // 2. Check if the Root Navigator (Get.key) has an open dialog/overlay route
+    final rootNav = Get.key.currentState;
+    if (rootNav != null && rootNav.canPop()) {
+      rootNav.pop();
       return false;
     }
 
-    final currentKey = tabNavigatorKeys[currentTabIndex];
-
-    // 2. Check if the current active tab's nested navigator can pop a nested screen
-    if (currentKey?.currentState != null && currentKey!.currentState!.canPop()) {
-      currentKey.currentState!.pop();
-      return false; // Do not exit app, nested route was popped
+    if (Get.isDialogOpen == true || Get.isBottomSheetOpen == true || Get.isOverlaysOpen == true) {
+      CW.dismissBottomSheet();
+      return false;
     }
 
     // 3. If at root of a non-default tab, switch back to Default Tab (Dashboard / Tab 0)

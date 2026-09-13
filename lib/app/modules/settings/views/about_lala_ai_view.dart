@@ -76,7 +76,7 @@ https://apps.apple.com/app/lala-ai/id123456789
                     child: Center(
                       child: Icon(
                         Icons.auto_awesome_rounded,
-                        color: CC.primary,
+                        color: CC.textPrimary,
                         size: 42,
                       ),
                     ),
@@ -147,13 +147,17 @@ https://apps.apple.com/app/lala-ai/id123456789
                     decoration: BoxDecoration(
                       color: CC.surface,
                       borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: CC.stroke.withValues(alpha: isDark ? 0.35 : 0.6),
+                        width: 1,
+                      ),
                       boxShadow: [
                         BoxShadow(
                           color: isDark
-                              ? Colors.black.withValues(alpha: 0.3)
-                              : Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
+                              ? Colors.black.withValues(alpha: 0.45)
+                              : Colors.black.withValues(alpha: 0.08),
+                          blurRadius: 14,
+                          offset: const Offset(0, 6),
                         ),
                       ],
                     ),
@@ -167,7 +171,7 @@ https://apps.apple.com/app/lala-ai/id123456789
                               color: CC.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Icon(Icons.language_rounded, color: CC.primary, size: 18),
+                            child: Icon(Icons.language_rounded, color: CC.textPrimary, size: 18),
                           ),
                           title: Text("Official Website", style: TS.bodySmall(color: CC.textPrimary, fontWeight: FontWeight.w600)),
                           subtitle: Text("https://lala.ai", style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11)),
@@ -190,7 +194,7 @@ https://apps.apple.com/app/lala-ai/id123456789
                               color: CC.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Icon(Icons.camera_alt_outlined, color: CC.primary, size: 18),
+                            child: Icon(Icons.camera_alt_outlined, color: CC.textPrimary, size: 18),
                           ),
                           title: Text("Instagram", style: TS.bodySmall(color: CC.textPrimary, fontWeight: FontWeight.w600)),
                           subtitle: Text("@lala.ai.official", style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11)),
@@ -213,7 +217,7 @@ https://apps.apple.com/app/lala-ai/id123456789
                               color: CC.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Icon(Icons.play_circle_outline_rounded, color: CC.primary, size: 18),
+                            child: Icon(Icons.play_circle_outline_rounded, color: CC.textPrimary, size: 18),
                           ),
                           title: Text("YouTube Channel", style: TS.bodySmall(color: CC.textPrimary, fontWeight: FontWeight.w600)),
                           subtitle: Text("Lala AI Official", style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11)),
@@ -319,13 +323,17 @@ https://apps.apple.com/app/lala-ai/id123456789
       decoration: BoxDecoration(
         color: CC.surface,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: CC.stroke.withValues(alpha: isDark ? 0.35 : 0.6),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
             color: isDark
-                ? Colors.black.withValues(alpha: 0.3)
-                : Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+                ? Colors.black.withValues(alpha: 0.45)
+                : Colors.black.withValues(alpha: 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -339,7 +347,7 @@ https://apps.apple.com/app/lala-ai/id123456789
               color: CC.primary.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: CC.primary, size: 18),
+            child: Icon(icon, color: CC.textPrimary, size: 18),
           ),
           14.width,
           Expanded(
@@ -381,13 +389,17 @@ https://apps.apple.com/app/lala-ai/id123456789
       decoration: BoxDecoration(
         color: CC.surface,
         borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: CC.stroke.withValues(alpha: isDark ? 0.35 : 0.6),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
             color: isDark
-                ? Colors.black.withValues(alpha: 0.25)
-                : Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+                ? Colors.black.withValues(alpha: 0.4)
+                : Colors.black.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -400,7 +412,7 @@ https://apps.apple.com/app/lala-ai/id123456789
               color: CC.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: CC.primary, size: 20),
+            child: Icon(icon, color: CC.textPrimary, size: 20),
           ),
           14.width,
           Expanded(

@@ -23,31 +23,30 @@ class CC {
   static const Color lightError = Color(0xFFCC1F29);
   static const Color lightSuccess = Color(0xFF1E800E);
   static const Color lightInsightful = Color(0xFF966E00);
-
-  // -------------------------------------------------------------
-  // 2. Raw Approved Dark Mode Colors
-  // -------------------------------------------------------------
   static const Color darkPrimary = Color(0xFF00AFBE);
   static const Color darkSecondary = Color(0xFFE0E0E0);
   static const Color darkBackground = Color(0xFF000000);
   static const Color darkBg = Color(0xFF000000);
   static const Color darkBg2 = Color(0xFF101010);
-  static const Color darkSurface = Color(0xFF181818);
-  static const Color darkComment = Color(0xFF181818);
-  static const Color darkSearch = Color(0xFF181818);
+  static const Color darkSurface = Color(0xFF1C1C1E);
+  static const Color darkComment = Color(0xFF1C1C1E);
+  static const Color darkSearch = Color(0xFF1C1C1E);
   static const Color darkDisabled = Color(0xFF515151);
   static const Color darkPrimaryText = Color(0xFFFBFBFB);
   static const Color darkTextPrimary = Color(0xFFFBFBFB);
   static const Color darkSecondaryText = Color(0xFFC7C7C7);
   static const Color darkTextSecondary = Color(0xFFC7C7C7);
-  static const Color darkMutedText = Color(0xFF808080);
+  static const Color darkMutedText = Color(0xFF8D8D8D);
   static const Color darkDisabledText = Color(0xFF515151);
   static const Color darkStroke = Color(0xFF515151);
   static const Color darkCommentStroke = Color(0xFF333333);
-  static const Color darkNotification = Color(0xFFE35151);
+  static const Color darkNotification = Color(0xFFCDFBFF);
   static const Color darkError = Color(0xFFFF000F);
   static const Color darkSuccess = Color(0xFF1CB403);
   static const Color darkInsightful = Color(0xFFFFB300);
+  static const Color darkBottomSheet = Color(0xFF0B1E1C);
+  static const Color darkPopUpBack = Color(0xFF262626);
+  static const Color darkMessageSender = Color(0xFF3D3D3D);
 
   // -------------------------------------------------------------
   // 3. Fixed / Immutable Values

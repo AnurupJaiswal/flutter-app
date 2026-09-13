@@ -1,6 +1,8 @@
 // ignore_for_file: constant_identifier_names
 
 import 'package:get/get.dart';
+import 'package:lala_ai/app/modules/analytics/bindings/analytics_binding.dart';
+import 'package:lala_ai/app/modules/analytics/views/analytics_view.dart';
 import 'package:lala_ai/app/modules/authentication/bindings/auth_binding.dart';
 import 'package:lala_ai/app/modules/authentication/views/authentication_view.dart';
 import 'package:lala_ai/app/modules/calendar/views/calendar_view.dart';
@@ -79,6 +81,12 @@ class AppPages {
     GetPage(
       name: Routes.COMPETITOR,
       page: () => const CompetitorView(),
+      transition: Transition.rightToLeftWithFade,
+    ),
+    GetPage(
+      name: Routes.ANALYTICS,
+      page: () => const AnalyticsView(),
+      binding: AnalyticsBinding(),
       transition: Transition.rightToLeftWithFade,
     ),
     GetPage(

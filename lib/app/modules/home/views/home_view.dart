@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lala_ai/utils/app_toast.dart';
+import 'package:lala_ai/app/modules/analytics/views/analytics_view.dart';
 import 'package:lala_ai/app/modules/home/controllers/home_controller.dart';
 import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
@@ -28,7 +29,7 @@ class HomeView extends GetView<HomeController> {
                     color: CC.primary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.auto_awesome_rounded, color: CC.primary, size: 16),
+                  child: Icon(Icons.auto_awesome_rounded, color: CC.textPrimary, size: 16),
                 ),
                 8.width,
                 Text("Lala Ai", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 16)),
@@ -82,13 +83,17 @@ class HomeView extends GetView<HomeController> {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: CC.surface,
+        color: CC.isDark ? const Color(0xFF101010) : CC.surface,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+            color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -136,7 +141,7 @@ class HomeView extends GetView<HomeController> {
             color: CC.primary.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(14),
           ),
-          child: Icon(Icons.auto_awesome_rounded, color: CC.primary, size: 24),
+          child: Icon(Icons.auto_awesome_rounded, color: CC.textPrimary, size: 24),
         ),
         12.width,
         Expanded(
@@ -171,7 +176,7 @@ class HomeView extends GetView<HomeController> {
                   ),
                   6.width,
                 ] else ...[
-                  Icon(Icons.sync_rounded, color: CC.primary, size: 14),
+                  Icon(Icons.sync_rounded, color: CC.textPrimary, size: 14),
                   4.width,
                 ],
                 Text(
@@ -187,11 +192,11 @@ class HomeView extends GetView<HomeController> {
   }
 
   // Brand icon widgets
-  static Widget _youtubeLogo({double size = 22}) {
+  static Widget _youtubeLogo({double size = 40}) {
     return CW.youtubeIcon(size: size);
   }
 
-  static Widget _instagramLogo({double size = 22}) {
+  static Widget _instagramLogo({double size = 40}) {
     return CW.instagramIcon(size: size);
   }
 
@@ -203,7 +208,7 @@ class HomeView extends GetView<HomeController> {
         12.height,
         _buildPlatformCard(
           platform: "YouTube",
-          brandIcon: _youtubeLogo(size: 22),
+          brandIcon: _youtubeLogo(size: 40),
           iconBg: const Color(0xFFFF0000),
           isConnected: controller.isYoutubeConnected.value,
           handle: "@alexcreators",
@@ -212,7 +217,7 @@ class HomeView extends GetView<HomeController> {
         10.height,
         _buildPlatformCard(
           platform: "Instagram",
-          brandIcon: _instagramLogo(size: 22),
+          brandIcon: _instagramLogo(size: 40),
           iconBg: const Color(0xFFE1306C),
           isConnected: controller.isInstagramConnected.value,
           handle: "@alex_reels",
@@ -241,24 +246,16 @@ class HomeView extends GetView<HomeController> {
         ),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Row(
         children: [
           // Platform icon
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: iconBg.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(child: brandIcon),
-          ),
+          brandIcon,
           14.width,
           // Info
           Expanded(
@@ -326,107 +323,142 @@ class HomeView extends GetView<HomeController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text("Channel Health Audit", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 16)),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: CC.primary.withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                "Optimal",
-                style: TS.caption(color: CC.primary, fontWeight: FontWeight.w700).copyWith(fontSize: 11),
-              ),
-            ),
-          ],
+        Builder(
+          builder: (context) {
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("Channel Health Audit", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 16)),
+                GestureDetector(
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AnalyticsView())),
+                  child: Row(
+                    children: [
+                      Text("View Analytics", style: TS.caption(color: CC.primary, fontWeight: FontWeight.w700)),
+                      4.width,
+                      Icon(Icons.arrow_forward_ios_rounded, size: 11, color: CC.primary),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }
         ),
         12.height,
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: CC.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: CC.isDark ? Colors.black.withValues(alpha: 0.35) : Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  // Circular score meter
-                  Obx(() => Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      SizedBox(
-                        width: 72,
-                        height: 72,
-                        child: CircularProgressIndicator(
-                          value: controller.healthScore.value / 100,
-                          strokeWidth: 7,
-                          backgroundColor: CC.primary.withValues(alpha: 0.12),
-                          color: CC.primary,
-                          strokeCap: StrokeCap.round,
-                        ),
-                      ),
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            "${controller.healthScore.value}",
-                            style: TS.sectionTitle(color: CC.textPrimary, fontSize: 20),
-                          ),
-                          Text(
-                            "/100",
-                            style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 10),
-                          ),
-                        ],
-                      ),
-                    ],
-                  )),
-                  18.width,
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+        Builder(
+          builder: (context) {
+            return InkWell(
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AnalyticsView())),
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: CC.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 14,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        Obx(() => Text("Health Score: ${controller.healthScore.value}%", style: TS.bodySmall(color: CC.textPrimary, fontWeight: FontWeight.w700))),
-                        4.height,
-                        Text(
-                          "Your overall channel engagement & reach is performing 14% higher than last week.",
-                          style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11, height: 1.3),
+                        // Circular score meter
+                        Obx(() => Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            SizedBox(
+                              width: 72,
+                              height: 72,
+                              child: CircularProgressIndicator(
+                                value: controller.healthScore.value / 100,
+                                strokeWidth: 7,
+                                backgroundColor: CC.primary.withValues(alpha: 0.12),
+                                color: CC.primary,
+                                strokeCap: StrokeCap.round,
+                              ),
+                            ),
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  "${controller.healthScore.value}",
+                                  style: TS.sectionTitle(color: CC.textPrimary, fontSize: 20),
+                                ),
+                                Text(
+                                  "/100",
+                                  style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 10),
+                                ),
+                              ],
+                            ),
+                          ],
+                        )),
+                        18.width,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Obx(() => Text("Health Score: ${controller.healthScore.value}%", style: TS.bodySmall(color: CC.textPrimary, fontWeight: FontWeight.w700))),
+                              4.height,
+                              Text(
+                                "Your overall channel engagement & reach is performing 14% higher than last week.",
+                                style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11, height: 1.3),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                ],
+                    16.height,
+                    Divider(height: 1, color: CC.stroke),
+                    14.height,
+                    // Quick Stats Row
+                    Obx(() => Row(
+                      children: [
+                        Expanded(child: _statItem("Subscribers", controller.subscribersCount.value, "+340", Icons.people_outline_rounded)),
+                        Container(width: 1, height: 36, color: CC.stroke),
+                        Expanded(child: _statItem("Avg Views", controller.viewsCount.value, "+18%", Icons.play_arrow_outlined)),
+                        Container(width: 1, height: 36, color: CC.stroke),
+                        Expanded(child: _statItem("Engagement", controller.engagementRate.value, "High", Icons.bolt_rounded)),
+                      ],
+                    )),
+                    14.height,
+
+                    // Action button bar to Analytics
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 9),
+                      decoration: BoxDecoration(
+                        color: CC.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.bar_chart_rounded, size: 15, color: CC.primary),
+                          6.width,
+                          Text(
+                            "Open Full Channel Analytics & Audit",
+                            style: TS.caption(color: CC.primary, fontWeight: FontWeight.w700).copyWith(fontSize: 12),
+                          ),
+                          4.width,
+                          Icon(Icons.chevron_right_rounded, size: 16, color: CC.primary),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              16.height,
-              Divider(height: 1, color: CC.stroke),
-              14.height,
-              // Quick Stats Row
-              Obx(() => Row(
-                children: [
-                  Expanded(child: _statItem("Subscribers", controller.subscribersCount.value, "+340", Icons.people_outline_rounded)),
-                  Container(width: 1, height: 36, color: CC.stroke),
-                  Expanded(child: _statItem("Avg Views", controller.viewsCount.value, "+18%", Icons.play_arrow_outlined)),
-                  Container(width: 1, height: 36, color: CC.stroke),
-                  Expanded(child: _statItem("Engagement", controller.engagementRate.value, "High", Icons.bolt_rounded)),
-                ],
-              )),
-            ],
-          ),
+            );
+          }
         ),
       ],
     );
@@ -438,7 +470,7 @@ class HomeView extends GetView<HomeController> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 14, color: CC.primary),
+            Icon(icon, size: 14, color: CC.textPrimary),
             4.width,
             Text(value, style: TS.sectionTitle(color: CC.textPrimary, fontSize: 15)),
           ],
@@ -486,7 +518,7 @@ class HomeView extends GetView<HomeController> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text("SWOT Audit", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 16)),
-            Icon(Icons.analytics_outlined, color: CC.primary, size: 20),
+            Icon(Icons.analytics_outlined, color: CC.textPrimary, size: 20),
           ],
         ),
         12.height,
@@ -545,9 +577,9 @@ class HomeView extends GetView<HomeController> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: CC.isDark ? Colors.black.withValues(alpha: 0.35) : Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+                      color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 14,
+                      offset: const Offset(0, 6),
                     ),
                   ],
                 ),
@@ -560,7 +592,7 @@ class HomeView extends GetView<HomeController> {
                         color: CC.primary.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(item['icon'] as IconData, color: CC.primary, size: 20),
+                      child: Icon(item['icon'] as IconData, color: CC.textPrimary, size: 20),
                     ),
                     14.width,
                     Expanded(
@@ -617,13 +649,28 @@ class HomeView extends GetView<HomeController> {
           final done = controller.toDoItems.where((i) => (i['isDone'] as bool)).length;
           final total = controller.toDoItems.isEmpty ? 1 : controller.toDoItems.length;
           final progress = done / total;
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 4,
-              backgroundColor: CC.primary.withValues(alpha: 0.12),
-              color: CC.primary,
+          return Container(
+            height: 6,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: CC.primary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Align(
+                  alignment: Alignment.centerLeft,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    width: constraints.maxWidth * progress,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: CC.primary,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                );
+              },
             ),
           );
         }),
@@ -647,9 +694,9 @@ class HomeView extends GetView<HomeController> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: CC.isDark ? Colors.black.withValues(alpha: 0.35) : Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+                    color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 14,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
@@ -836,9 +883,9 @@ class HomeView extends GetView<HomeController> {
         ),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -878,9 +925,9 @@ class HomeView extends GetView<HomeController> {
         ),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -948,7 +995,7 @@ class HomeView extends GetView<HomeController> {
         // YouTube Connection Card
         _platformConnectCard(
           platform: "YouTube",
-          brandIcon: _youtubeLogo(size: 22),
+          brandIcon: _youtubeLogo(size: 40),
           iconBg: const Color(0xFFFF0000),
           handle: "@alexcreators",
           status: controller.isYoutubeConnected.value ? "Connected" : "Disconnected",
@@ -961,7 +1008,7 @@ class HomeView extends GetView<HomeController> {
         // Instagram Connection Card
         _platformConnectCard(
           platform: "Instagram",
-          brandIcon: _instagramLogo(size: 22),
+          brandIcon: _instagramLogo(size: 40),
           iconBg: const Color(0xFFE1306C),
           handle: "@alex_reels",
           status: controller.isInstagramConnected.value ? "Connected" : "Re-auth Required",
@@ -1000,9 +1047,9 @@ class HomeView extends GetView<HomeController> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -1012,15 +1059,7 @@ class HomeView extends GetView<HomeController> {
           Row(
             children: [
               // Platform icon
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: iconBg.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(child: brandIcon),
-              ),
+              brandIcon,
               12.width,
               Expanded(
                 child: Column(
@@ -1091,9 +1130,9 @@ class HomeView extends GetView<HomeController> {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+            color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -1105,7 +1144,7 @@ class HomeView extends GetView<HomeController> {
               color: CC.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: CC.primary, size: 20),
+            child: Icon(icon, color: CC.textPrimary, size: 20),
           ),
           12.width,
           Expanded(

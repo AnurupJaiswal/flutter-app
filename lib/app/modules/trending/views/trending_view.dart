@@ -36,13 +36,17 @@ class TrendingView extends GetView<TrendingController> {
                   Obx(() => Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: CC.surface,
+                      color: CC.isDark ? const Color(0xFF101010) : CC.surface,
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+                        width: 1,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: CC.isDark ? Colors.black.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
+                          color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.08),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
@@ -178,7 +182,7 @@ class TrendingView extends GetView<TrendingController> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: CC.primary),
+          Icon(icon, size: 14, color: CC.textPrimary),
           6.width,
           Text(label, style: TS.caption(color: CC.textPrimary, fontWeight: FontWeight.w600)),
         ],
@@ -198,9 +202,9 @@ class TrendingView extends GetView<TrendingController> {
         ),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -252,7 +256,7 @@ class TrendingView extends GetView<TrendingController> {
               ),
               8.width,
               IconButton(
-                icon: Icon(Icons.notifications_active_outlined, color: CC.primary, size: 18),
+                icon: Icon(Icons.notifications_active_outlined, color: CC.textPrimary, size: 18),
                 tooltip: "Save as Alert",
                 onPressed: () => _showCreateAlertSheet(context, initialTopic: trend.title),
               ),
@@ -310,9 +314,9 @@ class TrendingView extends GetView<TrendingController> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+                    color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 14,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
@@ -530,10 +534,10 @@ class TrendingView extends GetView<TrendingController> {
               type: selectedType.value,
               sensitivity: selectedSensitivity.value,
             );
-            Get.back();
+            CW.dismissBottomSheet();
           },
         ),
       ],
-    );
+    ).then((_) => titleCtrl.dispose());
   }
 }

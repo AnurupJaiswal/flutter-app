@@ -34,23 +34,10 @@ class ChatHomeView extends GetView<ChatController> {
                   onPressed: () => Scaffold.of(scaffoldContext).openDrawer(),
                 ),
               ),
-        titleWidget: Row(
-          children: [
-            CW.aiAvatar(size: 24, isAssistant: true),
-            8.width,
-            Expanded(
-              child: Obx(() => Text(
-                    controller.activeChat.value?.title ?? "Lala Ai",
-                    style: TS.sectionTitle(fontSize: 16),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  )),
-            ),
-          ],
-        ),
+        titleWidget: const SizedBox.shrink(),
         actions: [
           IconButton(
-            icon: Icon(Icons.add_comment_outlined, color: CC.primary, size: 18),
+            icon: Icon(Icons.add_comment_outlined, color: CC.textPrimary, size: 18),
             splashRadius: 18,
             tooltip: "New Chat",
             onPressed: controller.startNewChat,
@@ -86,7 +73,7 @@ class ChatHomeView extends GetView<ChatController> {
                                   ),
                                   child: Icon(
                                     Icons.auto_awesome_rounded,
-                                    color: CC.primary,
+                                    color: CC.textPrimary,
                                     size: 18,
                                   ),
                                 ),
@@ -263,7 +250,7 @@ class ChatHomeView extends GetView<ChatController> {
                     color: CC.primary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.arrow_forward_rounded, size: 14, color: CC.primary),
+                  child: Icon(Icons.arrow_forward_rounded, size: 14, color: CC.textPrimary),
                 ),
                 12.width,
                 Expanded(

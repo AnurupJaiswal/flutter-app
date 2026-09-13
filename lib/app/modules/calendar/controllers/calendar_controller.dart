@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:lala_ai/utils/app_toast.dart';
+import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
@@ -9,9 +10,14 @@ import 'package:lala_ai/utils/theme/text_style.dart';
 class CalendarController extends GetxController {
   final isGridView = false.obs;
 
-  // Real DateTime tracking for current display month and selected date
-  final selectedDate = Rx<DateTime>(DateTime(2026, 9, 9));
-  final currentDisplayMonth = Rx<DateTime>(DateTime(2026, 9, 1));
+  static DateTime get _todayDate {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day);
+  }
+
+  // Real DateTime tracking initialized to today's date
+  late final selectedDate = Rx<DateTime>(_todayDate);
+  late final currentDisplayMonth = Rx<DateTime>(DateTime(_todayDate.year, _todayDate.month, 1));
   final selectedFilter = "All Posts".obs;
 
   final filterOptions = const [
@@ -42,25 +48,42 @@ class CalendarController extends GetxController {
     return "${_monthNames[d.month - 1]} ${d.year}";
   }
 
-  // Dynamic weekly days calculation for selected date
+  String get selectedDateFormatted {
+    final d = selectedDate.value;
+    return "${_monthNames[d.month - 1]} ${d.day}";
+  }
+
+  bool _hasPostOnDate(DateTime date) {
+    return todayPosts.any((p) {
+      final d = p["date"] as DateTime?;
+      return d != null && d.year == date.year && d.month == date.month && d.day == date.day;
+    }) || upcomingPosts.any((p) {
+      final d = p["date"] as DateTime?;
+      return d != null && d.year == date.year && d.month == date.month && d.day == date.day;
+    });
+  }
+
+  // Dynamic days calculation for all days of the current display month
   List<Map<String, dynamic>> get daysList {
     final dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    final base = selectedDate.value;
-    final sunday = base.subtract(Duration(days: base.weekday % 7));
+    final displayMonth = currentDisplayMonth.value;
+    final totalDays = DateUtils.getDaysInMonth(displayMonth.year, displayMonth.month);
 
-    return List.generate(7, (i) {
-      final date = sunday.add(Duration(days: i));
+    return List.generate(totalDays, (i) {
+      final dayNum = i + 1;
+      final date = DateTime(displayMonth.year, displayMonth.month, dayNum);
       final isSelected = date.year == selectedDate.value.year &&
           date.month == selectedDate.value.month &&
           date.day == selectedDate.value.day;
+      final hasPost = _hasPostOnDate(date);
 
       return {
         "day": dayNames[date.weekday % 7],
         "date": date.day,
         "fullDate": date,
         "isSelected": isSelected,
-        "hasDot": (date.day % 2 == 1),
-        "dotColor": date.day % 3 == 0 ? "amber" : "teal",
+        "hasDot": hasPost,
+        "dotColor": "teal",
       };
     });
   }
@@ -74,7 +97,7 @@ class CalendarController extends GetxController {
       "aiTime": "AI Suggested Peak Time",
       "aiIconType": "sparkle",
       "status": "Scheduled",
-      "date": DateTime(2026, 9, 9),
+      "date": DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day),
       "caption": "Here are 10 powerful AI prompts that will automate your content research, scripting, and editing workflow in 2026! Save this reel and steal these prompts for your next video.",
       "hashtags": "#AITools #ContentCreator #Productivity #Shorts #LalaAI #CreatorTools",
     },
@@ -121,7 +144,17 @@ class CalendarController extends GetxController {
 
   List<Map<String, dynamic>> get filteredTodayPosts {
     final filter = selectedFilter.value;
+    final selDate = selectedDate.value;
+
     return todayPosts.where((post) {
+      final postDate = post["date"] as DateTime?;
+      if (postDate != null) {
+        final sameDate = postDate.year == selDate.year &&
+            postDate.month == selDate.month &&
+            postDate.day == selDate.day;
+        if (!sameDate) return false;
+      }
+
       if (filter == "All Posts") return true;
       if (filter == "Scheduled") return post["status"] == "Scheduled";
       if (filter == "Drafts") return post["status"] == "Draft";
@@ -133,7 +166,17 @@ class CalendarController extends GetxController {
 
   List<Map<String, dynamic>> get filteredUpcomingPosts {
     final filter = selectedFilter.value;
+    final selDate = selectedDate.value;
+
     return upcomingPosts.where((post) {
+      final postDate = post["date"] as DateTime?;
+      if (postDate != null) {
+        final sameDate = postDate.year == selDate.year &&
+            postDate.month == selDate.month &&
+            postDate.day == selDate.day;
+        if (sameDate) return false; // Already in selected date's posts
+      }
+
       if (filter == "All Posts") return true;
       if (filter == "Scheduled") return post["status"] == "Scheduled";
       if (filter == "Drafts") return post["status"] == "Draft";
@@ -143,23 +186,57 @@ class CalendarController extends GetxController {
     }).toList();
   }
 
+  final scrollController = ScrollController();
+
+  @override
+  void onInit() {
+    super.onInit();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      scrollToSelectedDate(animate: false);
+    });
+  }
+
+  @override
+  void onClose() {
+    scrollController.dispose();
+    super.onClose();
+  }
+
+  void scrollToSelectedDate({bool animate = true}) {
+    if (!scrollController.hasClients) return;
+    final dayIndex = selectedDate.value.day - 1;
+    final targetOffset = (dayIndex * 50.0 - 60.0).clamp(0.0, scrollController.position.maxScrollExtent);
+    if (animate) {
+      scrollController.animateTo(
+        targetOffset,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutCubic,
+      );
+    } else {
+      scrollController.jumpTo(targetOffset);
+    }
+  }
+
   void previousMonth() {
     final curr = currentDisplayMonth.value;
     final prev = DateTime(curr.year, curr.month - 1, 1);
     currentDisplayMonth.value = prev;
-    selectedDate.value = DateTime(prev.year, prev.month, 9);
+    selectedDate.value = DateTime(prev.year, prev.month, 1);
+    scrollToSelectedDate(animate: true);
   }
 
   void nextMonth() {
     final curr = currentDisplayMonth.value;
     final next = DateTime(curr.year, curr.month + 1, 1);
     currentDisplayMonth.value = next;
-    selectedDate.value = DateTime(next.year, next.month, 9);
+    selectedDate.value = DateTime(next.year, next.month, 1);
+    scrollToSelectedDate(animate: true);
   }
 
   void selectDay(DateTime date) {
     selectedDate.value = date;
     currentDisplayMonth.value = DateTime(date.year, date.month, 1);
+    scrollToSelectedDate(animate: true);
   }
 
   void selectFilter(String filter) {
@@ -214,16 +291,17 @@ class CalendarController extends GetxController {
   void _showCopiedPreviewSheet(BuildContext context, String title, String copiedContent) {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: false,
       isScrollControlled: true,
       backgroundColor: CC.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) {
+      builder: (sheetContext) {
         return Container(
           padding: const EdgeInsets.all(20),
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.7,
+            maxHeight: MediaQuery.of(sheetContext).size.height * 0.7,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -264,7 +342,7 @@ class CalendarController extends GetxController {
                     ],
                   ),
                   GestureDetector(
-                    onTap: () => Get.back(),
+                    onTap: () => CW.dismissBottomSheet(sheetContext),
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -311,7 +389,7 @@ class CalendarController extends GetxController {
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton(
-                  onPressed: () => Get.back(),
+                  onPressed: () => CW.dismissBottomSheet(sheetContext),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: CC.primary,
                     foregroundColor: Colors.white,

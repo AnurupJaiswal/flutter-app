@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lala_ai/app/modules/analytics/views/analytics_view.dart';
 import 'package:lala_ai/app/modules/category_insights/views/category_insights_view.dart';
 import 'package:lala_ai/app/modules/competitor/views/competitor_view.dart';
 import 'package:lala_ai/app/modules/connect_accounts/views/connect_accounts_view.dart';
@@ -55,10 +56,10 @@ class ProfileView extends StatelessWidget {
                       boxShadow: [
                         BoxShadow(
                           color: CC.isDark
-                              ? Colors.black.withValues(alpha: 0.4)
-                              : Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                              ? Colors.black.withValues(alpha: 0.45)
+                              : Colors.black.withValues(alpha: 0.08),
+                          blurRadius: 14,
+                          offset: const Offset(0, 6),
                         ),
                       ],
                     ),
@@ -128,7 +129,7 @@ class ProfileView extends StatelessWidget {
                               color: CC.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Icon(Icons.edit_rounded, color: CC.primary, size: 16),
+                            child: Icon(Icons.edit_rounded, color: CC.textPrimary, size: 16),
                           ),
                         ),
                       ],
@@ -152,6 +153,10 @@ class ProfileView extends StatelessWidget {
 
                   // ── Creator Tools & Account ────────────────────────────────
                   Text("Creator Tools & Account", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 14)),
+                  10.height,
+                  _actionTile("Channel Analytics & Audit", "Deep-dive performance, reach & engagement analytics", Icons.bar_chart_rounded, () {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AnalyticsView()));
+                  }),
                   10.height,
                   _actionTile("Connect Channels", "Manage YouTube & Instagram accounts", Icons.link_rounded, () {
                     Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ConnectAccountsView()));
@@ -195,9 +200,9 @@ class ProfileView extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -210,7 +215,7 @@ class ProfileView extends StatelessWidget {
               color: CC.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: CC.primary, size: 16),
+            child: Icon(icon, color: CC.textPrimary, size: 16),
           ),
           8.height,
           Text(val, style: TS.sectionTitle(color: CC.textPrimary, fontSize: 16)),
@@ -232,9 +237,9 @@ class ProfileView extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -249,7 +254,7 @@ class ProfileView extends StatelessWidget {
               color: CC.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: CC.primary, size: 20),
+            child: Icon(icon, color: CC.textPrimary, size: 20),
           ),
           title: Text(title, style: TS.bodySmall(color: CC.textPrimary, fontWeight: FontWeight.w600)),
           subtitle: Text(subtitle, style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11)),

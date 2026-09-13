@@ -65,9 +65,10 @@ class _PixoOverlayWidgetState extends State<PixoOverlayWidget>
   void _openVoiceDialog() {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: false,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => _VoiceSheet(onDone: () => Navigator.pop(context)),
+      builder: (sheetContext) => _VoiceSheet(onDone: () => CW.dismissBottomSheet(sheetContext)),
     );
   }
 

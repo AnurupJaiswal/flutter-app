@@ -39,13 +39,17 @@ class StudioView extends GetView<StudioController> {
                   Obx(() => Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: CC.surface,
+                      color: CC.isDark ? const Color(0xFF101010) : CC.surface,
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+                        width: 1,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: CC.isDark ? Colors.black.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
+                          color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.08),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
@@ -117,9 +121,9 @@ class StudioView extends GetView<StudioController> {
             ),
             boxShadow: [
               BoxShadow(
-                color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+                color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+                blurRadius: 14,
+                offset: const Offset(0, 6),
               ),
             ],
           ),
@@ -178,9 +182,9 @@ class StudioView extends GetView<StudioController> {
             ),
             boxShadow: [
               BoxShadow(
-                color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+                color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+                blurRadius: 14,
+                offset: const Offset(0, 6),
               ),
             ],
           ),
@@ -292,9 +296,9 @@ class StudioView extends GetView<StudioController> {
             ),
             boxShadow: [
               BoxShadow(
-                color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+                color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+                blurRadius: 14,
+                offset: const Offset(0, 6),
               ),
             ],
           ),
@@ -343,9 +347,9 @@ class StudioView extends GetView<StudioController> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+                    color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 14,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
@@ -357,7 +361,7 @@ class StudioView extends GetView<StudioController> {
                       color: CC.primary.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(Icons.auto_awesome_rounded, color: CC.primary, size: 18),
+                    child: Icon(Icons.auto_awesome_rounded, color: CC.textPrimary, size: 18),
                   ),
                   12.width,
                   Expanded(child: Text(hook, style: TS.bodySmall(color: CC.textPrimary))),

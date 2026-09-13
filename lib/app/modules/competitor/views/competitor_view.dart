@@ -81,7 +81,7 @@ class _CompetitorViewState extends State<CompetitorView> {
                               color: CC.primary.withValues(alpha: 0.12),
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(Icons.person_outline_rounded, color: CC.primary, size: 24),
+                            child: Icon(Icons.person_outline_rounded, color: CC.textPrimary, size: 24),
                           ),
                           12.width,
                           Expanded(
@@ -229,7 +229,7 @@ class _CompetitorViewState extends State<CompetitorView> {
               color: CC.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: CC.primary, size: 16),
+            child: Icon(icon, color: CC.textPrimary, size: 16),
           ),
           8.height,
           Text(val, style: TS.sectionTitle(color: CC.textPrimary, fontSize: 15)),
