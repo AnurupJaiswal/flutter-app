@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:lala_ai/app/modules/profile/views/edit_profile_view.dart';
 import 'package:lala_ai/app/modules/settings/controllers/settings_controller.dart';
 import 'package:lala_ai/app/modules/settings/views/about_lala_ai_view.dart';
+import 'package:lala_ai/app/modules/settings/views/change_password_view.dart';
 import 'package:lala_ai/app/modules/settings/views/faq_view.dart';
 import 'package:lala_ai/app/routes/app_routes.dart';
 import 'package:lala_ai/services/app_review_service.dart';
@@ -74,6 +75,17 @@ class SettingsView extends GetView<SettingsController> {
                     title: "Subscription Details",
                     subtitle: "View current plan & active benefits",
                     onTap: () => _showPlanDetailsBottomSheet(context),
+                  ),
+                  _divider(),
+                  _navTile(
+                    icon: Icons.lock_outline_rounded,
+                    title: "Change Password",
+                    subtitle: "Update your account password securely",
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const ChangePasswordView(),
+                      ),
+                    ),
                   ),
                 ]),
 

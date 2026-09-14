@@ -7,6 +7,8 @@ import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
 import 'package:lala_ai/utils/theme/theme_service.dart';
 
+import 'package:lala_ai/app/modules/home/controllers/home_controller.dart';
+
 class ConnectAccountsView extends StatefulWidget {
   const ConnectAccountsView({super.key});
 
@@ -15,8 +17,13 @@ class ConnectAccountsView extends StatefulWidget {
 }
 
 class _ConnectAccountsViewState extends State<ConnectAccountsView> {
-  bool isYtConnected = true;
-  bool isIgConnected = true;
+  final HomeController _homeController = Get.find<HomeController>();
+
+  bool get isYtConnected => _homeController.isYoutubeConnected.value;
+  set isYtConnected(bool v) => _homeController.isYoutubeConnected.value = v;
+
+  bool get isIgConnected => _homeController.isInstagramConnected.value;
+  set isIgConnected(bool v) => _homeController.isInstagramConnected.value = v;
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +155,11 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView> {
                   title: isConnected ? "Sync Now" : "Connect Account",
                   isOutlined: true,
                   onTap: () {
-                    AppToast.info("Syncing channel analytics with Lala AI...");
+                    if (isConnected) {
+                      AppToast.info("Syncing channel analytics with Lala AI...");
+                    } else {
+                      onToggle();
+                    }
                   },
                 ),
               ),

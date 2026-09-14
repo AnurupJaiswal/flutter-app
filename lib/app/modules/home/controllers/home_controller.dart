@@ -12,9 +12,9 @@ class HomeController extends GetxController {
   final activeTab = DashboardTab.overview.obs;
   
   // Data State Flags (can be toggled for UI testing)
-  final isYoutubeConnected = true.obs;
-  final isInstagramConnected = true.obs;
-  final hasRecentContent = true.obs;
+  final isYoutubeConnected = false.obs;
+  final isInstagramConnected = false.obs;
+  final hasRecentContent = false.obs;
 
   // Sync state
   final isSyncing = false.obs;

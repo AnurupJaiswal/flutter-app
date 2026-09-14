@@ -16,6 +16,11 @@ abstract class AuthRepository {
     required String password,
   });
 
+  Future<ApiResponse<void>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
+
   Future<bool> restoreSession();
 
   Future<void> logout();
@@ -63,6 +68,25 @@ class ApiAuthRepository implements AuthRepository {
       final user = UserModel.fromJson(response.data);
       await _persistSession(user);
       return ApiResponse.success(data: user, message: response.message);
+    }
+    return ApiResponse.error(message: response.message, statusCode: response.statusCode);
+  }
+
+  @override
+  Future<ApiResponse<void>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final response = await ApiService.post(
+      ApiEndpoints.changePassword,
+      body: {
+        'current_password': currentPassword,
+        'new_password': newPassword,
+      },
+    );
+
+    if (response.isSuccess) {
+      return ApiResponse.success(message: "Password updated successfully.");
     }
     return ApiResponse.error(message: response.message, statusCode: response.statusCode);
   }
@@ -182,6 +206,21 @@ class MockAuthRepository implements AuthRepository {
     ApiService.userName = user.name;
 
     return ApiResponse.success(data: user, message: "Account created successfully");
+  }
+
+  @override
+  Future<ApiResponse<void>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 1000));
+    
+    // Simulate current password check
+    if (currentPassword != "password123" && currentPassword.isNotEmpty) {
+      return ApiResponse.error(message: "Current password is incorrect.", statusCode: 400);
+    }
+    
+    return ApiResponse.success(message: "Password updated successfully.");
   }
 
   @override

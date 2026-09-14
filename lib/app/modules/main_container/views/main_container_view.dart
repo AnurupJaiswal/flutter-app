@@ -5,7 +5,7 @@ import 'package:lala_ai/app/modules/calendar/views/calendar_view.dart';
 import 'package:lala_ai/app/modules/home/views/home_view.dart';
 import 'package:lala_ai/app/modules/main_container/controllers/main_container_controller.dart';
 import 'package:lala_ai/app/modules/main_container/widgets/pixo_overlay_widget.dart';
-import 'package:lala_ai/app/modules/profile/views/profile_view.dart';
+import 'package:lala_ai/app/modules/discover/views/discover_view.dart';
 import 'package:lala_ai/app/modules/studio/views/studio_view.dart';
 import 'package:lala_ai/app/modules/trending/views/trending_view.dart';
 import 'package:lala_ai/app/navigation/app_navigation_service.dart';
@@ -37,11 +37,11 @@ class MainContainerView extends GetView<MainContainerController> {
                 Obx(() => IndexedStack(
                   index: controller.currentIndex.value,
                   children: [
-                    _buildTabNavigator(AppNavigationService.tabDashboard, const HomeView()),
+                  _buildTabNavigator(AppNavigationService.tabDashboard, const HomeView()),
                     _buildTabNavigator(AppNavigationService.tabStudio, const StudioView()),
                     _buildTabNavigator(AppNavigationService.tabTrends, const TrendingView()),
                     _buildTabNavigator(AppNavigationService.tabCalendar, const CalendarView()),
-                    _buildTabNavigator(AppNavigationService.tabProfile, const ProfileView()),
+                    _buildTabNavigator(AppNavigationService.tabDiscover, const DiscoverView()),
                   ],
                 )),
 
@@ -98,9 +98,9 @@ class MainContainerView extends GetView<MainContainerController> {
                     label: "Calendar",
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.person_outline_rounded, size: 20),
-                    activeIcon: Icon(Icons.person_rounded, size: 20),
-                    label: "Me",
+                    icon: Icon(Icons.explore_outlined, size: 20),
+                    activeIcon: Icon(Icons.explore_rounded, size: 20),
+                    label: "Discover",
                   ),
                 ],
               ),

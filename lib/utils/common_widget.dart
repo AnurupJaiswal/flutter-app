@@ -466,17 +466,14 @@ class CW {
         Navigator.of(sheetContext).pop();
         return;
       }
-    }
-    if (Get.isBottomSheetOpen == true || Get.isDialogOpen == true) {
-      Get.back();
-      return;
-    }
-    if (sheetContext != null && sheetContext.mounted) {
       final nav = Navigator.of(sheetContext, rootNavigator: false);
       if (nav.canPop()) {
         nav.pop();
+        return;
       }
     }
+    // Fallback if no context was provided or if context method failed
+    Get.back();
   }
 
   /// Custom BottomSheet System matching Manage Categories design standard

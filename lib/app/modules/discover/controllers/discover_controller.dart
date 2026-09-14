@@ -19,6 +19,7 @@ class DiscoverController extends GetxController {
   final categories = ['All', 'AI', 'Technology', 'Finance', 'Science'].obs;
   final items = <DiscoverItemModel>[].obs;
   final isLoading = false.obs;
+  final activeTab = 0.obs;
 
   @override
   void onInit() {

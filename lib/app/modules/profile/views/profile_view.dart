@@ -23,8 +23,8 @@ class ProfileView extends StatelessWidget {
         return Scaffold(
           backgroundColor: CC.background,
           appBar: CW.commonAppbar(
-            isNotHomepage: false,
-            wantBackIcon: false,
+            isNotHomepage: true,
+            wantBackIcon: true,
             title: "Me & Profile",
             actions: [
               IconButton(

@@ -13,7 +13,7 @@ class AppNavigationService extends GetxService {
   static const int tabStudio = 1;
   static const int tabTrends = 2;
   static const int tabCalendar = 3;
-  static const int tabProfile = 4;
+  static const int tabDiscover = 4;
 
   // 5 Independent Navigator Keys for each Bottom Navigation Tab
   final Map<int, GlobalKey<NavigatorState>> tabNavigatorKeys = {
@@ -21,7 +21,7 @@ class AppNavigationService extends GetxService {
     tabStudio: GlobalKey<NavigatorState>(debugLabel: 'StudioTabKey'),
     tabTrends: GlobalKey<NavigatorState>(debugLabel: 'TrendsTabKey'),
     tabCalendar: GlobalKey<NavigatorState>(debugLabel: 'CalendarTabKey'),
-    tabProfile: GlobalKey<NavigatorState>(debugLabel: 'ProfileTabKey'),
+    tabDiscover: GlobalKey<NavigatorState>(debugLabel: 'DiscoverTabKey'),
   };
 
   // Debouncing lock to prevent rapid duplicate pushes
@@ -53,8 +53,8 @@ class AppNavigationService extends GetxService {
         return 'Trends';
       case tabCalendar:
         return 'Calendar';
-      case tabProfile:
-        return 'Me';
+      case tabDiscover:
+        return 'Discover';
       default:
         return 'Tab$tabIndex';
     }
@@ -128,14 +128,15 @@ class AppNavigationService extends GetxService {
     CM.log(msg: "Handling deep link path: $path");
 
     if (path.contains("settings")) {
-      onTabChange(tabProfile);
-      pushNestedRoute(tabProfile, const SettingsView());
+      Get.to(() => const SettingsView());
     } else if (path.contains("studio")) {
       onTabChange(tabStudio);
     } else if (path.contains("trends")) {
       onTabChange(tabTrends);
     } else if (path.contains("calendar")) {
       onTabChange(tabCalendar);
+    } else if (path.contains("radar") || path.contains("competitor") || path.contains("discover")) {
+      onTabChange(tabDiscover);
     } else {
       onTabChange(tabDashboard);
     }

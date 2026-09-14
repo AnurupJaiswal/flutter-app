@@ -10,7 +10,8 @@ import 'package:lala_ai/utils/theme/text_style.dart';
 import 'package:lala_ai/utils/theme/theme_service.dart';
 
 class CompetitorView extends StatefulWidget {
-  const CompetitorView({super.key});
+  final bool isEmbedded;
+  const CompetitorView({super.key, this.isEmbedded = false});
 
   @override
   State<CompetitorView> createState() => _CompetitorViewState();
@@ -26,10 +27,13 @@ class _CompetitorViewState extends State<CompetitorView> {
       builder: (_) {
         return Scaffold(
           backgroundColor: CC.background,
-          appBar: CW.commonAppbar(
-            isNotHomepage: true,
-            title: "Competitor Intelligence",
-          ),
+          appBar: widget.isEmbedded 
+            ? null 
+            : CW.commonAppbar(
+                isNotHomepage: true,
+                wantBackIcon: true,
+                title: "Competitor Intelligence",
+              ),
           body: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
@@ -40,17 +44,20 @@ class _CompetitorViewState extends State<CompetitorView> {
                   Text("Analyze Competitor Channel", style: TS.caption(color: CC.textSecondary, fontWeight: FontWeight.w600)),
                   6.height,
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Expanded(
                         child: CW.commonSearchField(
                           controller: _searchController,
                           hintText: "Enter handle or URL (e.g. @tech_creator)",
+                          prefixIcon: Icon(Icons.link_rounded, size: 18, color: CC.grey),
                         ),
                       ),
                       8.width,
                       CW.commonBtn(
                         title: "Analyze",
                         width: 90,
+                        height: 40,
                         onTap: () => setState(() => _hasSearched = true),
                       ),
                     ],

@@ -8,6 +8,8 @@ import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
 import 'package:lala_ai/utils/theme/theme_service.dart';
+import 'package:lala_ai/app/modules/connect_accounts/views/connect_accounts_view.dart';
+import 'package:lala_ai/app/modules/profile/views/profile_view.dart';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
@@ -41,17 +43,31 @@ class HomeView extends GetView<HomeController> {
                 splashRadius: 20,
                 onPressed: () {},
               ),
+              IconButton(
+                icon: Icon(Icons.person_outline_rounded, color: CC.textPrimary, size: 22),
+                splashRadius: 20,
+                onPressed: () => Get.to(() => const ProfileView()),
+              ),
             ],
           ),
           body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              child: Obx(() => Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSegmentedControl(),
-                  24.height,
-                  if (controller.activeTab.value == DashboardTab.overview) ...[
+            child: Obx(() {
+              final isNoneConnected = !controller.isInstagramConnected.value && !controller.isYoutubeConnected.value;
+
+              if (isNoneConnected) {
+                return Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    child: _buildInitialEmptyState(),
+                  ),
+                );
+              }
+
+              return SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     _buildWelcomeSection(),
                     24.height,
                     _buildChannelsSection(),
@@ -66,13 +82,10 @@ class HomeView extends GetView<HomeController> {
                     24.height,
                     _buildCreatorTipSection(),
                     100.height, // padding so floating bubble doesn't overlap
-                  ] else ...[
-                    _buildConnectSection(),
-                    80.height,
                   ],
-                ],
-              )),
-            ),
+                ),
+              );
+            }),
           ),
         );
       },
@@ -132,61 +145,12 @@ class HomeView extends GetView<HomeController> {
   }
 
   Widget _buildWelcomeSection() {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: CC.primary.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Icon(Icons.auto_awesome_rounded, color: CC.textPrimary, size: 24),
-        ),
-        12.width,
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Hey, Alex 👋", style: TS.displayLarge(fontSize: 22, fontWeight: FontWeight.w700)),
-              2.height,
-              Text("Manage your channels and get AI-powered insights.", style: TS.bodySmall(color: CC.textSecondary).copyWith(fontSize: 11)),
-            ],
-          ),
-        ),
-        8.width,
-        Obx(() => InkWell(
-          onTap: controller.isSyncing.value ? null : () => controller.syncChannelData(),
-          borderRadius: BorderRadius.circular(10),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            decoration: BoxDecoration(
-              color: CC.surface,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: CC.stroke, width: 0.8),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (controller.isSyncing.value) ...[
-                  SizedBox(
-                    width: 12,
-                    height: 12,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: CC.primary),
-                  ),
-                  6.width,
-                ] else ...[
-                  Icon(Icons.sync_rounded, color: CC.textPrimary, size: 14),
-                  4.width,
-                ],
-                Text(
-                  controller.isSyncing.value ? "Syncing..." : controller.lastSyncedText.value,
-                  style: TS.caption(color: CC.textPrimary).copyWith(fontSize: 10, fontWeight: FontWeight.w600),
-                ),
-              ],
-            ),
-          ),
-        )),
+        Text("Hey, Alex 👋", style: TS.displayLarge(fontSize: 22, fontWeight: FontWeight.w700)),
+        2.height,
+        Text("Manage your channels and get AI-powered insights.", style: TS.bodySmall(color: CC.textSecondary).copyWith(fontSize: 11)),
       ],
     );
   }
@@ -212,7 +176,7 @@ class HomeView extends GetView<HomeController> {
           iconBg: const Color(0xFFFF0000),
           isConnected: controller.isYoutubeConnected.value,
           handle: "@alexcreators",
-          onAction: () => controller.activeTab.value = DashboardTab.connect,
+          onAction: () => Get.to(() => const ConnectAccountsView()),
         ),
         10.height,
         _buildPlatformCard(
@@ -221,7 +185,7 @@ class HomeView extends GetView<HomeController> {
           iconBg: const Color(0xFFE1306C),
           isConnected: controller.isInstagramConnected.value,
           handle: "@alex_reels",
-          onAction: () => controller.activeTab.value = DashboardTab.connect,
+          onAction: () => Get.to(() => const ConnectAccountsView()),
         ),
       ],
     );
@@ -1166,6 +1130,34 @@ class HomeView extends GetView<HomeController> {
           ),
         ],
       ),
+    );
+  }
+  Widget _buildInitialEmptyState() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.hub_rounded, size: 80, color: CC.primary),
+        32.height,
+        Text("Connect your accounts", style: TS.titleMedium(color: CC.textPrimary)),
+        16.height,
+        Text(
+          "Connect Instagram or YouTube to start viewing your\ncontent performance and analytics.",
+          textAlign: TextAlign.center,
+          style: TS.bodySmall(color: CC.textSecondary).copyWith(height: 1.4),
+        ),
+        48.height,
+        CW.commonBtn(
+          title: "Connect Instagram",
+          leadingImage: Image.asset('assets/icons/img_instagram.png', width: 20, height: 20),
+          onTap: () => Get.to(() => const ConnectAccountsView()),
+        ),
+        20.height,
+        CW.commonBtn(
+          title: "Connect YouTube",
+          leadingImage: Image.asset('assets/icons/img_youtube.png', width: 20, height: 20),
+          onTap: () => Get.to(() => const ConnectAccountsView()),
+        ),
+      ],
     );
   }
 }

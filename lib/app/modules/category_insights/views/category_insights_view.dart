@@ -9,7 +9,8 @@ import 'package:lala_ai/utils/theme/text_style.dart';
 import 'package:lala_ai/utils/theme/theme_service.dart';
 
 class CategoryInsightsView extends StatelessWidget {
-  const CategoryInsightsView({super.key});
+  final bool isEmbedded;
+  const CategoryInsightsView({super.key, this.isEmbedded = false});
 
   @override
   Widget build(BuildContext context) {
@@ -17,14 +18,8 @@ class CategoryInsightsView extends StatelessWidget {
 
     return GetBuilder<ThemeService>(
       builder: (themeService) {
-        return Scaffold(
-          backgroundColor: CC.background,
-          appBar: CW.commonAppbar(
-            isNotHomepage: true,
-            title: "Category Insights",
-          ),
-          body: SafeArea(
-            child: Obx(() {
+        final body = SafeArea(
+          child: Obx(() {
               if (controller.userCategories.isEmpty) {
                 return _buildEmptyState(context, controller);
               }
@@ -36,72 +31,7 @@ class CategoryInsightsView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ── Brief Purpose Explanation ───────────────────────────
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: CC.surface,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: CC.primary.withValues(alpha: 0.15),
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: CC.isDark
-                                  ? Colors.black.withValues(alpha: 0.3)
-                                  : Colors.black.withValues(alpha: 0.04),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: CC.primary.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(
-                                Icons.insights_rounded,
-                                color: CC.primary,
-                                size: 22,
-                              ),
-                            ),
-                            12.width,
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Insights for your categories",
-                                    style: TS.sectionTitle(
-                                      color: CC.textPrimary,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                  4.height,
-                                  Text(
-                                    "Explore shared trends, information and insights relevant to the categories you create in.",
-                                    style: TS.bodySmall(
-                                      color: CC.textSecondary,
-                                    ).copyWith(fontSize: 12, height: 1.4),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    20.height,
-
-                    // ── Category Selector Header & Chips ─────────────────────
+                    // ── Category Selector Header ─────────────────────
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Row(
@@ -140,13 +70,12 @@ class CategoryInsightsView extends StatelessWidget {
                     ),
                     10.height,
 
-                    // Full-width edge-to-edge scrollable chips list (No horizontal cut off!)
+                    // Full-width edge-to-edge scrollable chips list
                     SizedBox(
-                      height: 44,
+                      height: 38,
                       child: ListView.separated(
                         scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
                         clipBehavior: Clip.none,
                         physics: const BouncingScrollPhysics(),
                         itemCount: controller.userCategories.length,
@@ -166,39 +95,25 @@ class CategoryInsightsView extends StatelessWidget {
                                 vertical: 8,
                               ),
                               decoration: BoxDecoration(
-                                color: isSelected ? CC.primary : CC.surface,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: isSelected ? CC.primary : CC.stroke,
-                                  width: 1,
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: isSelected ? CC.primary : Colors.transparent,
+                                    width: 2,
+                                  ),
                                 ),
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  if (isSelected) ...[
-                                    Icon(
-                                      Icons.check_circle_rounded,
-                                      color: Colors.white,
-                                      size: 14,
-                                    ),
-                                    6.width,
-                                  ],
-                                  Text(
-                                    category,
-                                    style: TS
-                                        .bodySmall(
-                                          color: isSelected
-                                              ? Colors.white
-                                              : CC.textPrimary,
-                                          fontWeight: isSelected
-                                              ? FontWeight.w700
-                                              : FontWeight.w500,
-                                        )
-                                        .copyWith(fontSize: 13, height: 1.1),
-                                  ),
-                                ],
+                              child: Text(
+                                category,
+                                style: TS
+                                    .bodySmall(
+                                      color: isSelected
+                                          ? CC.primary
+                                          : CC.textSecondary,
+                                      fontWeight: isSelected
+                                          ? FontWeight.w700
+                                          : FontWeight.w500,
+                                    )
+                                    .copyWith(fontSize: 14),
                               ),
                             ),
                           );
@@ -287,7 +202,17 @@ class CategoryInsightsView extends StatelessWidget {
                 ),
               );
             }),
+        );
+        
+        if (isEmbedded) return body;
+
+        return Scaffold(
+          backgroundColor: CC.background,
+          appBar: CW.commonAppbar(
+            isNotHomepage: true,
+            title: "Category Insights",
           ),
+          body: body,
         );
       },
     );
@@ -296,25 +221,9 @@ class CategoryInsightsView extends StatelessWidget {
   /// Category Overview: Trending Now & Popular Topics
   Widget _buildCategoryOverview(
       BuildContext context, CategoryInsightsModel insights) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: CC.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: CC.isDark
-                ? Colors.black.withValues(alpha: 0.3)
-                : Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
           Text(
             "${insights.categoryName.toUpperCase()} OVERVIEW",
             style: TS.caption(
@@ -408,8 +317,7 @@ class CategoryInsightsView extends StatelessWidget {
             }).toList(),
           ),
         ],
-      ),
-    );
+      );
   }
 
   /// Shared Insights Cards List
@@ -421,20 +329,15 @@ class CategoryInsightsView extends StatelessWidget {
         final isLast = idx == insights.sharedInsights.length - 1;
 
         return Container(
-          margin: EdgeInsets.only(bottom: isLast ? 0 : 12),
-          padding: const EdgeInsets.all(16),
+          margin: EdgeInsets.only(bottom: isLast ? 0 : 16),
+          padding: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
-            color: CC.surface,
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
-              BoxShadow(
-                color: CC.isDark
-                    ? Colors.black.withValues(alpha: 0.3)
-                    : Colors.black.withValues(alpha: 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
+            border: Border(
+              bottom: BorderSide(
+                color: isLast ? Colors.transparent : CC.stroke.withValues(alpha: 0.6),
+                width: 1,
               ),
-            ],
+            ),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
