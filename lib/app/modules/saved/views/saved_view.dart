@@ -6,13 +6,16 @@ import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
+import 'package:lala_ai/utils/theme/theme_service.dart';
 
 class SavedView extends GetView<SavedController> {
   const SavedView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return GetBuilder<ThemeService>(
+      builder: (_) {
+        return Scaffold(
       backgroundColor: CC.background,
       appBar: CW.commonAppbar(
         wantBackIcon: false,
@@ -57,6 +60,8 @@ class SavedView extends GetView<SavedController> {
         }),
       ),
     );
+      },
+    );
   }
 
   Widget _buildSavedCard(BuildContext context, SavedItemModel item) {
@@ -71,7 +76,7 @@ class SavedView extends GetView<SavedController> {
         ),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+            color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
             blurRadius: 14,
             offset: const Offset(0, 6),
           ),

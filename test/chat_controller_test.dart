@@ -15,18 +15,18 @@ void main() {
 
   group('MockAuthRepository Tests', () {
     test('Logs in user and persists session', () async {
-      final authRepo = MockAuthRepository();
+      final authRepo = ApiAuthRepository();
       final res = await authRepo.login(email: "alex@lala.ai", password: "password123");
 
       expect(res.isSuccess, true);
-      expect(res.data?.email, "alex@lala.ai");
+      expect(res.data?.user?.email, "alex@lala.ai");
 
       final hasSession = await authRepo.restoreSession();
       expect(hasSession, true);
     });
 
     test('Logs out user and clears session', () async {
-      final authRepo = MockAuthRepository();
+      final authRepo = ApiAuthRepository();
       await authRepo.login(email: "alex@lala.ai", password: "password123");
       await authRepo.logout();
 

@@ -54,7 +54,7 @@ class MessageBubbleWidget extends StatelessWidget {
                 border: Border.all(color: CC.stroke, width: 0.8),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacityValue(0.03),
+                    color: CC.black.withOpacityValue(0.03),
                     blurRadius: 4,
                     offset: const Offset(0, 1),
                   ),

@@ -13,12 +13,12 @@ class TS {
     double? fontSize,
   }) =>
       TextStyle(
-        fontSize: fontSize ?? 24,
+        fontSize: fontSize ?? 22,
         fontFamily: fontFamily ?? TS.fontFamily,
         fontWeight: fontWeight ?? FontWeight.w700,
         color: color ?? CC.textPrimary,
-        height: height ?? 1.25,
-        letterSpacing: -0.4,
+        height: height ?? 1.2,
+        letterSpacing: -0.6,
         decoration: TextDecoration.none,
       );
 
@@ -30,12 +30,12 @@ class TS {
     double? fontSize,
   }) =>
       TextStyle(
-        fontSize: fontSize ?? 20,
+        fontSize: fontSize ?? 18,
         fontFamily: fontFamily ?? TS.fontFamily,
         fontWeight: fontWeight ?? FontWeight.w700,
         color: color ?? CC.textPrimary,
-        height: height ?? 1.25,
-        letterSpacing: -0.2,
+        height: height ?? 1.2,
+        letterSpacing: -0.4,
         decoration: TextDecoration.none,
       );
 
@@ -48,12 +48,12 @@ class TS {
     double? fontSize,
   }) =>
       TextStyle(
-        fontSize: fontSize ?? 18,
+        fontSize: fontSize ?? 17,
         fontFamily: fontFamily ?? TS.fontFamily,
         fontWeight: fontWeight ?? FontWeight.w700,
         color: color ?? CC.textPrimary,
-        height: height ?? 1.3,
-        letterSpacing: -0.15,
+        height: height ?? 1.25,
+        letterSpacing: -0.3,
         decoration: TextDecoration.none,
       );
 
@@ -65,12 +65,12 @@ class TS {
     double? fontSize,
   }) =>
       TextStyle(
-        fontSize: fontSize ?? 16,
+        fontSize: fontSize ?? 15.5,
         fontFamily: fontFamily ?? TS.fontFamily,
         fontWeight: fontWeight ?? FontWeight.w600,
         color: color ?? CC.textPrimary,
-        height: height ?? 1.35,
-        letterSpacing: -0.1,
+        height: height ?? 1.3,
+        letterSpacing: -0.2,
         decoration: TextDecoration.none,
       );
 
@@ -82,11 +82,12 @@ class TS {
     double? fontSize,
   }) =>
       TextStyle(
-        fontSize: fontSize ?? 14.5,
+        fontSize: fontSize ?? 14,
         fontFamily: fontFamily ?? TS.fontFamily,
         fontWeight: fontWeight ?? FontWeight.w600,
         color: color ?? CC.textPrimary,
-        height: height ?? 1.35,
+        height: height ?? 1.3,
+        letterSpacing: -0.1,
         decoration: TextDecoration.none,
       );
 
@@ -99,11 +100,12 @@ class TS {
     double? fontSize,
   }) =>
       TextStyle(
-        fontSize: fontSize ?? 13.5,
+        fontSize: fontSize ?? 13,
         fontFamily: fontFamily ?? TS.fontFamily,
         fontWeight: fontWeight ?? FontWeight.w400,
         color: color ?? CC.textSecondary,
-        height: height ?? 1.4,
+        height: height ?? 1.35,
+        letterSpacing: -0.1,
         decoration: TextDecoration.none,
       );
 
@@ -115,11 +117,12 @@ class TS {
     double? fontSize,
   }) =>
       TextStyle(
-        fontSize: fontSize ?? 14,
+        fontSize: fontSize ?? 13.5,
         fontFamily: fontFamily ?? TS.fontFamily,
         fontWeight: fontWeight ?? FontWeight.w400,
         color: color ?? CC.textPrimary,
-        height: height ?? 1.5,
+        height: height ?? 1.45,
+        letterSpacing: -0.15,
         decoration: TextDecoration.none,
       );
 
@@ -131,11 +134,12 @@ class TS {
     double? fontSize,
   }) =>
       TextStyle(
-        fontSize: fontSize ?? 13.5,
+        fontSize: fontSize ?? 13,
         fontFamily: fontFamily ?? TS.fontFamily,
         fontWeight: fontWeight ?? FontWeight.w500,
         color: color ?? CC.textPrimary,
-        height: height ?? 1.45,
+        height: height ?? 1.4,
+        letterSpacing: -0.1,
         decoration: TextDecoration.none,
       );
 
@@ -147,11 +151,11 @@ class TS {
     double? fontSize,
   }) =>
       TextStyle(
-        fontSize: fontSize ?? 12.5,
+        fontSize: fontSize ?? 12,
         fontFamily: fontFamily ?? TS.fontFamily,
         fontWeight: fontWeight ?? FontWeight.w400,
         color: color ?? CC.textSecondary,
-        height: height ?? 1.4,
+        height: height ?? 1.35,
         decoration: TextDecoration.none,
       );
 
@@ -163,11 +167,11 @@ class TS {
     double? fontSize,
   }) =>
       TextStyle(
-        fontSize: fontSize ?? 14.5,
+        fontSize: fontSize ?? 13.5,
         fontFamily: fontFamily ?? TS.fontFamily,
-        fontWeight: fontWeight ?? FontWeight.w700,
+        fontWeight: fontWeight ?? FontWeight.w600,
         color: color ?? CC.whiteText,
-        letterSpacing: 0.1,
+        letterSpacing: -0.1,
         decoration: TextDecoration.none,
       );
 
@@ -176,14 +180,15 @@ class TS {
     FontWeight? fontWeight,
     String? fontFamily,
     double? fontSize,
-    double letterSpacing = 0.1,
+    double letterSpacing = 0,
   }) =>
       TextStyle(
-        fontSize: fontSize ?? 11.5,
+        fontSize: fontSize ?? 11,
         fontFamily: fontFamily ?? TS.fontFamily,
         fontWeight: fontWeight ?? FontWeight.w500,
         color: color ?? CC.grey,
         letterSpacing: letterSpacing,
+        height: 1.2,
         decoration: TextDecoration.none,
       );
 
@@ -194,10 +199,12 @@ class TS {
     double? fontSize,
   }) {
     return TextStyle(
-      fontSize: fontSize ?? 15,
+      fontSize: fontSize ?? 14.5,
       fontFamily: fontFamily ?? TS.fontFamily,
       fontWeight: fontWeight ?? FontWeight.w500,
       color: color ?? CC.textPrimary,
+      height: 1.3,
+      letterSpacing: -0.1,
       decoration: TextDecoration.none,
     );
   }

@@ -6,7 +6,7 @@ class SplashBinding extends Bindings {
   @override
   void dependencies() {
     if (!Get.isRegistered<AuthRepository>()) {
-      Get.lazyPut<AuthRepository>(() => MockAuthRepository());
+      Get.lazyPut<AuthRepository>(() => ApiAuthRepository());
     }
     Get.lazyPut<SplashController>(
       () => SplashController(authRepository: Get.find<AuthRepository>()),

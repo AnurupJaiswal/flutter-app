@@ -108,7 +108,7 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView> {
         ),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+            color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
             blurRadius: 14,
             offset: const Offset(0, 6),
           ),
@@ -189,7 +189,7 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView> {
         ),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.08),
+            color: CC.isDark ? CC.black.withValues(alpha: 0.4) : CC.black.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),

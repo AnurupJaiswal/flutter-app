@@ -302,8 +302,8 @@ class CategoryInsightsView extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: CC.isDark
-                      ? Colors.white.withValues(alpha: 0.05)
-                      : Colors.black.withValues(alpha: 0.04),
+                      ? CC.whiteText.withValues(alpha: 0.05)
+                      : CC.black.withValues(alpha: 0.04),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
@@ -399,13 +399,8 @@ class CategoryInsightsView extends StatelessWidget {
 
   /// State when insights for selected category are preparing
   Widget _buildUnavailableState() {
-    return Container(
-      width: double.infinity,
+    return CW.commonCard(
       padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
-      decoration: BoxDecoration(
-        color: CC.surface,
-        borderRadius: BorderRadius.circular(16),
-      ),
       child: Column(
         children: [
           Icon(
@@ -468,7 +463,7 @@ class CategoryInsightsView extends StatelessWidget {
               onPressed: () => controller.manageCategories(context),
               style: ElevatedButton.styleFrom(
                 backgroundColor: CC.primary,
-                foregroundColor: Colors.white,
+                foregroundColor: CC.whiteText,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
@@ -479,7 +474,7 @@ class CategoryInsightsView extends StatelessWidget {
               label: Text(
                 "Choose Categories",
                 style: TS.bodySmall(
-                    color: Colors.white, fontWeight: FontWeight.w700),
+                    color: CC.whiteText, fontWeight: FontWeight.w700),
               ),
             ),
           ],

@@ -18,7 +18,7 @@ void main() {
       Get.put<ThemeService>(service, permanent: true);
     }
     if (!Get.isRegistered<AuthRepository>()) {
-      Get.lazyPut<AuthRepository>(() => MockAuthRepository());
+      Get.lazyPut<AuthRepository>(() => ApiAuthRepository());
     }
   });
 

@@ -44,7 +44,7 @@ class MainContainerBinding extends Bindings {
       Get.lazyPut<SettingsController>(() => SettingsController(
             authRepository: Get.isRegistered<AuthRepository>()
                 ? Get.find<AuthRepository>()
-                : MockAuthRepository(),
+                : ApiAuthRepository(),
           ));
     }
   }

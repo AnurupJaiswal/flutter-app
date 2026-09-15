@@ -96,7 +96,7 @@ class HomeView extends GetView<HomeController> {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: CC.isDark ? const Color(0xFF101010) : CC.surface,
+        color: CC.isDark ? CC.darkBg2 : CC.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
@@ -104,7 +104,7 @@ class HomeView extends GetView<HomeController> {
         ),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.08),
+            color: CC.isDark ? CC.black.withValues(alpha: 0.4) : CC.black.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -136,7 +136,7 @@ class HomeView extends GetView<HomeController> {
           title,
           textAlign: TextAlign.center,
           style: TS.caption(
-            color: isSelected ? Colors.white : CC.textSecondary,
+            color: isSelected ? CC.whiteText : CC.textSecondary,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
@@ -210,7 +210,7 @@ class HomeView extends GetView<HomeController> {
         ),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+            color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
             blurRadius: 14,
             offset: const Offset(0, 6),
           ),
@@ -270,7 +270,7 @@ class HomeView extends GetView<HomeController> {
                 child: Text(
                   isConnected ? "Manage" : "Connect",
                   style: TS.caption(
-                    color: isConnected ? CC.primary : Colors.white,
+                    color: isConnected ? CC.primary : CC.whiteText,
                     fontWeight: FontWeight.w600,
                   ).copyWith(fontSize: 12),
                 ),
@@ -324,7 +324,7 @@ class HomeView extends GetView<HomeController> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+                      color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
                       blurRadius: 14,
                       offset: const Offset(0, 6),
                     ),
@@ -513,7 +513,7 @@ class HomeView extends GetView<HomeController> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TS.caption(
-                      color: isSelected ? Colors.white : CC.textSecondary,
+                      color: isSelected ? CC.whiteText : CC.textSecondary,
                       fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                     ).copyWith(fontSize: 11),
                   ),
@@ -541,7 +541,7 @@ class HomeView extends GetView<HomeController> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+                      color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
                       blurRadius: 14,
                       offset: const Offset(0, 6),
                     ),
@@ -658,7 +658,7 @@ class HomeView extends GetView<HomeController> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+                    color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
                     blurRadius: 14,
                     offset: const Offset(0, 6),
                   ),
@@ -689,7 +689,7 @@ class HomeView extends GetView<HomeController> {
                           ),
                           child: isDone
                               ? const Center(
-                                  child: Icon(Icons.check_rounded, color: Colors.white, size: 15),
+                                  child: Icon(Icons.check_rounded, color: CC.whiteText, size: 15),
                                 )
                               : null,
                         ),
@@ -847,7 +847,7 @@ class HomeView extends GetView<HomeController> {
         ),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+            color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
             blurRadius: 14,
             offset: const Offset(0, 6),
           ),
@@ -889,7 +889,7 @@ class HomeView extends GetView<HomeController> {
         ),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+            color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
             blurRadius: 14,
             offset: const Offset(0, 6),
           ),
@@ -1011,7 +1011,7 @@ class HomeView extends GetView<HomeController> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+            color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
             blurRadius: 14,
             offset: const Offset(0, 6),
           ),
@@ -1094,7 +1094,7 @@ class HomeView extends GetView<HomeController> {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.08),
+            color: CC.isDark ? CC.black.withValues(alpha: 0.4) : CC.black.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),

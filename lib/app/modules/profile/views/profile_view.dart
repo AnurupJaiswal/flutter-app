@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lala_ai/app/modules/analytics/views/analytics_view.dart';
-import 'package:lala_ai/app/modules/category_insights/views/category_insights_view.dart';
-import 'package:lala_ai/app/modules/competitor/views/competitor_view.dart';
 import 'package:lala_ai/app/modules/connect_accounts/views/connect_accounts_view.dart';
 import 'package:lala_ai/app/modules/profile/views/edit_profile_view.dart';
 import 'package:lala_ai/app/modules/settings/views/settings_view.dart';
-import 'package:lala_ai/app/navigation/app_navigation_service.dart';
 import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
+import 'package:lala_ai/networking/api_service.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
 import 'package:lala_ai/utils/theme/theme_service.dart';
@@ -32,7 +30,10 @@ class ProfileView extends StatelessWidget {
                 tooltip: "Log Out",
                 onPressed: () => CW.showLogoutSheet(
                   context: context,
-                  onConfirm: () => AppNavigationService.to.navigateToAuth(),
+                  onConfirm: () {
+                    // Call ApiService.logout to clear local storage and navigate to Auth
+                    ApiService.logout();
+                  },
                 ),
               ),
             ],
@@ -56,8 +57,8 @@ class ProfileView extends StatelessWidget {
                       boxShadow: [
                         BoxShadow(
                           color: CC.isDark
-                              ? Colors.black.withValues(alpha: 0.45)
-                              : Colors.black.withValues(alpha: 0.08),
+                              ? CC.black.withValues(alpha: 0.45)
+                              : CC.black.withValues(alpha: 0.08),
                           blurRadius: 14,
                           offset: const Offset(0, 6),
                         ),
@@ -162,14 +163,6 @@ class ProfileView extends StatelessWidget {
                     Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ConnectAccountsView()));
                   }),
                   10.height,
-                  _actionTile("Category Insights", "Explore shared trends & insights for your categories", Icons.insights_rounded, () {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CategoryInsightsView()));
-                  }),
-                  10.height,
-                  _actionTile("Competitor Intelligence", "Analyze competitor hooks, engagement & beat plans", Icons.query_stats_rounded, () {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CompetitorView()));
-                  }),
-                  10.height,
                   _actionTile("App Settings & Preferences", "Theme, notifications, privacy & more", Icons.tune_rounded, () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -200,7 +193,7 @@ class ProfileView extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+            color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
             blurRadius: 14,
             offset: const Offset(0, 6),
           ),
@@ -237,7 +230,7 @@ class ProfileView extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+            color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
             blurRadius: 14,
             offset: const Offset(0, 6),
           ),

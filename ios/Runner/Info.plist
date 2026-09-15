@@ -59,6 +59,8 @@
 		<string>http</string>
 		<string>mailto</string>
 		<string>tel</string>
+		<string>message</string>
+		<string>googlegmail</string>
 	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>

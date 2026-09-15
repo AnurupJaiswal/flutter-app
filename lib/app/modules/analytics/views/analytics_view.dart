@@ -112,7 +112,7 @@ class AnalyticsView extends StatelessWidget {
           return Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: CC.isDark ? const Color(0xFF101010) : CC.surface,
+              color: CC.isDark ? CC.darkBg2 : CC.surface,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
                 color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
@@ -120,7 +120,7 @@ class AnalyticsView extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.06),
+                  color: CC.isDark ? CC.black.withValues(alpha: 0.4) : CC.black.withValues(alpha: 0.06),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -167,7 +167,7 @@ class AnalyticsView extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: CC.isDark ? Colors.black.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.04),
+                  color: CC.isDark ? CC.black.withValues(alpha: 0.3) : CC.black.withValues(alpha: 0.04),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -248,7 +248,7 @@ class AnalyticsView extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
-                    color: CC.isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.04),
+                    color: CC.isDark ? CC.whiteText.withValues(alpha: 0.05) : CC.black.withValues(alpha: 0.04),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
@@ -269,7 +269,7 @@ class AnalyticsView extends StatelessWidget {
                                 range,
                                 style: TS
                                     .caption(
-                                      color: isSelected ? Colors.white : CC.textSecondary,
+                                      color: isSelected ? CC.whiteText : CC.textSecondary,
                                       fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                                     )
                                     .copyWith(fontSize: 12),
@@ -313,7 +313,7 @@ class AnalyticsView extends StatelessWidget {
               title,
               style: TS
                   .bodySmall(
-                    color: isSelected ? Colors.white : CC.textSecondary,
+                    color: isSelected ? CC.whiteText : CC.textSecondary,
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                   )
                   .copyWith(fontSize: 13),
@@ -341,7 +341,7 @@ class AnalyticsView extends StatelessWidget {
           border: Border.all(color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6), width: 1),
           boxShadow: [
             BoxShadow(
-              color: CC.isDark ? Colors.black.withValues(alpha: 0.35) : Colors.black.withValues(alpha: 0.05),
+              color: CC.isDark ? CC.black.withValues(alpha: 0.35) : CC.black.withValues(alpha: 0.05),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -428,7 +428,7 @@ class AnalyticsView extends StatelessWidget {
                         height: 7,
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: CC.isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.06),
+                          color: CC.isDark ? CC.whiteText.withValues(alpha: 0.08) : CC.black.withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: LayoutBuilder(
@@ -517,7 +517,7 @@ class AnalyticsView extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: CC.isDark ? Colors.black.withValues(alpha: 0.25) : Colors.black.withValues(alpha: 0.04),
+                  color: CC.isDark ? CC.black.withValues(alpha: 0.25) : CC.black.withValues(alpha: 0.04),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -992,7 +992,7 @@ class AnalyticsView extends StatelessWidget {
               border: Border.all(color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6), width: 1),
               boxShadow: [
                 BoxShadow(
-                  color: CC.isDark ? Colors.black.withValues(alpha: 0.25) : Colors.black.withValues(alpha: 0.03),
+                  color: CC.isDark ? CC.black.withValues(alpha: 0.25) : CC.black.withValues(alpha: 0.03),
                   blurRadius: 8,
                   offset: const Offset(0, 3),
                 ),
@@ -1007,7 +1007,7 @@ class AnalyticsView extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: rank == "01"
                         ? CC.primary
-                        : (CC.isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05)),
+                        : (CC.isDark ? CC.whiteText.withValues(alpha: 0.08) : CC.black.withValues(alpha: 0.05)),
                     shape: BoxShape.circle,
                   ),
                   child: Center(
@@ -1015,7 +1015,7 @@ class AnalyticsView extends StatelessWidget {
                       rank,
                       style: TS
                           .caption(
-                            color: rank == "01" ? Colors.white : CC.textPrimary,
+                            color: rank == "01" ? CC.whiteText : CC.textPrimary,
                             fontWeight: FontWeight.w700,
                           )
                           .copyWith(fontSize: 11),
@@ -1047,8 +1047,8 @@ class AnalyticsView extends StatelessWidget {
                       bottom: 3,
                       child: Container(
                         padding: const EdgeInsets.all(2),
-                        decoration: const BoxDecoration(
-                          color: Colors.black54,
+                        decoration: BoxDecoration(
+                          color: CC.black.withValues(alpha: 0.54),
                           shape: BoxShape.circle,
                         ),
                         child: platform == "YouTube" ? CW.youtubeIcon(size: 10) : CW.instagramIcon(size: 10),
@@ -1127,7 +1127,7 @@ class AnalyticsView extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.35) : Colors.black.withValues(alpha: 0.05),
+            color: CC.isDark ? CC.black.withValues(alpha: 0.35) : CC.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1233,7 +1233,7 @@ class _SmoothLineChartPainter extends CustomPainter {
     final lastPt = points.last;
     canvas.drawCircle(lastPt, 7, Paint()..color = lineColor.withValues(alpha: 0.35));
     canvas.drawCircle(lastPt, 4.5, Paint()..color = lineColor);
-    canvas.drawCircle(lastPt, 2, Paint()..color = Colors.white);
+    canvas.drawCircle(lastPt, 2, Paint()..color = CC.whiteText);
   }
 
   @override
@@ -1301,7 +1301,7 @@ class _DualLineChartPainter extends CustomPainter {
 
     for (final pt in points) {
       canvas.drawCircle(pt, 3.5, Paint()..color = color);
-      canvas.drawCircle(pt, 1.8, Paint()..color = Colors.white);
+      canvas.drawCircle(pt, 1.8, Paint()..color = CC.whiteText);
     }
   }
 

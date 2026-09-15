@@ -52,8 +52,8 @@ class SplashView extends GetView<SplashController> {
                             boxShadow: [
                               BoxShadow(
                                 color: CC.isDark
-                                    ? Colors.black.withValues(alpha: 0.35)
-                                    : Colors.black.withValues(alpha: 0.08),
+                                    ? CC.black.withValues(alpha: 0.35)
+                                    : CC.black.withValues(alpha: 0.08),
                                 blurRadius: 14,
                                 offset: const Offset(0, 4),
                               ),

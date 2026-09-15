@@ -112,8 +112,8 @@ class _MessageComposerState extends State<MessageComposer> {
                 boxShadow: [
                   BoxShadow(
                     color: CC.isDark
-                        ? Colors.black.withValues(alpha: 0.35)
-                        : Colors.black.withValues(alpha: 0.05),
+                        ? CC.black.withValues(alpha: 0.35)
+                        : CC.black.withValues(alpha: 0.05),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -207,8 +207,8 @@ class _MessageComposerState extends State<MessageComposer> {
                                 color: _hasText
                                     ? CC.primary
                                     : CC.isDark
-                                        ? Colors.white.withValues(alpha: 0.12)
-                                        : Colors.black.withValues(alpha: 0.08),
+                                        ? CC.whiteText.withValues(alpha: 0.12)
+                                        : CC.black.withValues(alpha: 0.08),
                                 shape: BoxShape.circle,
                                 boxShadow: _hasText
                                     ? [
@@ -224,7 +224,7 @@ class _MessageComposerState extends State<MessageComposer> {
                                 child: Icon(
                                   Icons.arrow_upward_rounded,
                                   color: _hasText
-                                      ? Colors.white
+                                      ? CC.whiteText
                                       : CC.textSecondary.withValues(alpha: 0.5),
                                   size: 19,
                                 ),
@@ -414,7 +414,7 @@ class _ComposerVoiceSheetState extends State<_ComposerVoiceSheet>
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.25),
+              color: CC.black.withValues(alpha: 0.25),
               blurRadius: 24,
               offset: const Offset(0, -6),
             ),

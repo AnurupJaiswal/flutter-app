@@ -164,7 +164,7 @@ class _PixoOverlayWidgetState extends State<PixoOverlayWidget>
             ),
           ],
         ),
-        child: const Icon(Icons.chevron_left_rounded, color: Colors.white, size: 18),
+        child: const Icon(Icons.chevron_left_rounded, color: CC.whiteText, size: 18),
       ),
     );
   }
@@ -201,7 +201,7 @@ class _PixoOverlayWidgetState extends State<PixoOverlayWidget>
                   shaderCallback: (bounds) => LinearGradient(
                     colors: [CC.primary, CC.primary.withValues(alpha: 0.6)],
                   ).createShader(bounds),
-                  child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 15),
+                  child: const Icon(Icons.auto_awesome_rounded, color: CC.whiteText, size: 15),
                 ),
                 6.width,
                 Text(
@@ -342,7 +342,7 @@ class _VoiceSheetState extends State<_VoiceSheet> with SingleTickerProviderState
         border: Border.all(color: CC.stroke, width: 0.7),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: CC.black.withValues(alpha: 0.08),
             blurRadius: 24,
             offset: const Offset(0, -6),
           ),

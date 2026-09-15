@@ -221,7 +221,7 @@ void main() {
       final themeService = ThemeService();
       await themeService.init();
       Get.put<ThemeService>(themeService, permanent: true);
-      Get.put<SettingsController>(SettingsController(authRepository: MockAuthRepository()));
+      Get.put<SettingsController>(SettingsController(authRepository: ApiAuthRepository()));
 
       await tester.pumpWidget(
         GetMaterialApp(

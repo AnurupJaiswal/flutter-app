@@ -167,7 +167,7 @@ class ChatDrawerSidebar extends GetView<ChatController> {
         margin: const EdgeInsets.only(bottom: 2),
         decoration: BoxDecoration(
           color: isActive
-              ? (CC.isDark ? Colors.white.withValues(alpha: 0.1) : CC.primary.withValues(alpha: 0.12))
+              ? (CC.isDark ? CC.whiteText.withValues(alpha: 0.1) : CC.primary.withValues(alpha: 0.12))
               : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),

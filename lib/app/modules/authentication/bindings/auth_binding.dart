@@ -6,7 +6,7 @@ class AuthBinding extends Bindings {
   @override
   void dependencies() {
     if (!Get.isRegistered<AuthRepository>()) {
-      Get.lazyPut<AuthRepository>(() => MockAuthRepository());
+      Get.lazyPut<AuthRepository>(() => ApiAuthRepository());
     }
     Get.lazyPut<AuthController>(
       () => AuthController(authRepository: Get.find<AuthRepository>()),

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lala_ai/app/modules/authentication/data/auth_repository.dart';
+import 'package:lala_ai/app/modules/authentication/views/forgot_password_view.dart';
 import 'package:lala_ai/app/routes/app_routes.dart';
 import 'package:lala_ai/utils/common_methods.dart';
-import 'package:lala_ai/utils/theme/color_constant.dart';
-import 'package:lala_ai/utils/theme/text_style.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:android_intent_plus/android_intent.dart';
+import 'package:android_intent_plus/flag.dart';
+import 'dart:io';
 
 class AuthController extends GetxController {
   final AuthRepository authRepository;
@@ -58,7 +61,7 @@ class AuthController extends GetxController {
     }
 
     final email = loginEmailController.text.trim();
-    final password = loginPasswordController.text;
+    final password = loginPasswordController.text.trim();
 
     CM.unFocus(Get.context!);
     errorMessage.value = '';
@@ -68,7 +71,7 @@ class AuthController extends GetxController {
     isLoading.value = false;
 
     if (response.isSuccess) {
-      CM.showToast("Welcome back, ${response.data?.name ?? 'User'}!");
+      CM.showToast("Welcome back, ${response.data?.user?.name ?? 'User'}!");
       Get.offAllNamed(Routes.MAIN_CONTAINER);
     } else {
       errorMessage.value = response.message;
@@ -88,37 +91,57 @@ class AuthController extends GetxController {
     errorMessage.value = '';
     isLoading.value = true;
 
-    await Future.delayed(const Duration(milliseconds: 500));
+    final response = await authRepository.requestMagicLink(email);
     isLoading.value = false;
 
-    isEmailSent.value = true;
-    CM.showToast("Secure sign-up link sent to $email");
+    if (response.isSuccess) {
+      isEmailSent.value = true;
+      CM.showToast("Secure sign-up link sent to $email");
+    } else {
+      CM.showToast(response.message, isError: true);
+    }
   }
 
-  void resendEmailLink() {
+  Future<void> resendEmailLink() async {
     final email = signupEmailController.text.trim();
-    CM.showToast("Verification link resent to ${email.isNotEmpty ? email : 'your email'}");
+    if (email.isEmpty) return;
+    
+    isLoading.value = true;
+    final response = await authRepository.requestMagicLink(email);
+    isLoading.value = false;
+
+    if (response.isSuccess) {
+      CM.showToast("Verification link resent to $email");
+    } else {
+      CM.showToast(response.message, isError: true);
+    }
   }
 
   void changeSignUpEmail() {
     isEmailSent.value = false;
   }
 
-  Future<void> verifyEmailAndNavigate() async {
-    final email = signupEmailController.text.trim();
-    isLoading.value = true;
-    final response = await authRepository.register(
-      name: email.contains('@') ? email.split('@').first : 'User',
-      email: email.isNotEmpty ? email : 'user@example.com',
-      password: 'magic_link_authenticated_user',
-    );
-    isLoading.value = false;
-
-    if (response.isSuccess) {
-      CM.showToast("Account verified successfully!");
-      Get.offAllNamed(Routes.MAIN_CONTAINER);
-    } else {
-      CM.showToast(response.message, isError: true);
+  Future<void> openEmailApp() async {
+    try {
+      if (Platform.isAndroid) {
+        final intent = AndroidIntent(
+          action: 'android.intent.action.MAIN',
+          category: 'android.intent.category.APP_EMAIL',
+          flags: [Flag.FLAG_ACTIVITY_NEW_TASK],
+        );
+        await intent.launch();
+      } else if (Platform.isIOS) {
+        final Uri emailLaunchUri = Uri(scheme: 'message');
+        if (await canLaunchUrl(emailLaunchUri)) {
+          await launchUrl(emailLaunchUri);
+        } else {
+          CM.showToast("Could not find an email app. Please open it manually.");
+        }
+      } else {
+        CM.showToast("Please open your Email app to view the link.");
+      }
+    } catch (e) {
+      CM.showToast("Could not open email app. Please open it manually.");
     }
   }
 
@@ -137,36 +160,6 @@ class AuthController extends GetxController {
   }
 
   void forgotPassword() {
-    Get.dialog(
-      AlertDialog(
-        backgroundColor: CC.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: CC.stroke),
-        ),
-        title: Text("Reset Password", style: TS.sectionTitle(color: CC.textPrimary)),
-        content: Text(
-          "Password reset instructions will be sent to your registered email address.",
-          style: TS.bodySmall(color: CC.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text("Close", style: TS.caption(color: CC.textSecondary)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: CC.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-            ),
-            onPressed: () {
-              Get.back();
-              CM.showToast("Reset link sent to ${loginEmailController.text.isNotEmpty ? loginEmailController.text : 'your email'}");
-            },
-            child: Text("Send Reset Link", style: TS.button(color: CC.whiteText, fontSize: 13)),
-          ),
-        ],
-      ),
-    );
+    Get.to(() => const ForgotPasswordView());
   }
 }

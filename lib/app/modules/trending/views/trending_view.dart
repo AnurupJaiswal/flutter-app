@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lala_ai/utils/app_toast.dart';
 import 'package:get/get.dart';
+import 'package:lala_ai/app/modules/profile/views/profile_view.dart';
 import 'package:lala_ai/app/data/models/trend_model.dart';
 import 'package:lala_ai/app/modules/main_container/controllers/main_container_controller.dart';
 import 'package:lala_ai/app/modules/trending/controllers/trending_controller.dart';
@@ -25,6 +26,13 @@ class TrendingView extends GetView<TrendingController> {
             isNotHomepage: false,
             wantBackIcon: false,
             title: "Trend Discovery & Alerts",
+            actions: [
+              IconButton(
+                icon: Icon(Icons.person_outline_rounded, color: CC.textPrimary, size: 22),
+                splashRadius: 20,
+                onPressed: () => Get.to(() => const ProfileView()),
+              ),
+            ],
           ),
           body: SafeArea(
             child: SingleChildScrollView(
@@ -36,7 +44,7 @@ class TrendingView extends GetView<TrendingController> {
                   Obx(() => Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: CC.isDark ? const Color(0xFF101010) : CC.surface,
+                      color: CC.isDark ? CC.darkBg2 : CC.surface,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
@@ -44,7 +52,7 @@ class TrendingView extends GetView<TrendingController> {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.08),
+                          color: CC.isDark ? CC.black.withValues(alpha: 0.4) : CC.black.withValues(alpha: 0.08),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -91,7 +99,7 @@ class TrendingView extends GetView<TrendingController> {
           title,
           textAlign: TextAlign.center,
           style: TS.caption(
-            color: isSelected ? Colors.white : CC.textSecondary,
+            color: isSelected ? CC.whiteText : CC.textSecondary,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
@@ -173,7 +181,7 @@ class TrendingView extends GetView<TrendingController> {
         ),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.04),
+            color: CC.isDark ? CC.black.withValues(alpha: 0.3) : CC.black.withValues(alpha: 0.04),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -202,7 +210,7 @@ class TrendingView extends GetView<TrendingController> {
         ),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+            color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
             blurRadius: 14,
             offset: const Offset(0, 6),
           ),
@@ -314,7 +322,7 @@ class TrendingView extends GetView<TrendingController> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+                    color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
                     blurRadius: 14,
                     offset: const Offset(0, 6),
                   ),
@@ -405,8 +413,8 @@ class TrendingView extends GetView<TrendingController> {
           color: value
               ? CC.primary
               : (CC.isDark
-                  ? Colors.white.withValues(alpha: 0.16)
-                  : Colors.black.withValues(alpha: 0.12)),
+                  ? CC.whiteText.withValues(alpha: 0.16)
+                  : CC.black.withValues(alpha: 0.12)),
           boxShadow: value
               ? [
                   BoxShadow(
@@ -423,12 +431,12 @@ class TrendingView extends GetView<TrendingController> {
           child: Container(
             width: 20,
             height: 20,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white,
+              color: CC.whiteText,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black26,
+                  color: CC.black.withValues(alpha: 0.26),
                   blurRadius: 3,
                   offset: Offset(0, 1),
                 ),
@@ -479,7 +487,7 @@ class TrendingView extends GetView<TrendingController> {
                         type,
                         textAlign: TextAlign.center,
                         style: TS.caption(
-                          color: isSelected ? Colors.white : CC.textPrimary,
+                          color: isSelected ? CC.whiteText : CC.textPrimary,
                           fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                         ),
                       ),

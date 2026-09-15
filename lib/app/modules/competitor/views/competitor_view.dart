@@ -66,19 +66,7 @@ class _CompetitorViewState extends State<CompetitorView> {
 
                   if (_hasSearched) ...[
                     // Competitor Snapshot Header Card
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: CC.surface,
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
+                    CW.commonCard(
                       child: Row(
                         children: [
                           Container(
@@ -128,19 +116,7 @@ class _CompetitorViewState extends State<CompetitorView> {
                     // You vs Them Comparison Card
                     Text("You vs Them Comparison", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 14)),
                     10.height,
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: CC.surface,
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
+                    CW.commonCard(
                       child: Column(
                         children: [
                           _compRow("Watch Time Retention", "68%", "74%", false),
@@ -156,19 +132,7 @@ class _CompetitorViewState extends State<CompetitorView> {
                     // 30-Day Beat Plan & Content DNA
                     Text("30-Day Creator Beat Plan", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 14)),
                     10.height,
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: CC.surface,
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
+                    CW.commonCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -204,6 +168,7 @@ class _CompetitorViewState extends State<CompetitorView> {
                       ),
                     ),
                   ],
+                  100.height,
                 ],
               ),
             ),
@@ -214,19 +179,8 @@ class _CompetitorViewState extends State<CompetitorView> {
   }
 
   Widget _compStat(String label, String val, IconData icon) {
-    return Container(
+    return CW.commonCard(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: CC.surface,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -254,7 +208,9 @@ class _CompetitorViewState extends State<CompetitorView> {
         Expanded(child: Text(metric, style: TS.caption(color: CC.textPrimary, fontWeight: FontWeight.w600))),
         Text("You: $you", style: TS.caption(color: isYouAhead ? CC.success : CC.textSecondary, fontWeight: FontWeight.w600)),
         12.width,
-        Text("Them: $them", style: TS.caption(color: CC.textSecondary)),
+        Flexible(
+          child: Text("Them: $them", style: TS.caption(color: CC.textSecondary), overflow: TextOverflow.ellipsis),
+        ),
       ],
     );
   }

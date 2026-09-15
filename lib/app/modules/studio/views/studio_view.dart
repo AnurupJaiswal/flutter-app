@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:lala_ai/utils/app_toast.dart';
 import 'package:get/get.dart';
+import 'package:lala_ai/utils/app_toast.dart';
+import 'package:lala_ai/app/modules/profile/views/profile_view.dart';
 import 'package:lala_ai/app/modules/main_container/controllers/main_container_controller.dart';
 import 'package:lala_ai/app/modules/studio/controllers/studio_controller.dart';
 import 'package:lala_ai/app/navigation/app_navigation_service.dart';
@@ -28,6 +29,13 @@ class StudioView extends GetView<StudioController> {
             isNotHomepage: false,
             wantBackIcon: false,
             title: "AI Content Studio",
+            actions: [
+              IconButton(
+                icon: Icon(Icons.person_outline_rounded, color: CC.textPrimary, size: 22),
+                splashRadius: 20,
+                onPressed: () => Get.to(() => const ProfileView()),
+              ),
+            ],
           ),
           body: SafeArea(
             child: SingleChildScrollView(
@@ -39,7 +47,7 @@ class StudioView extends GetView<StudioController> {
                   Obx(() => Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: CC.isDark ? const Color(0xFF101010) : CC.surface,
+                      color: CC.isDark ? CC.darkBg2 : CC.surface,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
@@ -47,7 +55,7 @@ class StudioView extends GetView<StudioController> {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: CC.isDark ? Colors.black.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.08),
+                          color: CC.isDark ? CC.black.withValues(alpha: 0.4) : CC.black.withValues(alpha: 0.08),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -94,7 +102,7 @@ class StudioView extends GetView<StudioController> {
           title,
           textAlign: TextAlign.center,
           style: TS.caption(
-            color: isSelected ? Colors.white : CC.textSecondary,
+            color: isSelected ? CC.whiteText : CC.textSecondary,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
@@ -121,7 +129,7 @@ class StudioView extends GetView<StudioController> {
             ),
             boxShadow: [
               BoxShadow(
-                color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+                color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
                 blurRadius: 14,
                 offset: const Offset(0, 6),
               ),
@@ -182,7 +190,7 @@ class StudioView extends GetView<StudioController> {
             ),
             boxShadow: [
               BoxShadow(
-                color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+                color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
                 blurRadius: 14,
                 offset: const Offset(0, 6),
               ),
@@ -296,7 +304,7 @@ class StudioView extends GetView<StudioController> {
             ),
             boxShadow: [
               BoxShadow(
-                color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+                color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
                 blurRadius: 14,
                 offset: const Offset(0, 6),
               ),
@@ -347,7 +355,7 @@ class StudioView extends GetView<StudioController> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+                    color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
                     blurRadius: 14,
                     offset: const Offset(0, 6),
                   ),

@@ -347,8 +347,8 @@ class CalendarController extends GetxController {
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: CC.isDark
-                            ? Colors.white.withValues(alpha: 0.1)
-                            : Colors.black.withValues(alpha: 0.05),
+                            ? CC.whiteText.withValues(alpha: 0.1)
+                            : CC.black.withValues(alpha: 0.05),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -369,8 +369,8 @@ class CalendarController extends GetxController {
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: CC.isDark
-                        ? Colors.white.withValues(alpha: 0.05)
-                        : Colors.black.withValues(alpha: 0.03),
+                        ? CC.whiteText.withValues(alpha: 0.05)
+                        : CC.black.withValues(alpha: 0.03),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: CC.stroke.withValues(alpha: 0.5)),
                   ),
@@ -392,14 +392,14 @@ class CalendarController extends GetxController {
                   onPressed: () => CW.dismissBottomSheet(sheetContext),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: CC.primary,
-                    foregroundColor: Colors.white,
+                    foregroundColor: CC.whiteText,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                   child: Text(
                     "Ready to Paste & Publish",
-                    style: TS.bodySmall(color: Colors.white, fontWeight: FontWeight.w700),
+                    style: TS.bodySmall(color: CC.whiteText, fontWeight: FontWeight.w700),
                   ),
                 ),
               ),

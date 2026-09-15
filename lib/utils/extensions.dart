@@ -31,13 +31,13 @@ extension CommonShadow on BoxDecoration {
     return copyWith(
       boxShadow: [
         BoxShadow(
-          color: shadowColor ?? (CC.isDark ? Colors.black.withOpacityValue(0.45) : Colors.black.withOpacityValue(0.08)),
+          color: shadowColor ?? (CC.isDark ? CC.black.withOpacityValue(0.45) : CC.black.withOpacityValue(0.08)),
           offset: const Offset(0, 6),
           blurRadius: 14,
           spreadRadius: 0,
         ),
         BoxShadow(
-          color: shadowColor?.withOpacityValue(0.5) ?? (CC.isDark ? Colors.black.withOpacityValue(0.25) : Colors.black.withOpacityValue(0.04)),
+          color: shadowColor?.withOpacityValue(0.5) ?? (CC.isDark ? CC.black.withOpacityValue(0.25) : CC.black.withOpacityValue(0.04)),
           offset: const Offset(0, 2),
           blurRadius: 4,
           spreadRadius: 0,

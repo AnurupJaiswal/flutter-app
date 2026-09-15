@@ -113,9 +113,9 @@ class AppTheme {
         color: CC.lightStroke,
         thickness: 0.8,
       ),
-      textSelectionTheme: const TextSelectionThemeData(
+      textSelectionTheme: TextSelectionThemeData(
         cursorColor: CC.lightPrimary,
-        selectionColor: Color(0x1A00808B),
+        selectionColor: CC.lightPrimary.withAlpha(26), // 0x1A
         selectionHandleColor: CC.lightPrimary,
       ),
       textTheme: TTS.textStyle(fontFamily: fontFamily, brightness: Brightness.light),
@@ -137,8 +137,8 @@ class AppTheme {
         secondary: CC.darkSecondary,
         surface: CC.darkBg2,
         error: CC.darkError,
-        onPrimary: Colors.black,
-        onSecondary: Colors.black,
+        onPrimary: CC.whiteText,
+        onSecondary: CC.whiteText,
         onSurface: CC.darkPrimaryText,
       ),
       appBarTheme: AppBarTheme(
@@ -231,9 +231,9 @@ class AppTheme {
         color: CC.darkStroke,
         thickness: 0.8,
       ),
-      textSelectionTheme: const TextSelectionThemeData(
+      textSelectionTheme: TextSelectionThemeData(
         cursorColor: CC.darkPrimary,
-        selectionColor: Color(0x3300AFBE),
+        selectionColor: CC.darkPrimary.withAlpha(51), // 0x33
         selectionHandleColor: CC.darkPrimary,
       ),
       textTheme: TTS.textStyle(fontFamily: fontFamily, brightness: Brightness.dark),

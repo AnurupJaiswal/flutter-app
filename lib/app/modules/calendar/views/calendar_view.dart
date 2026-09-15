@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lala_ai/app/modules/profile/views/profile_view.dart';
 import 'package:lala_ai/app/modules/calendar/controllers/calendar_controller.dart';
 import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
@@ -42,6 +43,11 @@ class CalendarView extends GetView<CalendarController> {
                     ),
                   ),
                 ),
+              ),
+              IconButton(
+                icon: Icon(Icons.person_outline_rounded, color: CC.textPrimary, size: 22),
+                splashRadius: 20,
+                onPressed: () => Get.to(() => const ProfileView()),
               ),
             ],
           ),
@@ -173,8 +179,8 @@ class CalendarView extends GetView<CalendarController> {
                         boxShadow: [
                           BoxShadow(
                             color: CC.isDark
-                                ? Colors.black.withValues(alpha: 0.45)
-                                : Colors.black.withValues(alpha: 0.12),
+                                ? CC.black.withValues(alpha: 0.45)
+                                : CC.black.withValues(alpha: 0.12),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           ),
@@ -183,7 +189,7 @@ class CalendarView extends GetView<CalendarController> {
                       child: const Center(
                         child: Icon(
                           Icons.add_rounded,
-                          color: Colors.white,
+                          color: CC.whiteText,
                           size: 30,
                         ),
                       ),
@@ -213,8 +219,8 @@ class CalendarView extends GetView<CalendarController> {
         boxShadow: [
           BoxShadow(
             color: CC.isDark
-                ? Colors.black.withValues(alpha: 0.3)
-                : Colors.black.withValues(alpha: 0.04),
+                ? CC.black.withValues(alpha: 0.3)
+                : CC.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -335,7 +341,7 @@ class CalendarView extends GetView<CalendarController> {
                           "$dateNum",
                           style: TS.bodySmall(
                             color: isSelected
-                                ? Colors.white
+                                ? CC.whiteText
                                 : CC.textPrimary,
                             fontWeight: isSelected
                                 ? FontWeight.w700
@@ -403,8 +409,8 @@ class CalendarView extends GetView<CalendarController> {
                       ? [
                           BoxShadow(
                             color: CC.isDark
-                                ? Colors.black.withValues(alpha: 0.2)
-                                : Colors.black.withValues(alpha: 0.03),
+                                ? CC.black.withValues(alpha: 0.2)
+                                : CC.black.withValues(alpha: 0.03),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -416,7 +422,7 @@ class CalendarView extends GetView<CalendarController> {
                     label,
                     style: TS
                         .bodySmall(
-                          color: isSelected ? Colors.white : CC.textPrimary,
+                          color: isSelected ? CC.whiteText : CC.textPrimary,
                           fontWeight: isSelected
                               ? FontWeight.w700
                               : FontWeight.w500,
@@ -459,8 +465,8 @@ class CalendarView extends GetView<CalendarController> {
         boxShadow: [
           BoxShadow(
             color: CC.isDark
-                ? Colors.black.withValues(alpha: 0.45)
-                : Colors.black.withValues(alpha: 0.08),
+                ? CC.black.withValues(alpha: 0.45)
+                : CC.black.withValues(alpha: 0.08),
             blurRadius: 14,
             offset: const Offset(0, 6),
           ),
@@ -481,8 +487,8 @@ class CalendarView extends GetView<CalendarController> {
                   color: platform == "YouTube" || platform == "Instagram"
                       ? const Color(0xFFFDE8EC)
                       : (CC.isDark
-                          ? Colors.white.withValues(alpha: 0.08)
-                          : Colors.black.withValues(alpha: 0.05)),
+                          ? CC.whiteText.withValues(alpha: 0.08)
+                          : CC.black.withValues(alpha: 0.05)),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -506,8 +512,8 @@ class CalendarView extends GetView<CalendarController> {
                   color: status == "Scheduled"
                       ? const Color(0xFFE8F5E9)
                       : (CC.isDark
-                          ? Colors.white.withValues(alpha: 0.08)
-                          : Colors.black.withValues(alpha: 0.05)),
+                          ? CC.whiteText.withValues(alpha: 0.08)
+                          : CC.black.withValues(alpha: 0.05)),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -600,8 +606,8 @@ class CalendarView extends GetView<CalendarController> {
                     height: 40,
                     decoration: BoxDecoration(
                       color: CC.isDark
-                          ? Colors.white.withValues(alpha: 0.06)
-                          : Colors.black.withValues(alpha: 0.04),
+                          ? CC.whiteText.withValues(alpha: 0.06)
+                          : CC.black.withValues(alpha: 0.04),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
@@ -639,13 +645,13 @@ class CalendarView extends GetView<CalendarController> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Icon(Icons.near_me_rounded,
-                            size: 15, color: Colors.white),
+                            size: 15, color: CC.whiteText),
                         6.width,
                         Text(
                           "Mark as Posted",
                           style: TS
                               .bodySmall(
-                                color: Colors.white,
+                                color: CC.whiteText,
                                 fontWeight: FontWeight.w700,
                               )
                               .copyWith(fontSize: 12),

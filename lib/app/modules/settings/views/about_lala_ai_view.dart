@@ -121,11 +121,11 @@ https://apps.apple.com/app/lala-ai/id123456789
                     height: 48,
                     child: ElevatedButton.icon(
                       onPressed: _shareApp,
-                      icon: const Icon(Icons.share_rounded, size: 18, color: Colors.white),
+                      icon: const Icon(Icons.share_rounded, size: 18, color: CC.whiteText),
                       label: Text(
                         "Share Lala AI",
                         style: TS.bodyMedium(
-                          color: Colors.white,
+                          color: CC.whiteText,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -154,8 +154,8 @@ https://apps.apple.com/app/lala-ai/id123456789
                       boxShadow: [
                         BoxShadow(
                           color: isDark
-                              ? Colors.black.withValues(alpha: 0.45)
-                              : Colors.black.withValues(alpha: 0.08),
+                              ? CC.black.withValues(alpha: 0.45)
+                              : CC.black.withValues(alpha: 0.08),
                           blurRadius: 14,
                           offset: const Offset(0, 6),
                         ),
@@ -330,8 +330,8 @@ https://apps.apple.com/app/lala-ai/id123456789
         boxShadow: [
           BoxShadow(
             color: isDark
-                ? Colors.black.withValues(alpha: 0.45)
-                : Colors.black.withValues(alpha: 0.08),
+                ? CC.black.withValues(alpha: 0.45)
+                : CC.black.withValues(alpha: 0.08),
             blurRadius: 14,
             offset: const Offset(0, 6),
           ),
@@ -396,8 +396,8 @@ https://apps.apple.com/app/lala-ai/id123456789
         boxShadow: [
           BoxShadow(
             color: isDark
-                ? Colors.black.withValues(alpha: 0.4)
-                : Colors.black.withValues(alpha: 0.08),
+                ? CC.black.withValues(alpha: 0.4)
+                : CC.black.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),

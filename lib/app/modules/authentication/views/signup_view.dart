@@ -236,7 +236,7 @@ class SignupView extends GetView<AuthController> {
                       onTap: controller.signUp,
                       lastWidget: const Icon(
                         Icons.arrow_forward_rounded,
-                        color: Colors.white,
+                        color: CC.whiteText,
                         size: 18,
                       ),
                     )),
@@ -394,10 +394,10 @@ class SignupView extends GetView<AuthController> {
                 title: "Open Email App",
                 height: 50,
                 isLoading: controller.isLoading.value,
-                onTap: controller.verifyEmailAndNavigate,
+                onTap: controller.openEmailApp,
                 leadingImage: const Icon(
                   Icons.open_in_new_rounded,
-                  color: Colors.white,
+                  color: CC.whiteText,
                   size: 18,
                 ),
               )),

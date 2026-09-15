@@ -60,7 +60,7 @@ class MainContainerView extends GetView<MainContainerController> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: CC.isDark ? Colors.black.withValues(alpha: 0.5) : Colors.black.withValues(alpha: 0.08),
+                    color: CC.isDark ? CC.black.withValues(alpha: 0.5) : CC.black.withValues(alpha: 0.08),
                     blurRadius: 16,
                     offset: const Offset(0, -4),
                   ),

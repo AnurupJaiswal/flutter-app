@@ -270,7 +270,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.15),
+                                        color: CC.black.withValues(alpha: 0.15),
                                         blurRadius: 6,
                                         offset: const Offset(0, 2),
                                       ),
@@ -278,7 +278,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                                   ),
                                   child: const Icon(
                                     Icons.camera_alt_rounded,
-                                    color: Colors.white,
+                                    color: CC.whiteText,
                                     size: 15,
                                   ),
                                 ),

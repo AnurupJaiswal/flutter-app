@@ -44,16 +44,16 @@ class CW {
               boxShadow: [
                 BoxShadow(
                   color: isDark
-                      ? Colors.black.withValues(alpha: 0.75)
-                      : Colors.black.withValues(alpha: 0.12),
+                      ? CC.black.withValues(alpha: 0.75)
+                      : CC.black.withValues(alpha: 0.12),
                   blurRadius: 16,
                   offset: const Offset(0, 6),
                   spreadRadius: 0,
                 ),
                 BoxShadow(
                   color: isDark
-                      ? Colors.black.withValues(alpha: 0.45)
-                      : Colors.black.withValues(alpha: 0.05),
+                      ? CC.black.withValues(alpha: 0.45)
+                      : CC.black.withValues(alpha: 0.05),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                   spreadRadius: 0,
@@ -81,8 +81,8 @@ class CW {
                         margin: const EdgeInsets.only(right: 10),
                         decoration: BoxDecoration(
                           color: isDark
-                              ? Colors.white.withValues(alpha: 0.08)
-                              : Colors.black.withValues(alpha: 0.04),
+                              ? CC.whiteText.withValues(alpha: 0.08)
+                              : CC.black.withValues(alpha: 0.04),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Center(
@@ -151,13 +151,13 @@ class CW {
         ),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.45) : Colors.black.withValues(alpha: 0.08),
+            color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
             blurRadius: 14,
             offset: const Offset(0, 6),
             spreadRadius: 0,
           ),
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.25) : Colors.black.withValues(alpha: 0.04),
+            color: CC.isDark ? CC.black.withValues(alpha: 0.25) : CC.black.withValues(alpha: 0.04),
             blurRadius: 4,
             offset: const Offset(0, 2),
             spreadRadius: 0,
@@ -199,7 +199,7 @@ class CW {
         border: Border.all(color: CC.primary.withValues(alpha: 0.25), width: 1),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? Colors.black.withValues(alpha: 0.35) : Colors.black.withValues(alpha: 0.06),
+            color: CC.isDark ? CC.black.withValues(alpha: 0.35) : CC.black.withValues(alpha: 0.06),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -564,8 +564,8 @@ class CW {
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: CC.isDark
-                                ? Colors.white.withValues(alpha: 0.1)
-                                : Colors.black.withValues(alpha: 0.05),
+                                ? CC.whiteText.withValues(alpha: 0.1)
+                                : CC.black.withValues(alpha: 0.05),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(

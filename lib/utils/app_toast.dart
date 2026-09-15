@@ -91,11 +91,11 @@ class _ToastWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E26) : Colors.white,
+        color: isDark ? const Color(0xFF1E1E26) : CC.whiteText,
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+            color: CC.black.withValues(alpha: isDark ? 0.35 : 0.08),
             blurRadius: 16,
             spreadRadius: 0,
             offset: const Offset(0, 6),

@@ -199,7 +199,7 @@ class _FaqViewState extends State<FaqView> {
                                 selectedColor: CC.primary,
                                 backgroundColor: CC.surface,
                                 labelStyle: TS.caption(
-                                  color: isSelected ? Colors.white : CC.textPrimary,
+                                  color: isSelected ? CC.whiteText : CC.textPrimary,
                                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                                 ),
                                 shape: RoundedRectangleBorder(
@@ -335,7 +335,7 @@ class _FaqViewState extends State<FaqView> {
                                   ),
                                   child: const Icon(
                                     Icons.headset_mic_rounded,
-                                    color: Colors.white,
+                                    color: CC.whiteText,
                                     size: 18,
                                   ),
                                 ),
@@ -366,11 +366,11 @@ class _FaqViewState extends State<FaqView> {
                               width: double.infinity,
                               child: ElevatedButton.icon(
                                 onPressed: () => _showContactSupportSheet(context),
-                                icon: const Icon(Icons.support_agent_rounded, size: 18, color: Colors.white),
+                                icon: const Icon(Icons.support_agent_rounded, size: 18, color: CC.whiteText),
                                 label: Text(
                                   "Contact Creator Support",
                                   style: TS.bodySmall(
-                                    color: Colors.white,
+                                    color: CC.whiteText,
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
@@ -412,8 +412,8 @@ class _FaqViewState extends State<FaqView> {
         boxShadow: [
           BoxShadow(
             color: CC.isDark
-                ? Colors.black.withValues(alpha: 0.45)
-                : Colors.black.withValues(alpha: 0.08),
+                ? CC.black.withValues(alpha: 0.45)
+                : CC.black.withValues(alpha: 0.08),
             blurRadius: 14,
             offset: const Offset(0, 6),
           ),
@@ -444,7 +444,7 @@ class _FaqViewState extends State<FaqView> {
                         ),
                         child: Icon(
                           Icons.help_outline_rounded,
-                          color: isExpanded ? Colors.white : CC.primary,
+                          color: isExpanded ? CC.whiteText : CC.primary,
                           size: 18,
                         ),
                       ),
@@ -485,7 +485,7 @@ class _FaqViewState extends State<FaqView> {
                                 padding: const EdgeInsets.all(14),
                                 decoration: BoxDecoration(
                                   color: CC.isDark
-                                      ? Colors.white.withValues(alpha: 0.05)
+                                      ? CC.whiteText.withValues(alpha: 0.05)
                                       : CC.primary.withValues(alpha: 0.05),
                                   borderRadius: BorderRadius.circular(12),
                                 ),

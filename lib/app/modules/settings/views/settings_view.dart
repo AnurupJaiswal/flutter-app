@@ -33,7 +33,10 @@ class SettingsView extends GetView<SettingsController> {
                 tooltip: "Log Out",
                 onPressed: () => CW.showLogoutSheet(
                   context: context,
-                  onConfirm: () => AppNavigationService.to.navigateToAuth(),
+                onConfirm: () {
+                  // Actually trigger the logout process which clears the token
+                  controller.logout();
+                },
                 ),
               ),
             ],
@@ -208,8 +211,8 @@ class SettingsView extends GetView<SettingsController> {
         boxShadow: [
           BoxShadow(
             color: CC.isDark
-                ? Colors.black.withValues(alpha: 0.45)
-                : Colors.black.withValues(alpha: 0.08),
+                ? CC.black.withValues(alpha: 0.45)
+                : CC.black.withValues(alpha: 0.08),
             blurRadius: 14,
             offset: const Offset(0, 6),
           ),
@@ -529,7 +532,7 @@ class SettingsView extends GetView<SettingsController> {
                   ),
                   child: Icon(
                     icon,
-                    color: isSelected ? Colors.white : CC.primary,
+                    color: isSelected ? CC.whiteText : CC.primary,
                     size: 22,
                   ),
                 ),
@@ -658,7 +661,7 @@ class SettingsView extends GetView<SettingsController> {
                 ),
                 child: const Icon(
                   Icons.workspace_premium_rounded,
-                  color: Colors.white,
+                  color: CC.whiteText,
                   size: 22,
                 ),
               ),
@@ -809,7 +812,7 @@ class SettingsView extends GetView<SettingsController> {
                       child: CW.commonBtn(
                         title: "Delete Account",
                         color: isConfirmed ? CC.primary : CC.primary.withValues(alpha: 0.35),
-                        textColor: isConfirmed ? Colors.white : Colors.white.withValues(alpha: 0.6),
+                        textColor: isConfirmed ? CC.whiteText : CC.whiteText.withValues(alpha: 0.6),
                         onTap: isConfirmed
                             ? () {
                                 CW.dismissBottomSheet();

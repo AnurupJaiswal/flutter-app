@@ -6,7 +6,7 @@ class SettingsBinding extends Bindings {
   @override
   void dependencies() {
     if (!Get.isRegistered<AuthRepository>()) {
-      Get.lazyPut<AuthRepository>(() => MockAuthRepository());
+      Get.lazyPut<AuthRepository>(() => ApiAuthRepository());
     }
     Get.lazyPut<SettingsController>(
       () => SettingsController(authRepository: Get.find<AuthRepository>()),

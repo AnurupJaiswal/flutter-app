@@ -518,8 +518,8 @@ class CategoryInsightsController extends GetxController {
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: CC.isDark
-                              ? Colors.white.withValues(alpha: 0.1)
-                              : Colors.black.withValues(alpha: 0.05),
+                              ? CC.whiteText.withValues(alpha: 0.1)
+                              : CC.black.withValues(alpha: 0.05),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
@@ -564,8 +564,8 @@ class CategoryInsightsController extends GetxController {
                                 color: isSelected
                                     ? CC.primary
                                     : (CC.isDark
-                                        ? Colors.white.withValues(alpha: 0.04)
-                                        : Colors.black.withValues(alpha: 0.03)),
+                                        ? CC.whiteText.withValues(alpha: 0.04)
+                                        : CC.black.withValues(alpha: 0.03)),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
                                   color: isSelected ? CC.primary : CC.stroke,
@@ -581,7 +581,7 @@ class CategoryInsightsController extends GetxController {
                                         : catIcon,
                                     size: 16,
                                     color: isSelected
-                                        ? Colors.white
+                                        ? CC.whiteText
                                         : CC.textSecondary,
                                   ),
                                   8.width,
@@ -589,7 +589,7 @@ class CategoryInsightsController extends GetxController {
                                     cat,
                                     style: TS.bodySmall(
                                       color: isSelected
-                                          ? Colors.white
+                                          ? CC.whiteText
                                           : CC.textPrimary,
                                       fontWeight: isSelected
                                           ? FontWeight.w700
@@ -628,7 +628,7 @@ class CategoryInsightsController extends GetxController {
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: CC.primary,
-                        foregroundColor: Colors.white,
+                        foregroundColor: CC.whiteText,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -637,7 +637,7 @@ class CategoryInsightsController extends GetxController {
                       child: Text(
                         "Save Changes",
                         style: TS.bodySmall(
-                          color: Colors.white,
+                          color: CC.whiteText,
                           fontWeight: FontWeight.w700,
                         ).copyWith(fontSize: 15),
                       ),

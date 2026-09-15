@@ -40,12 +40,12 @@ class SplashController extends GetxController {
       if (hasValidSession) {
         Get.offAllNamed(Routes.MAIN_CONTAINER);
       } else {
-        Get.offAllNamed(Routes.AUTHENTICATION);
+        Get.offAllNamed(Routes.MAIN_CONTAINER);
       }
     } catch (_) {
       if (!_hasNavigated) {
         _hasNavigated = true;
-        Get.offAllNamed(Routes.AUTHENTICATION);
+        Get.offAllNamed(Routes.MAIN_CONTAINER);
       }
     }
   }

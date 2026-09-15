@@ -4,6 +4,7 @@ import 'package:lala_ai/app/modules/settings/controllers/change_password_control
 import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
+import 'package:lala_ai/utils/theme/theme_service.dart';
 
 class ChangePasswordView extends StatelessWidget {
   const ChangePasswordView({super.key});
@@ -12,8 +13,10 @@ class ChangePasswordView extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(ChangePasswordController());
 
-    return Scaffold(
-      backgroundColor: CC.background,
+    return GetBuilder<ThemeService>(
+      builder: (_) {
+        return Scaffold(
+          backgroundColor: CC.background,
       appBar: CW.commonAppbar(
         isNotHomepage: true,
         title: "Change Password",
@@ -93,6 +96,8 @@ class ChangePasswordView extends StatelessWidget {
           ),
         ),
       ),
+    );
+      },
     );
   }
 }

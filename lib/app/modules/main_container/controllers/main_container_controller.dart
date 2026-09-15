@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:lala_ai/app/navigation/app_navigation_service.dart';
+import 'package:lala_ai/app/modules/authentication/data/auth_repository.dart';
 
 class MainContainerController extends GetxController {
   final currentIndex = 0.obs;
@@ -12,6 +13,13 @@ class MainContainerController extends GetxController {
       navigationService = Get.put(AppNavigationService());
     } else {
       navigationService = Get.find<AppNavigationService>();
+    }
+    
+    // Silently validate session and fetch user data in the background
+    if (Get.isRegistered<AuthRepository>()) {
+      Get.find<AuthRepository>().fetchAndSaveMe();
+    } else {
+      Get.put<AuthRepository>(ApiAuthRepository()).fetchAndSaveMe();
     }
   }
 

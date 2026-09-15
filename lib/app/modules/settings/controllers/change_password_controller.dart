@@ -6,7 +6,7 @@ import 'package:lala_ai/utils/app_toast.dart';
 class ChangePasswordController extends GetxController {
   final AuthRepository _authRepository = Get.isRegistered<AuthRepository>()
       ? Get.find<AuthRepository>()
-      : MockAuthRepository();
+      : ApiAuthRepository();
 
   final currentPasswordController = TextEditingController();
   final newPasswordController = TextEditingController();
@@ -36,9 +36,9 @@ class ChangePasswordController extends GetxController {
   }
 
   void _validateForm() {
-    final current = currentPasswordController.text;
-    final newPass = newPasswordController.text;
-    final confirm = confirmPasswordController.text;
+    final current = currentPasswordController.text.trim();
+    final newPass = newPasswordController.text.trim();
+    final confirm = confirmPasswordController.text.trim();
 
     isValid.value = current.isNotEmpty &&
         newPass.length >= 6 &&
@@ -58,27 +58,27 @@ class ChangePasswordController extends GetxController {
   }
 
   String? validateCurrentPassword(String? value) {
-    if (value == null || value.isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return "Current password is required";
     }
     return null;
   }
 
   String? validateNewPassword(String? value) {
-    if (value == null || value.isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return "New password is required";
     }
-    if (value.length < 6) {
+    if (value.trim().length < 6) {
       return "Password must be at least 6 characters";
     }
     return null;
   }
 
   String? validateConfirmPassword(String? value) {
-    if (value == null || value.isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return "Please confirm your new password";
     }
-    if (value != newPasswordController.text) {
+    if (value.trim() != newPasswordController.text.trim()) {
       return "Passwords do not match";
     }
     return null;
@@ -91,8 +91,8 @@ class ChangePasswordController extends GetxController {
     isLoading.value = true;
 
     final response = await _authRepository.changePassword(
-      currentPassword: currentPasswordController.text,
-      newPassword: newPasswordController.text,
+      currentPassword: currentPasswordController.text.trim(),
+      newPassword: newPasswordController.text.trim(),
     );
 
     isLoading.value = false;
