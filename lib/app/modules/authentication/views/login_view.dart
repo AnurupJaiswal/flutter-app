@@ -150,35 +150,7 @@ class LoginView extends GetView<AuthController> {
                 onTap: controller.signIn,
               )),
 
-          28.height,
 
-          // 7. Navigation to Sign Up
-          Center(
-            child: Wrap(
-              alignment: WrapAlignment.center,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Text(
-                  "New to Lala Ai? ",
-                  style: TS.bodySmall(color: CC.textSecondary, fontSize: 13.5),
-                ),
-                GestureDetector(
-                  onTap: () => controller.toggleTab(false),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Text(
-                      "Sign up now.",
-                      style: TS.bodySmall(
-                        color: CC.primary,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13.5,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );

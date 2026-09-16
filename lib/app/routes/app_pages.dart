@@ -5,6 +5,7 @@ import 'package:lala_ai/app/modules/analytics/bindings/analytics_binding.dart';
 import 'package:lala_ai/app/modules/analytics/views/analytics_view.dart';
 import 'package:lala_ai/app/modules/authentication/bindings/auth_binding.dart';
 import 'package:lala_ai/app/modules/authentication/views/authentication_view.dart';
+import 'package:lala_ai/app/modules/authentication/views/reset_password_view.dart';
 import 'package:lala_ai/app/modules/calendar/views/calendar_view.dart';
 import 'package:lala_ai/app/modules/chat/bindings/chat_binding.dart';
 import 'package:lala_ai/app/modules/chat/views/chat_conversation_view.dart';
@@ -20,6 +21,8 @@ import 'package:lala_ai/app/modules/settings/views/settings_view.dart';
 import 'package:lala_ai/app/modules/splash/bindings/splash_binding.dart';
 import 'package:lala_ai/app/modules/splash/views/splash_view.dart';
 import 'package:lala_ai/app/modules/studio/views/studio_view.dart';
+import 'package:lala_ai/app/modules/welcome/bindings/welcome_binding.dart';
+import 'package:lala_ai/app/modules/welcome/views/welcome_view.dart';
 import 'package:lala_ai/app/routes/app_routes.dart';
 
 class AppPages {
@@ -32,6 +35,12 @@ class AppPages {
       name: Routes.SPLASH,
       page: () => const SplashView(),
       binding: SplashBinding(),
+    ),
+    GetPage(
+      name: Routes.WELCOME,
+      page: () => const WelcomeView(),
+      binding: WelcomeBinding(),
+      transition: Transition.fadeIn,
     ),
     GetPage(
       name: Routes.AUTHENTICATION,
@@ -129,6 +138,11 @@ class AppPages {
         ''',
       ),
       transition: Transition.rightToLeftWithFade,
+    ),
+    GetPage(
+      name: Routes.RESET_PASSWORD,
+      page: () => const ResetPasswordView(),
+      transition: Transition.fadeIn,
     ),
   ];
 }

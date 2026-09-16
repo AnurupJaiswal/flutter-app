@@ -4,6 +4,7 @@ abstract class Routes {
   Routes._();
 
   static const SPLASH = _Paths.SPLASH;
+  static const WELCOME = _Paths.WELCOME;
   static const AUTHENTICATION = _Paths.AUTHENTICATION;
   static const MAIN_CONTAINER = _Paths.MAIN_CONTAINER;
   static const HOME = _Paths.HOME;
@@ -21,12 +22,14 @@ abstract class Routes {
   static const PROFILE = _Paths.PROFILE;
   static const PRIVACY_POLICY = _Paths.PRIVACY_POLICY;
   static const TERMS_CONDITIONS = _Paths.TERMS_CONDITIONS;
+  static const RESET_PASSWORD = _Paths.RESET_PASSWORD;
 }
 
 abstract class _Paths {
   _Paths._();
 
   static const SPLASH = '/splash';
+  static const WELCOME = '/welcome';
   static const AUTHENTICATION = '/authentication';
   static const MAIN_CONTAINER = '/main-container';
   static const HOME = '/home';
@@ -44,4 +47,5 @@ abstract class _Paths {
   static const PROFILE = '/profile';
   static const PRIVACY_POLICY = '/privacy-policy';
   static const TERMS_CONDITIONS = '/terms-conditions';
+  static const RESET_PASSWORD = '/reset-password';
 }

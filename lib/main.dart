@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:lala_ai/app/routes/app_pages.dart';
 import 'package:lala_ai/utils/keyboard_dismiss_wrapper.dart';
+import 'package:lala_ai/utils/deep_link_service.dart';
 import 'package:lala_ai/utils/theme/app_theme.dart';
 import 'package:lala_ai/utils/theme/theme_service.dart';
 
@@ -17,6 +18,10 @@ void main() async {
   final themeService = ThemeService();
   await themeService.init();
   Get.put<ThemeService>(themeService, permanent: true);
+
+  final deepLinkService = DeepLinkService();
+  await deepLinkService.init();
+  Get.put<DeepLinkService>(deepLinkService, permanent: true);
 
   runApp(
     GetBuilder<ThemeService>(

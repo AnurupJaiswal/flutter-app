@@ -35,11 +35,12 @@ abstract class AuthRepository {
 
   Future<ApiResponse<Map<String, dynamic>>> getMe();
 
-  Future<ApiResponse<dynamic>> sendForgotPasswordOtp(String email);
+  Future<ApiResponse<dynamic>> forgotPassword(String email);
 
-  Future<ApiResponse<dynamic>> verifyForgotPasswordOtp(String email, String otp);
-
-  Future<ApiResponse<dynamic>> resetPassword(String resetToken, String newPassword);
+  Future<ApiResponse<dynamic>> resetPassword({
+    required String token,
+    required String newPassword,
+  });
 
   Future<ApiResponse<dynamic>> changePassword({
     required String currentPassword,
@@ -207,28 +208,25 @@ class ApiAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<ApiResponse<dynamic>> sendForgotPasswordOtp(String email) async {
+  Future<ApiResponse<dynamic>> forgotPassword(String email) async {
     final response = await ApiService.post(
-      '/api/v1/auth/forgot-password/send-otp',
+      ApiEndpoints.forgotPassword,
       body: {'email': email.trim()},
     );
     return response;
   }
 
   @override
-  Future<ApiResponse<dynamic>> verifyForgotPasswordOtp(String email, String otp) async {
+  Future<ApiResponse<dynamic>> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
     final response = await ApiService.post(
-      '/api/v1/auth/forgot-password/verify-otp',
-      body: {'email': email.trim(), 'otp': otp.trim()},
-    );
-    return response;
-  }
-
-  @override
-  Future<ApiResponse<dynamic>> resetPassword(String resetToken, String newPassword) async {
-    final response = await ApiService.post(
-      '/api/v1/auth/forgot-password/reset',
-      body: {'resetToken': resetToken, 'newPassword': newPassword},
+      ApiEndpoints.resetPassword,
+      body: {
+        'token': token,
+        'newPassword': newPassword,
+      },
     );
     return response;
   }

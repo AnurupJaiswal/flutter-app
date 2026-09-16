@@ -15,9 +15,7 @@ class ForgotPasswordView extends StatelessWidget {
     // Put controller in memory so it survives across the 3 screens
     final controller = Get.put(ForgotPasswordController());
 
-    return GetBuilder<ThemeService>(
-      builder: (themeService) {
-        return Scaffold(
+    return Scaffold(
           backgroundColor: CC.background,
           appBar: CW.commonAppbar(
             title: "Forgot Password",
@@ -39,48 +37,81 @@ class ForgotPasswordView extends StatelessWidget {
                         fontWeight: FontWeight.w700),
                   ),
                   8.height,
-                  Text(
-                    "Enter the email associated with your account and we'll send an email with instructions to reset your password.",
-                    style: TS.bodySmall(
-                        color: CC.textSecondary,
-                        fontWeight: FontWeight.w400,
-                        height: 1.4),
-                  ),
-                  40.height,
-                  Text(
-                    "Email address",
-                    style: TS.caption(
-                        color: CC.textPrimary, fontWeight: FontWeight.w600),
-                  ),
-                  8.height,
-                  CW.commonTextFormField(
-                    controller: controller.emailController,
-                    hintText: "Enter your email",
-                    keyboardType: TextInputType.emailAddress,
-                    prefixIcon: Icons.email_outlined,
-                  ),
-                  Obx(() => controller.emailError.value.isNotEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Text(
-                            controller.emailError.value,
-                            style: TS.caption(color: Colors.redAccent),
+                  Obx(() {
+                    if (controller.linkSent.value) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Check your email",
+                            style: TS.bodyMedium(
+                                color: CC.primary,
+                                fontWeight: FontWeight.w600,
+                                height: 1.4),
                           ),
-                        )
-                      : const SizedBox.shrink()),
-                  40.height,
-                  Obx(() => CW.commonBtn(
-                        title: "Send OTP",
-                        height: 50,
-                        isLoading: controller.isSendingOtp.value,
-                        onTap: controller.sendOtp,
-                      )),
+                          16.height,
+                          Text(
+                            "We've sent a secure link to your email. Please check your inbox and tap the link to reset your password.",
+                            style: TS.bodySmall(
+                                color: CC.textSecondary,
+                                fontWeight: FontWeight.w400,
+                                height: 1.4),
+                          ),
+                          32.height,
+                          CW.commonBtn(
+                            title: "Back to Login",
+                            height: 50,
+                            onTap: () => Get.back(),
+                          ),
+                        ],
+                      );
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Enter the email associated with your account and we'll send a secure link to reset your password.",
+                          style: TS.bodySmall(
+                              color: CC.textSecondary,
+                              fontWeight: FontWeight.w400,
+                              height: 1.4),
+                        ),
+                        40.height,
+                        Text(
+                          "Email address",
+                          style: TS.caption(
+                              color: CC.textPrimary, fontWeight: FontWeight.w600),
+                        ),
+                        8.height,
+                        CW.commonTextFormField(
+                          controller: controller.emailController,
+                          hintText: "Enter your email",
+                          keyboardType: TextInputType.emailAddress,
+                          prefixIcon: Icons.email_outlined,
+                        ),
+                        Obx(() => controller.emailError.value.isNotEmpty
+                            ? Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Text(
+                                  controller.emailError.value,
+                                  style: TS.caption(color: Colors.redAccent),
+                                ),
+                              )
+                            : const SizedBox.shrink()),
+                        40.height,
+                        CW.commonBtn(
+                          title: "Send Reset Link",
+                          height: 50,
+                          isLoading: controller.isSendingLink.value,
+                          onTap: controller.requestPasswordReset,
+                        ),
+                      ],
+                    );
+                  }),
                 ],
               ),
             ),
           ),
         );
-      },
-    );
   }
 }

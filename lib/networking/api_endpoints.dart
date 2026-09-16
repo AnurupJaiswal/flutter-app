@@ -2,7 +2,7 @@ class ApiEndpoints {
   ApiEndpoints._();
 
   // Use the cloudflare tunnel for development
-  static const String baseUrl = 'https://rna-glow-raise-ipod.trycloudflare.com';
+  static const String baseUrl = 'https://assurance-raising-comprehensive-strength.trycloudflare.com';
 
   // --- Auth Endpoints ---
   static const String login = '/api/v1/auth/login';

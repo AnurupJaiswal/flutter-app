@@ -368,13 +368,6 @@ class _EditProfileViewState extends State<EditProfileView> {
                     10.height,
                     _buildBioField(),
                     8.height,
-                    Padding(
-                      padding: const EdgeInsets.only(left: 2),
-                      child: Text(
-                        "This will appear on your creator profile.",
-                        style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 12),
-                      ),
-                    ),
                     32.height,
 
                     // ── Save Changes CTA ───────────────────────────────────

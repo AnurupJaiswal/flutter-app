@@ -8,15 +8,21 @@ import 'package:lala_ai/utils/theme/text_style.dart';
 import 'package:lala_ai/utils/theme/theme_service.dart';
 
 class ResetPasswordView extends StatelessWidget {
-  const ResetPasswordView({super.key});
+  final String? token;
+  const ResetPasswordView({super.key, this.token});
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<ForgotPasswordController>();
+    final controller = Get.put(ForgotPasswordController());
+    
+    final finalToken = token ?? Get.parameters['token'];
+    if (finalToken != null && controller.tokenController.text.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        controller.setToken(finalToken);
+      });
+    }
 
-    return GetBuilder<ThemeService>(
-      builder: (themeService) {
-        return Scaffold(
+    return Scaffold(
           backgroundColor: CC.background,
           appBar: CW.commonAppbar(
             title: "Create Password",
@@ -46,6 +52,18 @@ class ResetPasswordView extends StatelessWidget {
                         height: 1.4),
                   ),
                   40.height,
+                  Text(
+                    "Reset Token / Code",
+                    style: TS.caption(
+                        color: CC.textPrimary, fontWeight: FontWeight.w600),
+                  ),
+                  8.height,
+                  CW.commonTextFormField(
+                    controller: controller.tokenController,
+                    hintText: "Enter the reset token",
+                    prefixIcon: Icons.vpn_key_outlined,
+                  ),
+                  24.height,
                   Text(
                     "New password",
                     style: TS.caption(
@@ -121,7 +139,5 @@ class ResetPasswordView extends StatelessWidget {
             ),
           ),
         );
-      },
-    );
   }
 }

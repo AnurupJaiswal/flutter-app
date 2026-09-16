@@ -121,6 +121,22 @@ class AuthController extends GetxController {
     isEmailSent.value = false;
   }
 
+  Future<void> openSignupWebsite() async {
+    const signupUrl = "https://YOUR-DOMAIN.com/signup";
+    final Uri url = Uri.parse(signupUrl);
+
+    try {
+      if (!await launchUrl(
+        url,
+        mode: LaunchMode.externalApplication,
+      )) {
+        CM.showToast("Could not open the website.");
+      }
+    } catch (e) {
+      CM.showToast("Could not open the website.");
+    }
+  }
+
   Future<void> openEmailApp() async {
     try {
       if (Platform.isAndroid) {

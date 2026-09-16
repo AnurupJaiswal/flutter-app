@@ -20,7 +20,7 @@ class PixoOverlayWidget extends StatefulWidget {
 class _PixoOverlayWidgetState extends State<PixoOverlayWidget>
     with TickerProviderStateMixin {
   PixoState _state = PixoState.normal;
-  Offset _position = const Offset(20, 100);
+  Offset _position = const Offset(20, 20);
   bool _isDragging = false;
 
   late final AnimationController _pulseController;
@@ -63,13 +63,7 @@ class _PixoOverlayWidgetState extends State<PixoOverlayWidget>
   }
 
   void _openVoiceDialog() {
-    showModalBottomSheet(
-      context: context,
-      useRootNavigator: false,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (sheetContext) => _VoiceSheet(onDone: () => CW.dismissBottomSheet(sheetContext)),
-    );
+    // CM.showToast("Pixo Voice Assistant coming soon!");
   }
 
   void _snapToNearestEdge(Size screenSize) {
@@ -225,7 +219,7 @@ class _PixoOverlayWidgetState extends State<PixoOverlayWidget>
         setState(() {
           _position = Offset(
             (_position.dx - details.delta.dx).clamp(10.0, screenSize.width - 96),
-            (_position.dy - details.delta.dy).clamp(80.0, 500.0),
+            (_position.dy - details.delta.dy).clamp(10.0, screenSize.height - 140),
           );
         });
       },
