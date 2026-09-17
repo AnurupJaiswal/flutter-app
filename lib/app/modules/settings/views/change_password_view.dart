@@ -6,12 +6,34 @@ import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/theme_service.dart';
 
-class ChangePasswordView extends StatelessWidget {
+class ChangePasswordView extends StatefulWidget {
   const ChangePasswordView({super.key});
 
   @override
+  State<ChangePasswordView> createState() => _ChangePasswordViewState();
+}
+
+class _ChangePasswordViewState extends State<ChangePasswordView> {
+  late final ChangePasswordController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = Get.isRegistered<ChangePasswordController>()
+        ? Get.find<ChangePasswordController>()
+        : Get.put(ChangePasswordController());
+  }
+
+  @override
+  void dispose() {
+    if (Get.isRegistered<ChangePasswordController>()) {
+      Get.delete<ChangePasswordController>();
+    }
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final controller = Get.put(ChangePasswordController());
 
     return GetBuilder<ThemeService>(
       builder: (_) {
@@ -88,7 +110,7 @@ class ChangePasswordView extends StatelessWidget {
                         ? CC.primary
                         : CC.primary.withValues(alpha: 0.5),
                     onTap: controller.isValid.value && !controller.isLoading.value
-                        ? controller.changePassword
+                        ? () => controller.changePassword(context)
                         : null,
                     isLoading: controller.isLoading.value,
                   )),

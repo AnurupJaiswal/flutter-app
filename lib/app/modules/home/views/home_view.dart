@@ -10,6 +10,8 @@ import 'package:lala_ai/utils/theme/text_style.dart';
 import 'package:lala_ai/utils/theme/theme_service.dart';
 import 'package:lala_ai/app/modules/connect_accounts/views/connect_accounts_view.dart';
 import 'package:lala_ai/app/modules/profile/views/profile_view.dart';
+import 'package:lala_ai/app/routes/app_routes.dart';
+import 'package:lala_ai/networking/api_service.dart';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
@@ -69,8 +71,6 @@ class HomeView extends GetView<HomeController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildWelcomeSection(),
-                    24.height,
-                    _buildChannelsSection(),
                     24.height,
                     _buildHealthScoreSection(),
                     24.height,
@@ -145,138 +145,49 @@ class HomeView extends GetView<HomeController> {
   }
 
   Widget _buildWelcomeSection() {
+    final ytHandle = (ApiService.currentConnectedAccounts?.youtube?.handle?.isNotEmpty ?? false)
+        ? ApiService.currentConnectedAccounts!.youtube!.handle!
+        : "@alexcreators";
+    final igHandle = (ApiService.currentConnectedAccounts?.instagram?.handle?.isNotEmpty ?? false)
+        ? ApiService.currentConnectedAccounts!.instagram!.handle!
+        : "@alex_reels";
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("Hey, Alex 👋", style: TS.displayLarge(fontSize: 22, fontWeight: FontWeight.w700)),
-        2.height,
-        Text("Manage your channels and get AI-powered insights.", style: TS.bodySmall(color: CC.textSecondary).copyWith(fontSize: 11)),
-      ],
-    );
-  }
-
-  // Brand icon widgets
-  static Widget _youtubeLogo({double size = 40}) {
-    return CW.youtubeIcon(size: size);
-  }
-
-  static Widget _instagramLogo({double size = 40}) {
-    return CW.instagramIcon(size: size);
-  }
-
-  Widget _buildChannelsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text("Your Channels", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 16)),
-        12.height,
-        _buildPlatformCard(
-          platform: "YouTube",
-          brandIcon: _youtubeLogo(size: 40),
-          iconBg: const Color(0xFFFF0000),
-          isConnected: controller.isYoutubeConnected.value,
-          handle: "@alexcreators",
-          onAction: () => Get.to(() => const ConnectAccountsView()),
-        ),
-        10.height,
-        _buildPlatformCard(
-          platform: "Instagram",
-          brandIcon: _instagramLogo(size: 40),
-          iconBg: const Color(0xFFE1306C),
-          isConnected: controller.isInstagramConnected.value,
-          handle: "@alex_reels",
-          onAction: () => Get.to(() => const ConnectAccountsView()),
+        Text("Hey, ${ApiService.effectiveDisplayName}", style: TS.displayLarge(fontSize: 22, fontWeight: FontWeight.w700)),
+        6.height,
+        Row(
+          children: [
+            if (controller.isYoutubeConnected.value) ...[
+              _buildSmallHandle(CW.youtubeIcon(size: 16), ytHandle),
+              10.width,
+            ],
+            if (controller.isInstagramConnected.value) ...[
+              _buildSmallHandle(CW.instagramIcon(size: 16), igHandle),
+            ],
+            if (!controller.isYoutubeConnected.value && !controller.isInstagramConnected.value)
+              Text("No channels connected", style: TS.bodySmall(color: CC.textSecondary).copyWith(fontSize: 11)),
+          ],
         ),
       ],
     );
   }
 
-  Widget _buildPlatformCard({
-    required String platform,
-    required Widget brandIcon,
-    required Color iconBg,
-    required bool isConnected,
-    required String handle,
-    required VoidCallback onAction,
-  }) {
+  Widget _buildSmallHandle(Widget icon, String handle) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: CC.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6), width: 1),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Platform icon
-          brandIcon,
-          14.width,
-          // Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(platform, style: TS.bodySmall(color: CC.textPrimary, fontWeight: FontWeight.w700)),
-                4.height,
-                Row(
-                  children: [
-                    Container(
-                      width: 6, height: 6,
-                      decoration: BoxDecoration(
-                        color: isConnected ? CC.success : CC.grey,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    6.width,
-                    Text(
-                      isConnected ? handle : "Not connected",
-                      style: TS.caption(color: CC.textSecondary),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          12.width,
-          // Action button
-          Material(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-            child: InkWell(
-              onTap: onAction,
-              borderRadius: BorderRadius.circular(10),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: isConnected
-                      ? Colors.transparent
-                      : CC.primary,
-                  borderRadius: BorderRadius.circular(10),
-                  border: isConnected
-                      ? Border.all(color: CC.primary, width: 1.2)
-                      : null,
-                ),
-                child: Text(
-                  isConnected ? "Manage" : "Connect",
-                  style: TS.caption(
-                    color: isConnected ? CC.primary : CC.whiteText,
-                    fontWeight: FontWeight.w600,
-                  ).copyWith(fontSize: 12),
-                ),
-              ),
-            ),
-          ),
+          icon,
+          6.width,
+          Text(handle, style: TS.caption(color: CC.textPrimary, fontWeight: FontWeight.w600).copyWith(fontSize: 11)),
         ],
       ),
     );
@@ -384,39 +295,53 @@ class HomeView extends GetView<HomeController> {
                     16.height,
                     Divider(height: 1, color: CC.stroke),
                     14.height,
-                    // Quick Stats Row
-                    Obx(() => Row(
-                      children: [
-                        Expanded(child: _statItem("Subscribers", controller.subscribersCount.value, "+340", Icons.people_outline_rounded)),
-                        Container(width: 1, height: 36, color: CC.stroke),
-                        Expanded(child: _statItem("Avg Views", controller.viewsCount.value, "+18%", Icons.play_arrow_outlined)),
-                        Container(width: 1, height: 36, color: CC.stroke),
-                        Expanded(child: _statItem("Engagement", controller.engagementRate.value, "High", Icons.bolt_rounded)),
-                      ],
-                    )),
                     14.height,
-
-                    // Action button bar to Analytics
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 9),
-                      decoration: BoxDecoration(
-                        color: CC.primary.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.bar_chart_rounded, size: 15, color: CC.primary),
-                          6.width,
-                          Text(
-                            "Open Full Channel Analytics & Audit",
-                            style: TS.caption(color: CC.primary, fontWeight: FontWeight.w700).copyWith(fontSize: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AnalyticsView())),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color: Colors.transparent,
+                                border: Border.all(color: CC.stroke),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  "Detailed Analytics",
+                                  style: TS.caption(color: CC.textPrimary, fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                            ),
                           ),
-                          4.width,
-                          Icon(Icons.chevron_right_rounded, size: 16, color: CC.primary),
-                        ],
-                      ),
+                        ),
+                        10.width,
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => Get.toNamed(Routes.CHAT_HOME),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color: CC.primary.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.auto_awesome_rounded, size: 14, color: CC.primary),
+                                  6.width,
+                                  Text(
+                                    "Ask Pixo",
+                                    style: TS.caption(color: CC.primary, fontWeight: FontWeight.w700),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -424,25 +349,6 @@ class HomeView extends GetView<HomeController> {
             );
           }
         ),
-      ],
-    );
-  }
-
-  Widget _statItem(String label, String value, String badge, IconData icon) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 14, color: CC.textPrimary),
-            4.width,
-            Text(value, style: TS.sectionTitle(color: CC.textPrimary, fontSize: 15)),
-          ],
-        ),
-        2.height,
-        Text(label, style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 10)),
-        4.height,
-        Text(badge, style: TS.caption(color: CC.primary, fontWeight: FontWeight.w700).copyWith(fontSize: 10)),
       ],
     );
   }
@@ -959,7 +865,7 @@ class HomeView extends GetView<HomeController> {
         // YouTube Connection Card
         _platformConnectCard(
           platform: "YouTube",
-          brandIcon: _youtubeLogo(size: 40),
+          brandIcon: CW.youtubeIcon(size: 40),
           iconBg: const Color(0xFFFF0000),
           handle: "@alexcreators",
           status: controller.isYoutubeConnected.value ? "Connected" : "Disconnected",
@@ -972,7 +878,7 @@ class HomeView extends GetView<HomeController> {
         // Instagram Connection Card
         _platformConnectCard(
           platform: "Instagram",
-          brandIcon: _instagramLogo(size: 40),
+          brandIcon: CW.instagramIcon(size: 40),
           iconBg: const Color(0xFFE1306C),
           handle: "@alex_reels",
           status: controller.isInstagramConnected.value ? "Connected" : "Re-auth Required",
@@ -1149,13 +1055,13 @@ class HomeView extends GetView<HomeController> {
         CW.commonBtn(
           title: "Connect Instagram",
           leadingImage: Image.asset('assets/icons/img_instagram.png', width: 20, height: 20),
-          onTap: () => Get.to(() => const ConnectAccountsView()),
+          onTap: () => Get.to(() => const ConnectAccountsView())?.then((_) => controller.syncWithSavedConnections()),
         ),
         20.height,
         CW.commonBtn(
           title: "Connect YouTube",
           leadingImage: Image.asset('assets/icons/img_youtube.png', width: 20, height: 20),
-          onTap: () => Get.to(() => const ConnectAccountsView()),
+          onTap: () => Get.to(() => const ConnectAccountsView())?.then((_) => controller.syncWithSavedConnections()),
         ),
       ],
     );

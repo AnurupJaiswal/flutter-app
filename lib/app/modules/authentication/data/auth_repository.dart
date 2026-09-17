@@ -1,4 +1,8 @@
+import 'dart:convert';
 import 'package:lala_ai/Models/auth_response_model.dart';
+import 'package:lala_ai/Models/creator_profile_model.dart';
+import 'package:lala_ai/Models/connected_accounts_model.dart';
+import 'package:lala_ai/Models/subscription_model.dart';
 import 'package:lala_ai/Models/user_model.dart';
 import 'package:lala_ai/networking/api_endpoints.dart';
 import 'package:lala_ai/networking/api_response.dart';
@@ -51,9 +55,25 @@ abstract class AuthRepository {
 
   Future<ApiResponse<AuthResponseModel>> exchangeHandoff(String code);
 
+  Future<ApiResponse<CreatorProfileModel>> getCreatorProfile();
+
+  Future<ApiResponse<dynamic>> updateCreatorProfile({
+    String? displayName,
+    String? bio,
+    String? audienceDescription,
+    String? niche,
+    dynamic goals,
+  });
+
   Future<bool> restoreSession();
 
   Future<void> fetchAndSaveMe();
+
+  Future<ApiResponse<String>> getPlatformAuthUrl(String platform);
+
+  Future<ApiResponse<dynamic>> disconnectPlatform(String platform);
+
+  Future<void> clearSession();
 
   Future<void> logout();
 }
@@ -75,7 +95,7 @@ class ApiAuthRepository implements AuthRepository {
 
     if (response.isSuccess && response.data != null) {
       final authResponse = AuthResponseModel.fromJson(response.data);
-      if (authResponse.user != null) {
+      if (authResponse.user != null || authResponse.accessToken != null) {
         await _persistSession(authResponse);
       }
       return ApiResponse.success(data: authResponse, message: response.message);
@@ -100,7 +120,7 @@ class ApiAuthRepository implements AuthRepository {
 
     if (response.isSuccess && response.data != null) {
       final authResponse = AuthResponseModel.fromJson(response.data);
-      if (authResponse.user != null) {
+      if (authResponse.user != null || authResponse.accessToken != null) {
         await _persistSession(authResponse);
       }
       return ApiResponse.success(data: authResponse, message: response.message);
@@ -236,9 +256,8 @@ class ApiAuthRepository implements AuthRepository {
     required String currentPassword,
     required String newPassword,
   }) async {
-    // Note: Assuming endpoint exists in backend based on previous implementation
-    final response = await ApiService.post(
-      '/api/v1/auth/change-password',
+    final response = await ApiService.put(
+      ApiEndpoints.changePassword,
       body: {
         'currentPassword': currentPassword,
         'newPassword': newPassword,
@@ -271,6 +290,67 @@ class ApiAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<ApiResponse<CreatorProfileModel>> getCreatorProfile() async {
+    final response = await ApiService.get(ApiEndpoints.creatorProfile);
+    if (response.isSuccess && response.data != null) {
+      final payload = response.data is Map<String, dynamic> && response.data['data'] != null
+          ? response.data['data']
+          : response.data;
+      if (payload is Map<String, dynamic>) {
+        final creatorProfile = CreatorProfileModel.fromJson(payload);
+        ApiService.currentCreatorProfile = creatorProfile;
+        if (creatorProfile.displayName != null && creatorProfile.displayName!.trim().isNotEmpty) {
+          ApiService.userName = creatorProfile.displayName!.trim();
+          final pref = await SharedPreferences.getInstance();
+          await pref.setString('userName', creatorProfile.displayName!.trim());
+        }
+        final pref = await SharedPreferences.getInstance();
+        await pref.setString('creatorProfile', jsonEncode(creatorProfile.toJson()));
+        return ApiResponse.success(data: creatorProfile, message: response.message);
+      }
+    }
+    return ApiResponse.error(message: response.message, statusCode: response.statusCode);
+  }
+
+  @override
+  Future<ApiResponse<dynamic>> updateCreatorProfile({
+    String? displayName,
+    String? bio,
+    String? audienceDescription,
+    String? niche,
+    dynamic goals,
+  }) async {
+    final Map<String, dynamic> body = {};
+    if (displayName != null && displayName.isNotEmpty) body['displayName'] = displayName.trim();
+    if (bio != null) body['bio'] = bio.trim();
+    if (audienceDescription != null && audienceDescription.isNotEmpty) body['audienceDescription'] = audienceDescription.trim();
+    if (niche != null && niche.isNotEmpty) body['niche'] = niche.trim();
+    if (goals != null) body['goals'] = goals;
+
+    final response = await ApiService.put(
+      ApiEndpoints.updateCreatorProfile,
+      body: body,
+    );
+
+    if (response.isSuccess) {
+      if (displayName != null && displayName.trim().isNotEmpty) {
+        ApiService.userName = displayName.trim();
+        final pref = await SharedPreferences.getInstance();
+        await pref.setString('userName', displayName.trim());
+      }
+      // Re-fetch me and creator profile to update local user/creator caches
+      await getCreatorProfile();
+      await fetchAndSaveMe();
+    }
+    return response;
+  }
+
+  @override
+  Future<void> clearSession() async {
+    await ApiService.clearSessionData();
+  }
+
+  @override
   Future<bool> restoreSession() async {
     final pref = await SharedPreferences.getInstance();
     final token = pref.getString('accessToken');
@@ -280,8 +360,58 @@ class ApiAuthRepository implements AuthRepository {
       ApiService.userUuid = pref.getString('userUuid');
       ApiService.userEmail = pref.getString('userEmail');
       ApiService.userName = pref.getString('userName');
+
+      final userProfileJson = pref.getString('userProfile');
+      if (userProfileJson != null) {
+        try {
+          final userMap = jsonDecode(userProfileJson) as Map<String, dynamic>;
+          ApiService.currentUser = UserModel.fromJson(userMap);
+        } catch (_) {}
+      }
+
+      final subscriptionJson = pref.getString('userSubscription');
+      if (subscriptionJson != null) {
+        try {
+          final subMap = jsonDecode(subscriptionJson) as Map<String, dynamic>;
+          ApiService.currentSubscription = SubscriptionModel.fromJson(subMap);
+        } catch (_) {}
+      }
+
+      final creatorProfileJson = pref.getString('creatorProfile');
+      if (creatorProfileJson != null) {
+        try {
+          final creatorMap = jsonDecode(creatorProfileJson) as Map<String, dynamic>;
+          ApiService.currentCreatorProfile = CreatorProfileModel.fromJson(creatorMap);
+        } catch (_) {}
+      }
+
+      // Consistently prioritize display name for ApiService.userName
+      if (ApiService.currentCreatorProfile?.displayName?.trim().isNotEmpty == true) {
+        ApiService.userName = ApiService.currentCreatorProfile!.displayName!.trim();
+      } else if (ApiService.currentUser?.effectiveDisplayName.isNotEmpty == true) {
+        ApiService.userName = ApiService.currentUser!.effectiveDisplayName;
+      }
+
+      final accountsJson = pref.getString('connectedAccounts');
+      if (accountsJson != null) {
+        try {
+          final accMap = jsonDecode(accountsJson) as Map<String, dynamic>;
+          ApiService.currentConnectedAccounts = ConnectedAccountsModel.fromJson(accMap);
+        } catch (_) {}
+      }
+
+      final statsJson = pref.getString('creatorStats');
+      if (statsJson != null) {
+        try {
+          final statsMap = jsonDecode(statsJson) as Map<String, dynamic>;
+          ApiService.currentStats = CreatorStatsModel.fromJson(statsMap);
+        } catch (_) {}
+      }
+
       return true;
     }
+    // If no token exists, ensure session state is completely wiped
+    await clearSession();
     return false;
   }
   
@@ -292,17 +422,84 @@ class ApiAuthRepository implements AuthRepository {
       // Backend may return data nested in 'data' object or directly
       final payload = response.data!['data'] ?? response.data!;
       final user = payload['user'] != null ? UserModel.fromJson(payload['user']) : null;
+      final subscription = payload['subscription'] != null ? SubscriptionModel.fromJson(payload['subscription']) : null;
+      final creatorProfile = payload['creatorProfile'] != null ? CreatorProfileModel.fromJson(payload['creatorProfile']) : null;
+      final connectedAccounts = payload['connectedAccounts'] != null
+          ? ConnectedAccountsModel.fromJson(Map<String, dynamic>.from(payload['connectedAccounts']))
+          : null;
+      final stats = payload['stats'] != null
+          ? CreatorStatsModel.fromJson(Map<String, dynamic>.from(payload['stats']))
+          : null;
+
+      final pref = await SharedPreferences.getInstance();
+
+      final resolvedDisplayName = (creatorProfile?.displayName?.trim().isNotEmpty == true)
+          ? creatorProfile!.displayName!.trim()
+          : ((user?.effectiveDisplayName.trim().isNotEmpty == true)
+              ? user!.effectiveDisplayName.trim()
+              : (user?.name.trim().isNotEmpty == true ? user!.name.trim() : 'Creator'));
+
       if (user != null) {
-        final pref = await SharedPreferences.getInstance();
         await pref.setString('userUuid', user.id);
         await pref.setString('userEmail', user.email);
-        await pref.setString('userName', user.name);
+        await pref.setString('userName', resolvedDisplayName);
+        await pref.setString('userProfile', jsonEncode(user.toJson()));
 
         ApiService.userUuid = user.id;
         ApiService.userEmail = user.email;
-        ApiService.userName = user.name;
+        ApiService.userName = resolvedDisplayName;
+        ApiService.currentUser = user;
+      }
+
+      if (subscription != null) {
+        await pref.setString('userSubscription', jsonEncode(subscription.toJson()));
+        ApiService.currentSubscription = subscription;
+      }
+
+      if (creatorProfile != null) {
+        await pref.setString('creatorProfile', jsonEncode(creatorProfile.toJson()));
+        ApiService.currentCreatorProfile = creatorProfile;
+        if (creatorProfile.displayName?.trim().isNotEmpty == true) {
+          ApiService.userName = creatorProfile.displayName!.trim();
+          await pref.setString('userName', creatorProfile.displayName!.trim());
+        }
+      }
+
+      if (connectedAccounts != null) {
+        await pref.setString('connectedAccounts', jsonEncode(connectedAccounts.toJson()));
+        ApiService.currentConnectedAccounts = connectedAccounts;
+      }
+
+      if (stats != null) {
+        await pref.setString('creatorStats', jsonEncode(stats.toJson()));
+        ApiService.currentStats = stats;
       }
     }
+  }
+
+  @override
+  Future<ApiResponse<String>> getPlatformAuthUrl(String platform) async {
+    final response = await ApiService.get(ApiEndpoints.platformAuthUrl(platform));
+    if (response.isSuccess && response.data != null) {
+      // Backend returns: {"url": "https://..."} or {"data": {"url": "https://..."}}
+      final dynamic data = response.data is Map ? response.data : {};
+      final url = data['url']?.toString() ??
+          (data['data'] is Map ? data['data']['url']?.toString() : null);
+      if (url != null && url.isNotEmpty) {
+        return ApiResponse.success(data: url, message: response.message);
+      }
+      return ApiResponse.error(message: "Authorization URL not found in response");
+    }
+    return ApiResponse.error(message: response.message, statusCode: response.statusCode);
+  }
+
+  @override
+  Future<ApiResponse<dynamic>> disconnectPlatform(String platform) async {
+    final response = await ApiService.delete(ApiEndpoints.disconnectPlatform(platform));
+    if (response.isSuccess) {
+      await fetchAndSaveMe();
+    }
+    return response;
   }
 
   @override
@@ -316,6 +513,9 @@ class ApiAuthRepository implements AuthRepository {
   }
 
   Future<void> _persistSession(AuthResponseModel authResponse) async {
+    // Clear any existing session before saving a new user's credentials
+    await clearSession();
+
     final pref = await SharedPreferences.getInstance();
     final user = authResponse.user;
     
@@ -329,13 +529,16 @@ class ApiAuthRepository implements AuthRepository {
     }
     
     if (user != null) {
+      final preferredDisplayName = user.effectiveDisplayName;
       await pref.setString('userUuid', user.id);
       await pref.setString('userEmail', user.email);
-      await pref.setString('userName', user.name);
+      await pref.setString('userName', preferredDisplayName);
+      await pref.setString('userProfile', jsonEncode(user.toJson()));
 
       ApiService.userUuid = user.id;
       ApiService.userEmail = user.email;
-      ApiService.userName = user.name;
+      ApiService.userName = preferredDisplayName;
+      ApiService.currentUser = user;
     }
   }
 }

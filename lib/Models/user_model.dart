@@ -2,6 +2,8 @@ class UserModel {
   final String id;
   final String email;
   final String name;
+  final String? fullName;
+  final String? displayName;
   final String? role;
   final String? status;
   final bool accountSetupCompleted;
@@ -14,6 +16,8 @@ class UserModel {
     required this.id,
     required this.email,
     required this.name,
+    this.fullName,
+    this.displayName,
     this.role,
     this.status,
     this.accountSetupCompleted = false,
@@ -23,11 +27,44 @@ class UserModel {
     this.avatarUrl,
   });
 
+  /// Resolved display name: uses displayName if non-empty, otherwise falls back to fullName/name.
+  String get effectiveDisplayName {
+    if (displayName != null && displayName!.trim().isNotEmpty) {
+      return displayName!.trim();
+    }
+    if (fullName != null && fullName!.trim().isNotEmpty) {
+      return fullName!.trim();
+    }
+    if (name.trim().isNotEmpty) {
+      return name.trim();
+    }
+    return "Creator";
+  }
+
+  /// Resolved full name: uses fullName if non-empty, otherwise falls back to name.
+  String get effectiveFullName {
+    if (fullName != null && fullName!.trim().isNotEmpty) {
+      return fullName!.trim();
+    }
+    if (name.trim().isNotEmpty) {
+      return name.trim();
+    }
+    return effectiveDisplayName;
+  }
+
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    final rawDisplayName = json['displayName']?.toString().trim();
+    final rawFullName = json['fullName']?.toString().trim() ?? json['name']?.toString().trim();
+    final preferredName = (rawDisplayName != null && rawDisplayName.isNotEmpty)
+        ? rawDisplayName
+        : ((rawFullName != null && rawFullName.isNotEmpty) ? rawFullName : '');
+
     return UserModel(
       id: json['id']?.toString() ?? '',
       email: json['email']?.toString() ?? '',
-      name: json['fullName']?.toString() ?? json['name']?.toString() ?? '',
+      name: preferredName,
+      fullName: rawFullName,
+      displayName: rawDisplayName,
       role: json['role']?.toString(),
       status: json['status']?.toString(),
       accountSetupCompleted: json['accountSetupCompleted'] == true,
@@ -42,7 +79,8 @@ class UserModel {
     return {
       'id': id,
       'email': email,
-      'fullName': name,
+      'fullName': fullName ?? name,
+      'displayName': displayName ?? name,
       'name': name,
       'role': role,
       'status': status,
@@ -56,13 +94,18 @@ class UserModel {
 
   // Helper method to create a copy with new tokens (useful for token refresh updates)
   UserModel copyWith({
+    String? name,
+    String? fullName,
+    String? displayName,
     String? token,
     String? refreshToken,
   }) {
     return UserModel(
       id: id,
       email: email,
-      name: name,
+      name: name ?? this.name,
+      fullName: fullName ?? this.fullName,
+      displayName: displayName ?? this.displayName,
       role: role,
       status: status,
       accountSetupCompleted: accountSetupCompleted,

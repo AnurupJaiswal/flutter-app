@@ -13,9 +13,7 @@ import 'package:lala_ai/utils/theme/theme_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 // ─────────────────────────────────────────────────────────────────
-// WelcomeView — single immersive screen with AI background image.
-// Theme-aware: follows the same GetBuilder<ThemeService> + CC.*
-// pattern used by HomeView, SettingsView, AuthenticationView.
+// WelcomeView — Redesigned according to the latest reference
 // ─────────────────────────────────────────────────────────────────
 class WelcomeView extends StatelessWidget {
   const WelcomeView({super.key});
@@ -23,11 +21,10 @@ class WelcomeView extends StatelessWidget {
   void _goToSignIn() => Get.toNamed(Routes.AUTHENTICATION);
 
   Future<void> _openSignupWebsite() async {
-    const url = 'https://lala.ai/signup';
+    const url = 'https://pole-optimization-build-cultures.trycloudflare.com/auth/get-started?redirect=/checkout';
     final uri = Uri.parse(url);
     try {
       if (Platform.isAndroid) {
-        // Open specifically in Chrome; fall back to default browser
         final chromeIntent = AndroidIntent(
           action: 'android.intent.action.VIEW',
           data: url,
@@ -41,7 +38,6 @@ class WelcomeView extends StatelessWidget {
           await launchUrl(uri, mode: LaunchMode.externalApplication);
         }
       } else {
-        // iOS: opens in Safari
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       }
     } catch (_) {}
@@ -49,92 +45,41 @@ class WelcomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ── Identical GetBuilder<ThemeService> wrapper used by all screens ──
     return GetBuilder<ThemeService>(
       builder: (_) {
-        // Background image is always dark — status bar icons always light.
-        // Brightness values are kept constant intentionally; the scrim
-        // ensures readability in both dark and light app themes.
-        SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+        SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.light,
-          statusBarBrightness: Brightness.dark,
+          statusBarIconBrightness: CC.isDark ? Brightness.light : Brightness.dark,
+          statusBarBrightness: CC.isDark ? Brightness.dark : Brightness.light,
         ));
 
-        // ── Theme-derived overlay opacities ─────────────────────────
-        // Dark mode: deeper scrims. Light mode: slightly lighter scrims
-        // so the image shows through more, acknowledging the lighter theme.
-        final topScrims = CC.isDark
-            ? const [Color(0xCC000000), Colors.transparent]
-            : const [Color(0xAA000000), Colors.transparent];
-
-        final bottomScrims = CC.isDark
-            ? const [Colors.transparent, Color(0xDD000000), Color(0xFF000000)]
-            : const [Colors.transparent, Color(0xCC000000), Color(0xEE000000)];
-
-        // ── CTA card: same surface token as other cards in the app ───
-        // On this screen the bg image is always dark, so we keep a dark
-        // glass card in both modes but slightly more opaque in light mode.
-        final ctaCardBg = CC.isDark
-            ? const Color(0xCC0D0D0D)
-            : const Color(0xEE111111);
-
         return Scaffold(
-          // CC.background = black in dark mode, white in light mode.
-          // Sits behind the full-screen image so rarely visible, but
-          // correct for edge cases (image load delay, overscan, etc.)
           backgroundColor: CC.background,
-          body: Stack(
-            fit: StackFit.expand,
-            children: [
-              // ── 1. Background image ────────────────────────────
-              Image.asset(
-                'assets/images/welcome_bg.jpg',
-                fit: BoxFit.cover,
-              ),
-
-              // ── 2. Gradient overlays ───────────────────────────
-              // IgnorePointer: prevents transparent overlay Containers
-              // from absorbing touch events (critical bug fix).
-              IgnorePointer(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: const Alignment(0, 0.35),
-                      colors: topScrims,
+          body: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildHeader(),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Spacer(),
+                        _buildCompactFeatureGrid(),
+                        const Spacer(flex: 2),
+                        _buildHero(),
+                        const Spacer(flex: 2),
+                        _buildBottomCta(),
+                        const Spacer(flex: 2),
+                        _buildFooter(),
+                      ],
                     ),
                   ),
                 ),
-              ),
-              IgnorePointer(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: const Alignment(0, 0.40),
-                      end: Alignment.bottomCenter,
-                      colors: bottomScrims,
-                      stops: const [0.0, 0.55, 1.0],
-                    ),
-                  ),
-                ),
-              ),
-
-              // ── 3. Content ─────────────────────────────────────
-              SafeArea(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildHeader(),
-                    const Spacer(),
-                    _buildHero(),
-                    32.height,
-                    _buildBottomCta(ctaCardBg),
-                    24.height,
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
@@ -144,15 +89,14 @@ class WelcomeView extends StatelessWidget {
   // ── Header ───────────────────────────────────────────────────
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 14, 0),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Brand icon badge — CC.primary for tint, CC.white for bg tint
           Container(
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              // Subtle primary-tinted badge: same pattern as HomeView logo
               color: CC.primary.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(11),
               border: Border.all(
@@ -168,32 +112,43 @@ class WelcomeView extends StatelessWidget {
               ),
             ),
           ),
-          10.width,
-          // Brand wordmark — CC.white is a fixed constant (always white)
-          // appropriate here since the bg is always the dark image
-          RichText(
-            text: TextSpan(
-              text: 'Lala ',
-              style: TS.sectionTitle(
-                color: CC.white,
-                fontWeight: FontWeight.w700,
-                fontSize: 18,
-              ),
-              children: [
-                TextSpan(
-                  text: 'Ai',
+          12.width,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              RichText(
+                text: TextSpan(
+                  text: 'Lala ',
                   style: TS.sectionTitle(
-                    color: CC.primary,
+                    color: CC.textPrimary,
                     fontWeight: FontWeight.w700,
                     fontSize: 18,
-                  ),
+                  ).copyWith(height: 1.1),
+                  children: [
+                    TextSpan(
+                      text: 'Ai',
+                      style: TS.sectionTitle(
+                        color: CC.primary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              2.height,
+              Text(
+                'C R E A T E   P L A N   G R O W',
+                style: TS.caption(
+                  color: CC.textSecondary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 7,
+                ).copyWith(letterSpacing: 1.5),
+              ),
+            ],
           ),
           const Spacer(),
-
-          // Sign In button — CC.primary bg, CC.white text, InkWell ripple
           ClipRRect(
             borderRadius: BorderRadius.circular(22),
             child: Material(
@@ -203,10 +158,7 @@ class WelcomeView extends StatelessWidget {
                 splashColor: CC.white.withValues(alpha: 0.20),
                 highlightColor: CC.white.withValues(alpha: 0.10),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 9,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
                   child: Text(
                     'Sign In',
                     style: TS.button(
@@ -224,72 +176,62 @@ class WelcomeView extends StatelessWidget {
     );
   }
 
-  // ── Hero text block ──────────────────────────────────────────
-  Widget _buildHero() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Feature pill tags
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _featureTag('AI Scripts', Icons.auto_awesome_rounded),
-              _featureTag('Trend Radar', Icons.trending_up_rounded),
-              _featureTag('Analytics', Icons.bar_chart_rounded),
-              _featureTag('Calendar', Icons.calendar_month_rounded),
-            ],
-          ),
-          20.height,
-          // Main headline — CC.white (fixed constant, always white)
-          Text(
-            'AI tools, insights,\nand more \u2014 in\njust a few taps.',
-            style: TS.displayLarge(
-              color: CC.white,
-              fontWeight: FontWeight.w700,
-              fontSize: 32,
-            ).copyWith(height: 1.16, letterSpacing: -0.8),
-          ),
-          14.height,
-          // Sub-headline — CC.white at 73% opacity
-          Text(
-            'The AI-powered creator operating system\nbuilt for serious content creators.',
-            style: TS.subHeading(
-              color: CC.white.withValues(alpha: 0.73),
-              fontWeight: FontWeight.w400,
-              fontSize: 14,
-            ).copyWith(height: 1.55),
-          ),
-        ],
-      ),
+  // ── Compact Feature Grid ─────────────────────────────────────────────
+  Widget _buildCompactFeatureGrid() {
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 12,
+      childAspectRatio: 2.3, // wider, horizontal layout
+      children: [
+        _compactFeatureCard('AI Scripts', 'Ideas to videos', Icons.auto_awesome_rounded),
+        _compactFeatureCard('Trend Radar', 'What\'s trending', Icons.trending_up_rounded),
+        _compactFeatureCard('Analytics', 'Track & grow', Icons.bar_chart_rounded),
+        _compactFeatureCard('Calendar', 'Plan with ease', Icons.calendar_today_rounded),
+      ],
     );
   }
 
-  Widget _featureTag(String label, IconData icon) {
+  Widget _compactFeatureCard(String title, String desc, IconData icon) {
+    final bgColor = CC.isDark ? const Color(0xFF0F1520) : const Color(0xFFF7F8FA);
+    final borderColor = CC.isDark ? const Color(0xFF182845) : const Color(0xFFE2E8F0);
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        // CC.primary tinted fill + border — same pattern as HomeView chips
-        color: CC.primary.withValues(alpha: 0.13),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: CC.primary.withValues(alpha: 0.27),
-          width: 0.7,
-        ),
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: borderColor, width: 0.8),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: CC.primary, size: 11),
-          5.width,
-          Text(
-            label,
-            style: TS.caption(
-              color: CC.white,
-              fontWeight: FontWeight.w600,
-              fontSize: 11,
+          Icon(icon, color: CC.primary, size: 20),
+          10.width,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  title,
+                  style: TS.bodyMedium(
+                    color: CC.textPrimary,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                  ),
+                ),
+                2.height,
+                Text(
+                  desc,
+                  style: TS.caption(
+                    color: CC.textSecondary,
+                    fontWeight: FontWeight.w400,
+                    fontSize: 10,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -297,45 +239,175 @@ class WelcomeView extends StatelessWidget {
     );
   }
 
-  // ── Bottom CTA card ──────────────────────────────────────────
-  Widget _buildBottomCta(Color cardBg) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: GestureDetector(
-        onTap: _openSignupWebsite,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          decoration: BoxDecoration(
-            color: cardBg,
-            borderRadius: BorderRadius.circular(16),
-            // CC.borderSubtle adapts: dark=Color(0xFF262626), light=Color(0xFFE2E8F0)
-            border: Border.all(color: CC.borderSubtle, width: 0.8),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+  // ── Hero text block ──────────────────────────────────────────
+  Widget _buildHero() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'BUILT FOR CREATORS',
+          style: TS.caption(
+            color: CC.textSecondary,
+            fontWeight: FontWeight.w700,
+            fontSize: 10,
+          ).copyWith(letterSpacing: 1.5),
+        ),
+        16.height,
+        RichText(
+          text: TextSpan(
+            text: 'AI tools,\ninsights,\nand more \u2014\n',
+            style: TS.displayLarge(
+              color: CC.textPrimary,
+              fontWeight: FontWeight.w700,
+              fontSize: 34,
+            ).copyWith(height: 1.15, letterSpacing: -1.0),
             children: [
-              Text(
-                'Create a Lala AI account and unlock\nall AI creator features.',
-                style: TS.bodySmall(
-                  color: CC.white,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 13,
-                ).copyWith(height: 1.5),
-              ),
-              6.height,
-              Text(
-                'Go to lala.ai/signup \u2192',
-                // CC.primary = #108CFF in both dark and light mode
-                style: TS.caption(
+              TextSpan(
+                text: 'in just a few taps.',
+                style: TS.displayLarge(
                   color: CC.primary,
                   fontWeight: FontWeight.w700,
-                  fontSize: 12.5,
-                ),
+                  fontSize: 34,
+                ).copyWith(height: 1.15, letterSpacing: -1.0),
               ),
             ],
           ),
         ),
+      ],
+    );
+  }
+
+  // ── Bottom CTA card ──────────────────────────────────────────
+  Widget _buildBottomCta() {
+    final bgColor = CC.isDark ? const Color(0xFF0C1017) : const Color(0xFFFAFAFA);
+    final borderColor = CC.isDark ? const Color(0xFF1E3A6D).withValues(alpha: 0.5) : const Color(0xFFD6E6FF);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: borderColor, width: 1.0),
       ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: CC.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: CC.primary.withValues(alpha: 0.3)),
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.person_add_alt_1_rounded,
+                    color: CC.primary,
+                    size: 22,
+                  ),
+                ),
+              ),
+              16.width,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Create a Lala AI account',
+                      style: TS.bodyMedium(
+                        color: CC.textPrimary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
+                    4.height,
+                    Text(
+                      'and unlock all creator features.',
+                      style: TS.caption(
+                        color: CC.textSecondary,
+                        fontWeight: FontWeight.w400,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          20.height,
+          GestureDetector(
+            onTap: _openSignupWebsite,
+            child: Container(
+              width: double.infinity,
+              alignment: Alignment.center,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                color: CC.primary,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Get Started on Website',
+                    style: TS.button(
+                      color: CC.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                  6.width,
+                  const Icon(Icons.arrow_forward_rounded, color: CC.white, size: 16),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Footer Metrics ───────────────────────────────────────────
+  Widget _buildFooter() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        _footerItem(Icons.bolt_rounded, 'Create\nFaster'),
+        _footerDivider(),
+        _footerItem(Icons.bar_chart_rounded, 'Make Better\nContent'),
+        _footerDivider(),
+        _footerItem(Icons.group_rounded, 'Grow Your\nAudience'),
+      ],
+    );
+  }
+
+  Widget _footerItem(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, color: CC.textPrimary, size: 20),
+        8.width,
+        Text(
+          text,
+          style: TS.caption(
+            color: CC.textSecondary,
+            fontWeight: FontWeight.w400,
+            fontSize: 10,
+          ).copyWith(height: 1.2),
+        ),
+      ],
+    );
+  }
+
+  Widget _footerDivider() {
+    return Container(
+      width: 1,
+      height: 20,
+      color: CC.textSecondary.withValues(alpha: 0.3),
     );
   }
 }

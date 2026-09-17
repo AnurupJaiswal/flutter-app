@@ -7,6 +7,7 @@ import 'package:lala_ai/utils/common_methods.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:android_intent_plus/android_intent.dart';
 import 'package:android_intent_plus/flag.dart';
+import 'package:lala_ai/networking/api_service.dart';
 import 'dart:io';
 
 class AuthController extends GetxController {
@@ -25,13 +26,25 @@ class AuthController extends GetxController {
   final signupFormKey = GlobalKey<FormState>();
 
   // Login Form Controllers
-  final loginEmailController = TextEditingController();
-  final loginPasswordController = TextEditingController();
+  late TextEditingController loginEmailController;
+  late TextEditingController loginPasswordController;
 
   // Sign Up Form Controllers
-  final signupNameController = TextEditingController();
-  final signupEmailController = TextEditingController();
-  final signupPasswordController = TextEditingController();
+  late TextEditingController signupNameController;
+  late TextEditingController signupEmailController;
+  late TextEditingController signupPasswordController;
+
+  @override
+  void onInit() {
+    super.onInit();
+    loginEmailController = TextEditingController();
+    loginPasswordController = TextEditingController();
+    signupNameController = TextEditingController();
+    signupEmailController = TextEditingController();
+    signupPasswordController = TextEditingController();
+    // Clear stored credentials without destroying active UI controllers
+    ApiService.clearSessionData();
+  }
 
   @override
   void onClose() {
@@ -67,11 +80,14 @@ class AuthController extends GetxController {
     errorMessage.value = '';
     isLoading.value = true;
 
+    // Clear any previous session credentials before attempting login
+    await ApiService.clearSessionData();
+
     final response = await authRepository.login(email: email, password: password);
     isLoading.value = false;
 
     if (response.isSuccess) {
-      CM.showToast("Welcome back, ${response.data?.user?.name ?? 'User'}!");
+      CM.showToast("Welcome back, ${response.data?.user?.effectiveDisplayName ?? 'User'}!");
       Get.offAllNamed(Routes.MAIN_CONTAINER);
     } else {
       errorMessage.value = response.message;
@@ -122,10 +138,22 @@ class AuthController extends GetxController {
   }
 
   Future<void> openSignupWebsite() async {
-    const signupUrl = "https://YOUR-DOMAIN.com/signup";
+    const signupUrl = "https://pole-optimization-build-cultures.trycloudflare.com/auth/get-started?redirect=/checkout";
     final Uri url = Uri.parse(signupUrl);
 
     try {
+      if (Platform.isAndroid) {
+        final chromeIntent = AndroidIntent(
+          action: 'android.intent.action.VIEW',
+          data: signupUrl,
+          package: 'com.android.chrome',
+          flags: [Flag.FLAG_ACTIVITY_NEW_TASK],
+        );
+        try {
+          await chromeIntent.launch();
+          return;
+        } catch (_) {}
+      }
       if (!await launchUrl(
         url,
         mode: LaunchMode.externalApplication,

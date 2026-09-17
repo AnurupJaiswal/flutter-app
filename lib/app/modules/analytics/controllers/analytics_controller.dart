@@ -62,18 +62,14 @@ class AnalyticsController extends GetxController {
           {"title": "Followers", "value": "12.1K", "change": "+2.1%", "isUp": true},
           {"title": "Views", "value": "42.8K", "change": "+14.5%", "isUp": true},
           {"title": "Likes", "value": "2.4K", "change": "+8.2%", "isUp": true},
-          {"title": "Comments", "value": "310", "change": "+4.1%", "isUp": true},
-          {"title": "Content Published", "value": "3 posts", "change": "+0.0%", "isUp": true},
-          {"title": "Engagement Rate", "value": "6.5%", "change": "+0.8%", "isUp": true},
+          {"title": "Consistency", "value": "82%", "change": "+5.0%", "isUp": true},
         ];
       } else if (range == "90 Days") {
         return [
           {"title": "Followers", "value": "13.8K", "change": "+18.4%", "isUp": true},
           {"title": "Views", "value": "540K", "change": "+32.1%", "isUp": true},
           {"title": "Likes", "value": "28.5K", "change": "+22.4%", "isUp": true},
-          {"title": "Comments", "value": "3.8K", "change": "+12.6%", "isUp": true},
-          {"title": "Content Published", "value": "34 posts", "change": "+18.2%", "isUp": true},
-          {"title": "Engagement Rate", "value": "7.2%", "change": "+1.8%", "isUp": true},
+          {"title": "Consistency", "value": "76%", "change": "+8.4%", "isUp": true},
         ];
       } else {
         // 30 Days
@@ -81,9 +77,7 @@ class AnalyticsController extends GetxController {
           {"title": "Followers", "value": "12.4K", "change": "+8.4%", "isUp": true},
           {"title": "Views", "value": "184K", "change": "+21.3%", "isUp": true},
           {"title": "Likes", "value": "9.8K", "change": "+14.2%", "isUp": true},
-          {"title": "Comments", "value": "1.2K", "change": "+6.8%", "isUp": true},
-          {"title": "Content Published", "value": "12 posts", "change": "+15.0%", "isUp": true},
-          {"title": "Engagement Rate", "value": "6.8%", "change": "+1.2%", "isUp": true},
+          {"title": "Consistency", "value": "64%", "change": "+3.1%", "isUp": true},
         ];
       }
     } else {
@@ -93,18 +87,14 @@ class AnalyticsController extends GetxController {
           {"title": "Subscribers", "value": "45.2K", "change": "+3.4%", "isUp": true},
           {"title": "Views", "value": "98.5K", "change": "+18.2%", "isUp": true},
           {"title": "Likes", "value": "6.1K", "change": "+11.4%", "isUp": true},
-          {"title": "Comments", "value": "840", "change": "+9.1%", "isUp": true},
-          {"title": "Content Published", "value": "2 Shorts", "change": "+0.0%", "isUp": true},
-          {"title": "Engagement Rate", "value": "7.8%", "change": "+1.5%", "isUp": true},
+          {"title": "Consistency", "value": "88%", "change": "+5.0%", "isUp": true},
         ];
       } else if (range == "90 Days") {
         return [
           {"title": "Subscribers", "value": "52.4K", "change": "+28.6%", "isUp": true},
           {"title": "Views", "value": "1.2M", "change": "+42.0%", "isUp": true},
           {"title": "Likes", "value": "84.2K", "change": "+31.5%", "isUp": true},
-          {"title": "Comments", "value": "11.4K", "change": "+19.8%", "isUp": true},
-          {"title": "Content Published", "value": "28 Shorts", "change": "+22.5%", "isUp": true},
-          {"title": "Engagement Rate", "value": "8.5%", "change": "+2.4%", "isUp": true},
+          {"title": "Consistency", "value": "80%", "change": "+8.4%", "isUp": true},
         ];
       } else {
         // 30 Days
@@ -112,9 +102,7 @@ class AnalyticsController extends GetxController {
           {"title": "Subscribers", "value": "47.8K", "change": "+12.6%", "isUp": true},
           {"title": "Views", "value": "412K", "change": "+26.8%", "isUp": true},
           {"title": "Likes", "value": "24.6K", "change": "+19.1%", "isUp": true},
-          {"title": "Comments", "value": "3.2K", "change": "+14.2%", "isUp": true},
-          {"title": "Content Published", "value": "9 Shorts", "change": "+12.5%", "isUp": true},
-          {"title": "Engagement Rate", "value": "8.1%", "change": "+1.9%", "isUp": true},
+          {"title": "Consistency", "value": "74%", "change": "+4.5%", "isUp": true},
         ];
       }
     }

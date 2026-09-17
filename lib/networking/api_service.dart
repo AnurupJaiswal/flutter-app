@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Response;
@@ -9,6 +8,10 @@ import 'package:lala_ai/utils/common_methods.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
+import 'package:lala_ai/Models/creator_profile_model.dart';
+import 'package:lala_ai/Models/connected_accounts_model.dart';
+import 'package:lala_ai/Models/subscription_model.dart';
+import 'package:lala_ai/Models/user_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
@@ -20,6 +23,44 @@ class ApiService {
   static String? userUuid;
   static String? userEmail;
   static String? userName;
+  static UserModel? currentUser;
+  static SubscriptionModel? currentSubscription;
+  static CreatorProfileModel? currentCreatorProfile;
+  static ConnectedAccountsModel? currentConnectedAccounts;
+  static CreatorStatsModel? currentStats;
+
+  /// Returns true if an active access token exists
+  static bool get isAuthenticated => token != null && token!.trim().isNotEmpty;
+
+  /// Returns the standardized display name for the user across the entire app.
+  /// Priority:
+  /// 1. currentCreatorProfile.displayName
+  /// 2. currentUser.displayName
+  /// 3. userName (persisted display name)
+  /// 4. currentUser.fullName / currentUser.name
+  /// 5. Fallback: "Creator"
+  static String get effectiveDisplayName {
+    final creatorName = currentCreatorProfile?.displayName?.trim();
+    if (creatorName != null && creatorName.isNotEmpty) return creatorName;
+
+    final userDisplayName = currentUser?.displayName?.trim();
+    if (userDisplayName != null && userDisplayName.isNotEmpty) return userDisplayName;
+
+    final storedName = userName?.trim();
+    if (storedName != null && storedName.isNotEmpty && storedName != "Creator") return storedName;
+
+    final userFullName = currentUser?.fullName?.trim() ?? currentUser?.name.trim();
+    if (userFullName != null && userFullName.isNotEmpty) return userFullName;
+
+    return "Creator";
+  }
+
+  /// Returns the user's full legal/account name if available, otherwise effectiveDisplayName.
+  static String get effectiveFullName {
+    final userFullName = currentUser?.fullName?.trim() ?? currentUser?.name.trim();
+    if (userFullName != null && userFullName.isNotEmpty) return userFullName;
+    return effectiveDisplayName;
+  }
 
   static bool _sessionExpiredDialogShowing = false;
   static bool _isRefreshing = false;
@@ -137,13 +178,18 @@ class ApiService {
     }
   }
 
-  /// Clear token and saved session, navigate to login
-  static Future<void> logout() async {
+  /// Clears all session credentials, cached user and subscription info from memory and local storage
+  static Future<void> clearSessionData() async {
     token = null;
     refreshToken = null;
     userUuid = null;
     userEmail = null;
     userName = null;
+    currentUser = null;
+    currentSubscription = null;
+    currentCreatorProfile = null;
+    currentConnectedAccounts = null;
+    currentStats = null;
 
     final pref = await SharedPreferences.getInstance();
     await pref.remove('accessToken');
@@ -151,9 +197,27 @@ class ApiService {
     await pref.remove('userUuid');
     await pref.remove('userEmail');
     await pref.remove('userName');
+    await pref.remove('userProfile');
+    await pref.remove('userSubscription');
+    await pref.remove('creatorProfile');
+    await pref.remove('connectedAccounts');
+    await pref.remove('creatorStats');
+  }
 
+  /// Clears all non-permanent GetX controllers to prevent data leakage between user sessions
+  static void clearUserControllers() {
+    try {
+      Get.deleteAll(force: false);
+    } catch (_) {}
+  }
+
+  /// Clear token and saved session, delete user controllers, navigate to authentication
+  static Future<void> logout() async {
+    await clearSessionData();
+    clearUserControllers();
     Get.offAllNamed(Routes.AUTHENTICATION);
   }
+
 
   /// Logout confirmation dialog with Black + Blue theme
   static Future<void> logoutWithConfirmation() async {
@@ -306,7 +370,7 @@ class ApiService {
   }
 
   static String? _extractErrorMessage(dynamic data) {
-    if (data is Map<String, dynamic>) {
+    if (data is Map) {
       return data['message']?.toString() ?? data['error']?.toString();
     }
     return null;

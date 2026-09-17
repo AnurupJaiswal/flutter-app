@@ -24,6 +24,7 @@ import 'package:lala_ai/app/modules/studio/views/studio_view.dart';
 import 'package:lala_ai/app/modules/welcome/bindings/welcome_binding.dart';
 import 'package:lala_ai/app/modules/welcome/views/welcome_view.dart';
 import 'package:lala_ai/app/routes/app_routes.dart';
+import 'package:lala_ai/app/routes/auth_middleware.dart';
 
 class AppPages {
   AppPages._();
@@ -41,67 +42,79 @@ class AppPages {
       page: () => const WelcomeView(),
       binding: WelcomeBinding(),
       transition: Transition.fadeIn,
+      middlewares: [GuestGuardMiddleware()],
     ),
     GetPage(
       name: Routes.AUTHENTICATION,
       page: () => const AuthenticationView(),
       binding: AuthBinding(),
       transition: Transition.fadeIn,
+      middlewares: [GuestGuardMiddleware()],
     ),
     GetPage(
       name: Routes.MAIN_CONTAINER,
       page: () => const MainContainerView(),
       binding: MainContainerBinding(),
       transition: Transition.fadeIn,
+      middlewares: [AuthGuardMiddleware()],
     ),
     GetPage(
       name: Routes.CHAT_HOME,
       page: () => const ChatHomeView(),
       binding: ChatBinding(),
       transition: Transition.fadeIn,
+      middlewares: [AuthGuardMiddleware()],
     ),
     GetPage(
       name: Routes.CHAT_CONVERSATION,
       page: () => const ChatConversationView(),
       binding: ChatBinding(),
       transition: Transition.rightToLeftWithFade,
+      middlewares: [AuthGuardMiddleware()],
     ),
     GetPage(
       name: Routes.SETTINGS,
       page: () => const SettingsView(),
       binding: SettingsBinding(),
       transition: Transition.rightToLeftWithFade,
+      middlewares: [AuthGuardMiddleware()],
     ),
     GetPage(
       name: Routes.STUDIO,
       page: () => const StudioView(),
       transition: Transition.rightToLeftWithFade,
+      middlewares: [AuthGuardMiddleware()],
     ),
     GetPage(
       name: Routes.CALENDAR,
       page: () => const CalendarView(),
       transition: Transition.rightToLeftWithFade,
+      middlewares: [AuthGuardMiddleware()],
     ),
     GetPage(
       name: Routes.CONNECT_ACCOUNTS,
       page: () => const ConnectAccountsView(),
       transition: Transition.rightToLeftWithFade,
+      middlewares: [AuthGuardMiddleware()],
     ),
     GetPage(
       name: Routes.COMPETITOR,
       page: () => const CompetitorView(),
       transition: Transition.rightToLeftWithFade,
+      middlewares: [AuthGuardMiddleware()],
     ),
     GetPage(
       name: Routes.ANALYTICS,
       page: () => const AnalyticsView(),
       binding: AnalyticsBinding(),
       transition: Transition.rightToLeftWithFade,
+      middlewares: [AuthGuardMiddleware()],
     ),
     GetPage(
       name: Routes.PROFILE,
       page: () => const ProfileView(),
       transition: Transition.rightToLeftWithFade,
+      middlewares: [AuthGuardMiddleware()],
     ),
     GetPage(
       name: Routes.PRIVACY_POLICY,
@@ -143,6 +156,7 @@ class AppPages {
       name: Routes.RESET_PASSWORD,
       page: () => const ResetPasswordView(),
       transition: Transition.fadeIn,
+      middlewares: [GuestGuardMiddleware()],
     ),
   ];
 }

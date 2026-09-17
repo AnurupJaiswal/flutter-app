@@ -82,6 +82,25 @@ class _MessageComposerState extends State<MessageComposer> {
     );
   }
 
+  void _openQuickActionsSheet() {
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: false,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetContext) => _QuickActionsSheet(
+        onActionSelected: (prompt) {
+          widget.controller.text = prompt;
+          widget.controller.selection = TextSelection.fromPosition(
+            TextPosition(offset: prompt.length),
+          );
+          _onTextChanged();
+          CW.dismissBottomSheet(sheetContext);
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -101,7 +120,7 @@ class _MessageComposerState extends State<MessageComposer> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 760),
             child: Container(
-              padding: const EdgeInsets.fromLTRB(16, 6, 6, 6),
+              padding: const EdgeInsets.fromLTRB(10, 6, 6, 6),
               decoration: BoxDecoration(
                 color: CC.surface,
                 borderRadius: BorderRadius.circular(28),
@@ -122,6 +141,29 @@ class _MessageComposerState extends State<MessageComposer> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
+                  // Plus Button for Quick Actions
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 2),
+                    child: Material(
+                      color: Colors.transparent,
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: _openQuickActionsSheet,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Icon(
+                            Icons.add_circle_outline_rounded,
+                            color: CC.textSecondary,
+                            size: 24,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  4.width,
+
                   // Auto-expanding Multiline Text Field
                   Expanded(
                     child: Padding(
@@ -577,6 +619,159 @@ class _ComposerVoiceSheetState extends State<_ComposerVoiceSheet>
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Quick Actions Sheet Widget ───────────────────────────────────────────────
+class _QuickActionsSheet extends StatelessWidget {
+  final ValueChanged<String> onActionSelected;
+
+  const _QuickActionsSheet({required this.onActionSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        decoration: BoxDecoration(
+          color: CC.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border.all(
+            color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: CC.black.withValues(alpha: 0.25),
+              blurRadius: 24,
+              offset: const Offset(0, -6),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Top drag handle
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: CC.stroke,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            20.height,
+            Text(
+              "Quick Actions",
+              style: TS.sectionTitle(color: CC.textPrimary, fontSize: 18),
+            ),
+            6.height,
+            Text(
+              "Select a prompt to quickly generate content ideas",
+              style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 12),
+            ),
+            20.height,
+            
+            _buildActionTile(
+              context,
+              icon: Icons.article_rounded,
+              title: "Generate Script",
+              subtitle: "Write a complete short-form video script",
+              prompt: "/script ",
+            ),
+            
+            _buildActionTile(
+              context,
+              icon: Icons.troubleshoot_rounded,
+              title: "Generate SEO & Keywords",
+              subtitle: "Optimize titles, descriptions & tags",
+              prompt: "/seo ",
+            ),
+            
+            _buildActionTile(
+              context,
+              icon: Icons.lightbulb_outline_rounded,
+              title: "Viral Hooks",
+              subtitle: "Get scroll-stopping opening lines",
+              prompt: "/hooks ",
+            ),
+
+            _buildActionTile(
+              context,
+              icon: Icons.trending_up_rounded,
+              title: "Audience Growth Strategy",
+              subtitle: "Tips for increasing retention & engagement",
+              prompt: "/growth ",
+            ),
+            
+            12.height,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionTile(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required String prompt,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: CC.background,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+          width: 0.5,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => onActionSelected(prompt),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: CC.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, color: CC.primary, size: 20),
+                ),
+                16.width,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TS.bodyMedium(color: CC.textPrimary, fontWeight: FontWeight.w600),
+                      ),
+                      Text(
+                        subtitle,
+                        style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right_rounded, color: CC.textSecondary, size: 20),
+              ],
+            ),
+          ),
         ),
       ),
     );

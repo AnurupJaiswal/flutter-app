@@ -125,8 +125,8 @@ class ChatDrawerSidebar extends GetView<ChatController> {
                   CW.aiAvatar(
                     size: 26,
                     isAssistant: false,
-                    userInitial: ApiService.userName?.isNotEmpty == true
-                        ? ApiService.userName![0]
+                    userInitial: ApiService.effectiveDisplayName.isNotEmpty
+                        ? ApiService.effectiveDisplayName[0].toUpperCase()
                         : "U",
                   ),
                   8.width,
@@ -136,7 +136,7 @@ class ChatDrawerSidebar extends GetView<ChatController> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          ApiService.userName ?? "Lala Ai User",
+                          ApiService.effectiveDisplayName,
                           style: TS.caption(color: CC.textPrimary, fontWeight: FontWeight.w600),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

@@ -465,6 +465,7 @@ class AnalyticsView extends StatelessWidget {
     if (t.contains('follower') || t.contains('subscriber')) return Icons.people_alt_outlined;
     if (t.contains('view')) return Icons.play_circle_outline_rounded;
     if (t.contains('like')) return Icons.favorite_border_rounded;
+    if (t.contains('consistency')) return Icons.event_repeat_rounded;
     if (t.contains('comment')) return Icons.chat_bubble_outline_rounded;
     if (t.contains('content') || t.contains('post')) return Icons.video_library_outlined;
     if (t.contains('engagement')) return Icons.bolt_rounded;
@@ -476,6 +477,7 @@ class AnalyticsView extends StatelessWidget {
     if (t.contains('follower') || t.contains('subscriber')) return CC.primary;
     if (t.contains('view')) return Colors.teal;
     if (t.contains('like')) return const Color(0xFFE1306C);
+    if (t.contains('consistency')) return const Color(0xFFFFB300);
     if (t.contains('comment')) return Colors.purpleAccent;
     if (t.contains('content') || t.contains('post')) return Colors.amber.shade700;
     if (t.contains('engagement')) return Colors.deepOrangeAccent;

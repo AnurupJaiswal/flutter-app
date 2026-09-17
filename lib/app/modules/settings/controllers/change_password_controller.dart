@@ -8,9 +8,9 @@ class ChangePasswordController extends GetxController {
       ? Get.find<AuthRepository>()
       : ApiAuthRepository();
 
-  final currentPasswordController = TextEditingController();
-  final newPasswordController = TextEditingController();
-  final confirmPasswordController = TextEditingController();
+  late final TextEditingController currentPasswordController;
+  late final TextEditingController newPasswordController;
+  late final TextEditingController confirmPasswordController;
 
   final isCurrentPasswordVisible = false.obs;
   final isNewPasswordVisible = false.obs;
@@ -22,6 +22,9 @@ class ChangePasswordController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    currentPasswordController = TextEditingController();
+    newPasswordController = TextEditingController();
+    confirmPasswordController = TextEditingController();
     currentPasswordController.addListener(_validateForm);
     newPasswordController.addListener(_validateForm);
     confirmPasswordController.addListener(_validateForm);
@@ -84,8 +87,8 @@ class ChangePasswordController extends GetxController {
     return null;
   }
 
-  Future<void> changePassword() async {
-    if (!isValid.value) return;
+  Future<bool> changePassword([BuildContext? context]) async {
+    if (!isValid.value) return false;
 
     FocusManager.instance.primaryFocus?.unfocus();
     isLoading.value = true;
@@ -101,10 +104,26 @@ class ChangePasswordController extends GetxController {
       currentPasswordController.clear();
       newPasswordController.clear();
       confirmPasswordController.clear();
-      AppToast.success(response.message);
-      Get.back(); // Go back to Settings
+      final msg = response.message.isNotEmpty
+          ? response.message
+          : "Password changed successfully";
+
+      if (context != null && context.mounted) {
+        Navigator.of(context).pop(true);
+      } else if (Get.context != null && Navigator.canPop(Get.context!)) {
+        Navigator.of(Get.context!).pop(true);
+      } else {
+        Get.back();
+      }
+
+      AppToast.success(msg);
+      return true;
     } else {
-      AppToast.error(response.message);
+      final msg = response.message.isNotEmpty
+          ? response.message
+          : "Failed to update password. Please check your current password.";
+      AppToast.error(msg);
+      return false;
     }
   }
 }

@@ -45,6 +45,7 @@ class SplashController extends GetxController {
     } catch (_) {
       if (!_hasNavigated) {
         _hasNavigated = true;
+        await authRepository.clearSession();
         Get.offAllNamed(Routes.WELCOME);
       }
     }

@@ -9,6 +9,8 @@ import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
 import 'package:lala_ai/utils/theme/theme_service.dart';
+import 'package:lala_ai/networking/api_service.dart';
+import 'package:lala_ai/app/modules/authentication/data/auth_repository.dart';
 
 class EditProfileView extends StatefulWidget {
   const EditProfileView({super.key});
@@ -19,10 +21,12 @@ class EditProfileView extends StatefulWidget {
 
 class _EditProfileViewState extends State<EditProfileView> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController(text: "Alex Rivers");
-  final _emailController = TextEditingController(text: "alex@rivers.com");
-  final _phoneController = TextEditingController(text: "+1 (555) 019-2834");
-  final _bioController = TextEditingController(text: "Content creator & AI enthusiast");
+  late final TextEditingController _nameController;
+  late final TextEditingController _emailController;
+  late final TextEditingController _bioController;
+  late final TextEditingController _nicheController;
+  late final TextEditingController _audienceController;
+  late final TextEditingController _goalsController;
 
   bool _isSaving = false;
   final int _bioMaxLength = 160;
@@ -32,11 +36,72 @@ class _EditProfileViewState extends State<EditProfileView> {
   final ImagePicker _imagePicker = ImagePicker();
 
   @override
+  void initState() {
+    super.initState();
+    final cachedCreator = ApiService.currentCreatorProfile;
+    final currentUserName = ApiService.effectiveDisplayName;
+    final currentUserEmail = ApiService.currentUser?.email.isNotEmpty == true
+        ? ApiService.currentUser!.email
+        : (ApiService.userEmail ?? "");
+
+    _nameController = TextEditingController(text: currentUserName);
+    _emailController = TextEditingController(text: currentUserEmail);
+    _bioController = TextEditingController(
+      text: cachedCreator?.bio ?? "Content creator & AI enthusiast",
+    );
+    _nicheController = TextEditingController(
+      text: cachedCreator?.niche ?? "Tech & AI",
+    );
+    _audienceController = TextEditingController(
+      text: cachedCreator?.audienceDescription ?? "Early adopters & AI builders",
+    );
+    _goalsController = TextEditingController(
+      text: cachedCreator?.goalsFormatted.isNotEmpty == true
+          ? cachedCreator!.goalsFormatted
+          : "GROWTH, MONETIZATION",
+    );
+
+    _fetchProfile();
+  }
+
+  Future<void> _fetchProfile() async {
+    try {
+      final authRepo = Get.isRegistered<AuthRepository>()
+          ? Get.find<AuthRepository>()
+          : Get.put<AuthRepository>(ApiAuthRepository());
+
+      final response = await authRepo.getCreatorProfile();
+      if (response.isSuccess && response.data != null && mounted) {
+        final profile = response.data!;
+        setState(() {
+          if (profile.displayName?.isNotEmpty == true) {
+            _nameController.text = profile.displayName!;
+          }
+          if (profile.bio?.isNotEmpty == true) {
+            _bioController.text = profile.bio!;
+          }
+          if (profile.niche?.isNotEmpty == true) {
+            _nicheController.text = profile.niche!;
+          }
+          if (profile.audienceDescription?.isNotEmpty == true) {
+            _audienceController.text = profile.audienceDescription!;
+          }
+          if (profile.goalsFormatted.isNotEmpty) {
+            _goalsController.text = profile.goalsFormatted;
+          }
+        });
+      }
+    } catch (_) {}
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
-    _phoneController.dispose();
     _bioController.dispose();
+    _nicheController.dispose();
+    _audienceController.dispose();
+    _goalsController.dispose();
     super.dispose();
   }
 
@@ -216,11 +281,33 @@ class _EditProfileViewState extends State<EditProfileView> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isSaving = true);
-    await Future.delayed(const Duration(milliseconds: 600));
-    setState(() => _isSaving = false);
-    if (!mounted) return;
-    Navigator.of(context).pop();
-    AppToast.success("Your profile has been saved successfully.");
+
+    try {
+      final authRepo = Get.isRegistered<AuthRepository>()
+          ? Get.find<AuthRepository>()
+          : Get.put<AuthRepository>(ApiAuthRepository());
+
+      final response = await authRepo.updateCreatorProfile(
+        displayName: _nameController.text.trim(),
+        bio: _bioController.text.trim(),
+        niche: _nicheController.text.trim(),
+        audienceDescription: _audienceController.text.trim(),
+        goals: _goalsController.text.trim(),
+      );
+
+      setState(() => _isSaving = false);
+
+      if (response.isSuccess) {
+        if (!mounted) return;
+        Navigator.of(context).pop(true);
+        AppToast.success("Your creator profile has been updated successfully.");
+      } else {
+        AppToast.error(response.message.isNotEmpty ? response.message : "Failed to update profile");
+      }
+    } catch (e) {
+      setState(() => _isSaving = false);
+      AppToast.error("An error occurred: $e");
+    }
   }
 
   @override
@@ -308,36 +395,61 @@ class _EditProfileViewState extends State<EditProfileView> {
                     ),
                     14.height,
                     _buildTextField(
-                      label: "Full Name",
+                      label: "Display Name",
                       controller: _nameController,
-                      hint: "Enter your full name",
+                      hint: "Enter your display name",
                       validator: (v) =>
                           (v == null || v.trim().isEmpty) ? "Name is required" : null,
                       textInputAction: TextInputAction.next,
                       onChanged: (_) => setState(() {}), // refresh initials avatar
                     ),
                     14.height,
-                    _buildTextField(
+                    _buildNonEditableField(
                       label: "Email Address",
-                      controller: _emailController,
+                      value: _emailController.text.isNotEmpty
+                          ? _emailController.text
+                          : (ApiService.currentUser?.email.isNotEmpty == true
+                              ? ApiService.currentUser!.email
+                              : (ApiService.userEmail ?? "")),
                       hint: "Enter your email address",
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) return "Email is required";
-                        if (!v.contains("@")) return "Enter a valid email";
-                        return null;
-                      },
+                      suffixIcon: Icon(
+                        Icons.lock_rounded,
+                        size: 16,
+                        color: CC.grey.withValues(alpha: 0.8),
+                      ),
+                    ),
+                    24.height,
+
+                    // ── Creator Strategy & Audience ─────────────────────────
+                    Text(
+                      "Creator Strategy & Audience",
+                      style: TS.sectionTitle(
+                        color: CC.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ).copyWith(fontSize: 15),
+                    ),
+                    14.height,
+                    _buildTextField(
+                      label: "Content Niche",
+                      controller: _nicheController,
+                      hint: "e.g. Tech & AI, Finance, Fitness",
                       textInputAction: TextInputAction.next,
                     ),
                     14.height,
                     _buildTextField(
-                      label: "Phone Number",
-                      controller: _phoneController,
-                      hint: "Enter your phone number",
-                      keyboardType: TextInputType.phone,
+                      label: "Target Audience",
+                      controller: _audienceController,
+                      hint: "e.g. Early adopters & AI builders",
                       textInputAction: TextInputAction.next,
                     ),
-                    28.height,
+                    14.height,
+                    _buildTextField(
+                      label: "Creator Goals",
+                      controller: _goalsController,
+                      hint: "e.g. GROWTH, MONETIZATION",
+                      textInputAction: TextInputAction.done,
+                    ),
+                    24.height,
 
                     // ── Creator Bio Section ────────────────────────────────
                     Row(
@@ -384,6 +496,73 @@ class _EditProfileViewState extends State<EditProfileView> {
           ),
         );
       },
+    );
+  }
+
+  // ── Non-Editable Field Builder ───────────────────────────────────────────
+  Widget _buildNonEditableField({
+    required String label,
+    required String value,
+    required String hint,
+    Widget? suffixIcon,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: TS.caption(
+                color: CC.textSecondary,
+                fontWeight: FontWeight.w500,
+              ).copyWith(fontSize: 13),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.lock_outline_rounded, size: 12, color: CC.textSecondary.withValues(alpha: 0.7)),
+                4.width,
+                Text(
+                  "Non-editable",
+                  style: TS.caption(
+                    color: CC.textSecondary.withValues(alpha: 0.7),
+                    fontWeight: FontWeight.w500,
+                  ).copyWith(fontSize: 11),
+                ),
+              ],
+            ),
+          ],
+        ),
+        6.height,
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          decoration: BoxDecoration(
+            color: CC.surface.withValues(alpha: 0.45),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: CC.stroke.withValues(alpha: 0.5),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  value.isNotEmpty ? value : hint,
+                  style: TS.bodyMedium(
+                    color: value.isNotEmpty ? CC.textSecondary : CC.grey.withValues(alpha: 0.7),
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ),
+              if (suffixIcon != null) suffixIcon,
+            ],
+          ),
+        ),
+      ],
     );
   }
 

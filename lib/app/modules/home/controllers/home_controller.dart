@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:lala_ai/app/data/repositories/trend_repository.dart';
+import 'package:lala_ai/networking/api_service.dart';
 import 'package:lala_ai/utils/app_toast.dart';
 
 enum DashboardTab { overview, connect }
@@ -15,6 +16,24 @@ class HomeController extends GetxController {
   final isYoutubeConnected = false.obs;
   final isInstagramConnected = false.obs;
   final hasRecentContent = false.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    syncWithSavedConnections();
+  }
+
+  void syncWithSavedConnections() {
+    final accounts = ApiService.currentConnectedAccounts;
+    if (accounts != null) {
+      if (accounts.youtube != null) {
+        isYoutubeConnected.value = accounts.youtube!.connected;
+      }
+      if (accounts.instagram != null) {
+        isInstagramConnected.value = accounts.instagram!.connected;
+      }
+    }
+  }
 
   // Sync state
   final isSyncing = false.obs;
