@@ -1,10 +1,12 @@
 class ConnectedAccountItem {
   final bool connected;
   final String? handle;
+  final dynamic id;
 
   ConnectedAccountItem({
     required this.connected,
     this.handle,
+    this.id,
   });
 
   factory ConnectedAccountItem.fromJson(dynamic json) {
@@ -12,6 +14,7 @@ class ConnectedAccountItem {
       return ConnectedAccountItem(
         connected: json['connected'] == true,
         handle: json['handle']?.toString(),
+        id: json['id'] ?? json['connectionId'] ?? json['accountId'],
       );
     }
     return ConnectedAccountItem(connected: false);
@@ -21,6 +24,7 @@ class ConnectedAccountItem {
     return {
       'connected': connected,
       'handle': handle,
+      if (id != null) 'id': id,
     };
   }
 }

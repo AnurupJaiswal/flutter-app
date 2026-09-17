@@ -24,7 +24,10 @@ class _ProfileViewState extends State<ProfileView> {
   @override
   void initState() {
     super.initState();
-    _refreshProfileData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _refreshProfileData();
+    });
   }
 
   Future<void> _refreshProfileData() async {

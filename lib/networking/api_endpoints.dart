@@ -38,8 +38,11 @@ class ApiEndpoints {
   static const String updateCreatorProfile = '/api/v1/creators/me/profile';
 
   // --- Platform Connection Endpoints ---
+  static const String creatorConnections = '/api/v1/creators/me/connections';
   static String platformAuthUrl(String platform) =>
       '/api/v1/creators/me/connections/${platform.toUpperCase()}/auth-url';
+  static String disconnectConnectionAccount(dynamic id) =>
+      '/api/v1/creators/me/connections/accounts/$id';
   static String disconnectPlatform(String platform) =>
       '/api/v1/creators/me/connections/${platform.toUpperCase()}';
 }

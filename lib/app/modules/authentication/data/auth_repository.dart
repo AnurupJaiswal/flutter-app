@@ -495,11 +495,59 @@ class ApiAuthRepository implements AuthRepository {
 
   @override
   Future<ApiResponse<dynamic>> disconnectPlatform(String platform) async {
-    final response = await ApiService.delete(ApiEndpoints.disconnectPlatform(platform));
-    if (response.isSuccess) {
-      await fetchAndSaveMe();
+    final upperPlatform = platform.toUpperCase();
+    dynamic accountId;
+
+    // 1. Check if ID is already available from cached connected accounts (e.g. if backend dev provides id in auth/me)
+    if (upperPlatform == 'YOUTUBE') {
+      accountId = ApiService.currentConnectedAccounts?.youtube?.id;
+    } else if (upperPlatform == 'INSTAGRAM') {
+      accountId = ApiService.currentConnectedAccounts?.instagram?.id;
+    } else if (upperPlatform == 'TIKTOK') {
+      accountId = ApiService.currentConnectedAccounts?.tiktok?.id;
     }
-    return response;
+
+    // 2. If no ID found yet, fetch from GET /api/v1/creators/me/connections
+    if (accountId == null) {
+      try {
+        final connRes = await ApiService.get(ApiEndpoints.creatorConnections);
+        if (connRes.isSuccess && connRes.data != null) {
+          final dynamic raw = connRes.data is Map && connRes.data['data'] != null
+              ? connRes.data['data']
+              : connRes.data;
+
+          if (raw is List) {
+            for (final item in raw) {
+              if (item is Map) {
+                final p = (item['platform'] ?? item['provider'] ?? item['type'])
+                    ?.toString()
+                    .toUpperCase();
+                if (p == upperPlatform) {
+                  accountId = item['id'] ?? item['accountId'];
+                  break;
+                }
+              }
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
+    // 3. Call DELETE /api/v1/creators/me/connections/accounts/{id} if found
+    if (accountId != null) {
+      final response = await ApiService.delete(
+        ApiEndpoints.disconnectConnectionAccount(accountId),
+      );
+      if (response.isSuccess) {
+        await fetchAndSaveMe();
+      }
+      return response;
+    }
+
+    // 4. Fallback to platform-based DELETE
+    final fallbackRes = await ApiService.delete(ApiEndpoints.disconnectPlatform(platform));
+    await fetchAndSaveMe();
+    return fallbackRes;
   }
 
   @override
