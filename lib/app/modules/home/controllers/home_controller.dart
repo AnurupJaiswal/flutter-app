@@ -26,10 +26,10 @@ class HomeController extends GetxController {
   void syncWithSavedConnections() {
     final accounts = ApiService.currentConnectedAccounts;
     if (accounts != null) {
-      if (accounts.youtube != null) {
+      if (accounts.youtube != null && isYoutubeConnected.value != accounts.youtube!.connected) {
         isYoutubeConnected.value = accounts.youtube!.connected;
       }
-      if (accounts.instagram != null) {
+      if (accounts.instagram != null && isInstagramConnected.value != accounts.instagram!.connected) {
         isInstagramConnected.value = accounts.instagram!.connected;
       }
     }
