@@ -32,7 +32,6 @@ class ApiEndpoints {
 
   static const String subscriptionStatus = '/api/v1/subscriptions/status';
   static const String subscriptionPlans = '/api/v1/subscriptions/plans';
-
   // --- Creator Profile Endpoints ---
   static const String creatorProfile = '/api/v1/creators/me/profile';
   static const String updateCreatorProfile = '/api/v1/creators/me/profile';
