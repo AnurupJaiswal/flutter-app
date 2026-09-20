@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lala_ai/app/modules/analytics/controllers/analytics_controller.dart';
 import 'package:lala_ai/app/modules/connect_accounts/views/connect_accounts_view.dart';
+import 'package:lala_ai/core/widgets/skeleton/app_skeleton.dart';
 import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
@@ -25,8 +26,6 @@ class AnalyticsView extends StatelessWidget {
       appBar: CW.commonAppbar(
         titleWidget: Row(
           children: [
-            Icon(Icons.analytics_rounded, color: CC.primary, size: 20),
-            8.width,
             Text(
               "Channel Analytics",
               style: TS.sectionTitle(color: CC.textPrimary, fontSize: 16),
@@ -327,48 +326,69 @@ class AnalyticsView extends StatelessWidget {
                 ...controller.availableChannels.map((chan) {
                   final isSelected = chan.id.toString() == controller.selectedChannel.value?.id.toString();
                   final isYt = chan.platform == 'YOUTUBE';
+                  final displayHandle = chan.handle.startsWith('@') ? chan.handle : "@${chan.handle}";
 
                   return Container(
-                    margin: const EdgeInsets.only(bottom: 8),
+                    margin: const EdgeInsets.only(bottom: 10),
                     decoration: BoxDecoration(
-                      color: isSelected ? CC.primary.withValues(alpha: 0.08) : CC.searchBackground,
-                      borderRadius: BorderRadius.circular(12),
+                      color: isSelected
+                          ? CC.primary.withValues(alpha: CC.isDark ? 0.12 : 0.06)
+                          : (CC.isDark ? CC.darkBg2 : Colors.white),
+                      borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: isSelected ? CC.primary : CC.stroke.withValues(alpha: 0.4),
+                        color: isSelected
+                            ? CC.primary
+                            : (CC.isDark ? CC.stroke.withValues(alpha: 0.35) : const Color(0xFFE5E7EB)),
                         width: isSelected ? 1.5 : 1,
                       ),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: CC.primary.withValues(alpha: 0.1),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ]
+                          : [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: CC.isDark ? 0.2 : 0.03),
+                                blurRadius: 4,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
                     ),
                     child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
                       dense: true,
                       leading: Container(
-                        width: 38,
-                        height: 38,
+                        width: 42,
+                        height: 42,
                         decoration: BoxDecoration(
                           color: isYt
-                              ? const Color(0xFFFF0000).withValues(alpha: 0.08)
-                              : const Color(0xFFE1306C).withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(10),
+                              ? const Color(0xFFFF0000).withValues(alpha: CC.isDark ? 0.12 : 0.07)
+                              : const Color(0xFFE1306C).withValues(alpha: CC.isDark ? 0.12 : 0.07),
+                          borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: isYt
-                                ? const Color(0xFFFF0000).withValues(alpha: 0.2)
-                                : const Color(0xFFE1306C).withValues(alpha: 0.2),
-                            width: 1,
+                                ? const Color(0xFFFF0000).withValues(alpha: CC.isDark ? 0.25 : 0.15)
+                                : const Color(0xFFE1306C).withValues(alpha: CC.isDark ? 0.25 : 0.15),
+                            width: 0.8,
                           ),
                         ),
                         child: Center(
-                          child: isYt ? CW.youtubeIcon(size: 22) : CW.instagramIcon(size: 22),
+                          child: isYt ? CW.youtubeIcon(size: 24) : CW.instagramIcon(size: 24),
                         ),
                       ),
                       title: Text(
                         chan.name,
                         style: TS.bodySmall(
                           color: CC.textPrimary,
-                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                        ),
+                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                        ).copyWith(fontSize: 14),
                       ),
                       subtitle: Text(
-                        chan.handle.startsWith('@') ? chan.handle : "@${chan.handle}",
-                        style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11),
+                        displayHandle,
+                        style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 12),
                       ),
                       trailing: isSelected
                           ? Container(
@@ -386,14 +406,14 @@ class AnalyticsView extends StatelessWidget {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: CC.stroke.withValues(alpha: CC.isDark ? 0.4 : 0.7),
+                                  color: CC.isDark ? Colors.white24 : const Color(0xFFCBD5E1),
                                   width: 1.5,
                                 ),
                               ),
                             ),
                       onTap: () {
-                        controller.selectChannel(chan);
                         Navigator.pop(ctx);
+                        controller.selectChannel(chan);
                       },
                     ),
                   );
@@ -403,13 +423,14 @@ class AnalyticsView extends StatelessWidget {
                   width: double.infinity,
                   child: OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: CC.primary),
+                      side: BorderSide(color: CC.primary.withValues(alpha: 0.6)),
+                      backgroundColor: CC.primary.withValues(alpha: CC.isDark ? 0.08 : 0.04),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                     icon: Icon(Icons.add_rounded, color: CC.primary, size: 18),
                     label: Text(
-                      "Connect Another Channel",
+                      "Manage / Connect Channels",
                       style: TS.bodySmall(color: CC.primary, fontWeight: FontWeight.w600),
                     ),
                     onPressed: () {
@@ -467,7 +488,7 @@ class AnalyticsView extends StatelessWidget {
   }
 
   Widget _buildLoadingPlaceholder() {
-    return CW.skeletonList(itemCount: 4, itemHeight: 90, padding: EdgeInsets.zero);
+    return const ChannelAuditSkeleton();
   }
 
 

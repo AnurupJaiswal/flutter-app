@@ -7,6 +7,7 @@ import 'package:lala_ai/app/data/models/trend_model.dart';
 import 'package:lala_ai/app/modules/main_container/controllers/main_container_controller.dart';
 import 'package:lala_ai/app/modules/trending/controllers/trending_controller.dart';
 import 'package:lala_ai/app/navigation/app_navigation_service.dart';
+import 'package:lala_ai/core/widgets/skeleton/app_skeleton.dart';
 import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
@@ -160,7 +161,7 @@ class TrendingView extends GetView<TrendingController> {
         // Trend Cards List
         Obx(() {
           if (controller.isLoading.value) {
-            return CW.skeletonList(itemCount: 4, itemHeight: 110, padding: EdgeInsets.zero);
+            return const TrendSkeleton(itemCount: 4);
           }
 
           final list = controller.trends;

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lala_ai/app/data/models/category_insights_model.dart';
 import 'package:lala_ai/app/modules/category_insights/controllers/category_insights_controller.dart';
+import 'package:lala_ai/core/widgets/skeleton/app_skeleton.dart';
 import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
@@ -126,18 +127,7 @@ class CategoryInsightsView extends StatelessWidget {
 
               // Loading or Content State
               if (controller.isLoading.value)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Column(
-                    children: [
-                      CW.skeletonCard(height: 140),
-                      16.height,
-                      CW.skeletonCard(height: 100),
-                      16.height,
-                      CW.skeletonCard(height: 100),
-                    ],
-                  ),
-                )
+                const CategoryInsightsSkeleton()
               else if (insights == null)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),

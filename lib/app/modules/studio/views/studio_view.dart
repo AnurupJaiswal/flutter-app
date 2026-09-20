@@ -6,6 +6,7 @@ import 'package:lala_ai/app/modules/profile/views/profile_view.dart';
 import 'package:lala_ai/app/modules/main_container/controllers/main_container_controller.dart';
 import 'package:lala_ai/app/modules/studio/controllers/studio_controller.dart';
 import 'package:lala_ai/app/navigation/app_navigation_service.dart';
+import 'package:lala_ai/core/widgets/skeleton/app_skeleton.dart';
 import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
@@ -178,72 +179,77 @@ class StudioView extends GetView<StudioController> {
         // Expandable Result Card
         Text("Generated Result", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 14)),
         10.height,
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: CC.surface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
-              width: 1,
+        Obx(() {
+          if (controller.isGeneratingScript.value) {
+            return const ScriptGeneratorSkeleton();
+          }
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: CC.surface,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
+                  blurRadius: 14,
+                  offset: const Offset(0, 6),
+                ),
+              ],
             ),
-            boxShadow: [
-              BoxShadow(
-                color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
-                blurRadius: 14,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Obx(() => Text(
-                      controller.generatedScriptTitle.value,
-                      style: TS.sectionTitle(color: CC.textPrimary, fontSize: 15),
-                    )),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.copy_rounded, size: 18, color: CC.primary),
-                    tooltip: "Copy Script",
-                    onPressed: () {
-                      Clipboard.setData(ClipboardData(text: "${controller.generatedScriptTitle}\n\n${controller.generatedScriptHook}\n\n${controller.generatedScriptBody}\n\n${controller.generatedScriptCTA}"));
-                      AppToast.success("Script copied to clipboard!");
-                    },
-                  ),
-                ],
-              ),
-              const Divider(height: 16, thickness: 0.7),
-              _scriptSection("HOOK (0-3s)", controller.generatedScriptHook.value, CC.primary),
-              10.height,
-              _scriptSection("BODY", controller.generatedScriptBody.value, CC.textPrimary),
-              10.height,
-              _scriptSection("CALL TO ACTION (CTA)", controller.generatedScriptCTA.value, CC.success),
-              14.height,
-              Row(
-                children: [
-                  Expanded(
-                    child: CW.commonBtn(
-                      title: "Push to Calendar",
-                      isOutlined: true,
-                      onTap: () => Get.find<MainContainerController>().changeTab(AppNavigationService.tabCalendar),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        controller.generatedScriptTitle.value,
+                        style: TS.sectionTitle(color: CC.textPrimary, fontSize: 15),
+                      ),
                     ),
-                  ),
-                  10.width,
-                  IconButton(
-                    icon: Icon(Icons.refresh_rounded, color: CC.primary, size: 20),
-                    tooltip: "Micro-Regenerate",
-                    onPressed: controller.generateScript,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
+                    IconButton(
+                      icon: Icon(Icons.copy_rounded, size: 18, color: CC.primary),
+                      tooltip: "Copy Script",
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: "${controller.generatedScriptTitle}\n\n${controller.generatedScriptHook}\n\n${controller.generatedScriptBody}\n\n${controller.generatedScriptCTA}"));
+                        AppToast.success("Script copied to clipboard!");
+                      },
+                    ),
+                  ],
+                ),
+                const Divider(height: 16, thickness: 0.7),
+                _scriptSection("HOOK (0-3s)", controller.generatedScriptHook.value, CC.primary),
+                10.height,
+                _scriptSection("BODY", controller.generatedScriptBody.value, CC.textPrimary),
+                10.height,
+                _scriptSection("CALL TO ACTION (CTA)", controller.generatedScriptCTA.value, CC.success),
+                14.height,
+                Row(
+                  children: [
+                    Expanded(
+                      child: CW.commonBtn(
+                        title: "Push to Calendar",
+                        isOutlined: true,
+                        onTap: () => Get.find<MainContainerController>().changeTab(AppNavigationService.tabCalendar),
+                      ),
+                    ),
+                    10.width,
+                    IconButton(
+                      icon: Icon(Icons.refresh_rounded, color: CC.primary, size: 20),
+                      tooltip: "Micro-Regenerate",
+                      onPressed: controller.generateScript,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        }),
       ],
     );
   }
@@ -340,8 +346,12 @@ class StudioView extends GetView<StudioController> {
 
         Text("High-Converting Hooks", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 14)),
         10.height,
-        Obx(() => Column(
-          children: controller.generatedHooks.map((hook) {
+        Obx(() {
+          if (controller.isGeneratingHooks.value) {
+            return CW.skeletonList(itemCount: 3, itemHeight: 65, padding: EdgeInsets.zero);
+          }
+          return Column(
+            children: controller.generatedHooks.map((hook) {
             return Container(
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(14),
@@ -383,7 +393,8 @@ class StudioView extends GetView<StudioController> {
               ),
             );
           }).toList(),
-        )),
+          );
+        }),
         14.height,
 
         Text("Recommended Keywords & Hashtags", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 14)),

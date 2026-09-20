@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:lala_ai/core/widgets/skeleton/app_skeleton.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
@@ -781,13 +782,11 @@ class CW {
   /// Lightweight Shimmer container using single controller and RepaintBoundary to avoid parent repaints
   static Widget shimmer({
     required Widget child,
-    Duration duration = const Duration(milliseconds: 1200),
+    Duration duration = const Duration(milliseconds: 1300),
   }) {
-    return RepaintBoundary(
-      child: _ShimmerWidget(
-        duration: duration,
-        child: child,
-      ),
+    return SkeletonShimmer(
+      duration: duration,
+      child: child,
     );
   }
 
@@ -798,14 +797,11 @@ class CW {
     BorderRadius? borderRadius,
     EdgeInsetsGeometry? margin,
   }) {
-    return Container(
+    return SkeletonBox(
       width: width,
       height: height,
+      borderRadius: borderRadius,
       margin: margin,
-      decoration: BoxDecoration(
-        color: CC.shimmerBase,
-        borderRadius: borderRadius ?? BorderRadius.circular(8),
-      ),
     );
   }
 
@@ -822,19 +818,11 @@ class CW {
             : const EdgeInsets.all(16));
     final avatarSize = height < 75 ? (height - 20).clamp(24.0, 44.0) : 44.0;
 
-    return Container(
+    return SkeletonCard(
       width: width ?? double.infinity,
       height: height,
       margin: margin ?? const EdgeInsets.only(bottom: 12),
       padding: effectivePadding,
-      decoration: BoxDecoration(
-        color: CC.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
-          width: 1,
-        ),
-      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -871,7 +859,7 @@ class CW {
     double itemHeight = 90,
     EdgeInsetsGeometry? padding,
   }) {
-    return shimmer(
+    return SkeletonShimmer(
       child: ListView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
@@ -879,68 +867,6 @@ class CW {
         itemCount: itemCount,
         itemBuilder: (_, __) => skeletonCard(height: itemHeight),
       ),
-    );
-  }
-}
-
-/// Lightweight Animated Shimmer Widget
-class _ShimmerWidget extends StatefulWidget {
-  final Widget child;
-  final Duration duration;
-
-  const _ShimmerWidget({
-    required this.child,
-    this.duration = const Duration(milliseconds: 1200),
-  });
-
-  @override
-  State<_ShimmerWidget> createState() => _ShimmerWidgetState();
-}
-
-class _ShimmerWidgetState extends State<_ShimmerWidget>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: widget.duration)
-      ..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return ShaderMask(
-          blendMode: BlendMode.srcATop,
-          shaderCallback: (bounds) {
-            return LinearGradient(
-              begin: const Alignment(-1.0, -0.3),
-              end: const Alignment(1.0, 0.3),
-              stops: [
-                (_controller.value - 0.3).clamp(0.0, 1.0),
-                _controller.value.clamp(0.0, 1.0),
-                (_controller.value + 0.3).clamp(0.0, 1.0),
-              ],
-              colors: [
-                CC.shimmerBase,
-                CC.shimmerHighlight,
-                CC.shimmerBase,
-              ],
-            ).createShader(bounds);
-          },
-          child: child,
-        );
-      },
-      child: widget.child,
     );
   }
 }

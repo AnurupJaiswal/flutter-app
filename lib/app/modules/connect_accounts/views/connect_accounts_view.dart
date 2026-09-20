@@ -12,6 +12,7 @@ import 'package:lala_ai/networking/api_service.dart';
 import 'package:lala_ai/app/data/repositories/dashboard_repository.dart';
 import 'package:lala_ai/app/modules/authentication/data/auth_repository.dart';
 import 'package:lala_ai/app/modules/home/controllers/home_controller.dart';
+import 'package:lala_ai/core/widgets/skeleton/app_skeleton.dart';
 
 class ConnectAccountsView extends StatefulWidget {
   const ConnectAccountsView({super.key});
@@ -262,9 +263,7 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView>
           isNotHomepage: true,
           title: "Connect Channels",
         ),
-        body: Center(
-          child: CircularProgressIndicator(color: CC.primary),
-        ),
+        body: const ConnectedAccountsSkeleton(),
       );
     }
 
@@ -634,12 +633,14 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView>
                 margin: const EdgeInsets.only(bottom: 10),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: CC.isDark ? CC.surface : const Color(0xFFFAFBFC),
+                  color: CC.isDark ? CC.darkBg2 : const Color(0xFFFAFBFC),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: isDisconnected
-                        ? const Color(0xFFFFD1D1)
-                        : (isReauth ? const Color(0xFFFDE68A) : const Color(0xFFEFF2F6)),
+                        ? (CC.isDark ? const Color(0xFFEF4444).withValues(alpha: 0.3) : const Color(0xFFFFD1D1))
+                        : (isReauth
+                            ? (CC.isDark ? const Color(0xFFF59E0B).withValues(alpha: 0.3) : const Color(0xFFFDE68A))
+                            : (CC.isDark ? CC.stroke.withValues(alpha: 0.35) : const Color(0xFFEFF2F6))),
                     width: 1,
                   ),
                 ),
@@ -654,13 +655,15 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView>
                             CircleAvatar(
                               radius: 20,
                               backgroundColor: isDisconnected
-                                  ? const Color(0xFFFFE5E5)
-                                  : (isYt ? const Color(0xFFE8F1FF) : const Color(0xFFFDF2F8)),
+                                  ? (CC.isDark ? const Color(0xFFEF4444).withValues(alpha: 0.15) : const Color(0xFFFFE5E5))
+                                  : (isYt
+                                      ? (CC.isDark ? const Color(0xFF0084FF).withValues(alpha: 0.15) : const Color(0xFFE8F1FF))
+                                      : (CC.isDark ? const Color(0xFFA855F7).withValues(alpha: 0.15) : const Color(0xFFFDF2F8))),
                               child: Text(
                                 initialLetter,
                                 style: TextStyle(
                                   color: isDisconnected
-                                      ? const Color(0xFFEF4444)
+                                      ? (CC.isDark ? const Color(0xFFFF6B6B) : const Color(0xFFEF4444))
                                       : (isYt ? const Color(0xFF0084FF) : const Color(0xFFA855F7)),
                                   fontWeight: FontWeight.w800,
                                   fontSize: 16,
@@ -678,7 +681,7 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView>
                                     color: const Color(0xFF22C55E),
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: CC.isDark ? CC.surface : Colors.white,
+                                      color: CC.isDark ? CC.darkBg2 : Colors.white,
                                       width: 1.5,
                                     ),
                                   ),
@@ -739,11 +742,19 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView>
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
                             color: isDisconnected
-                                ? const Color(0xFFFFECEC)
+                                ? (CC.isDark ? const Color(0xFFEF4444).withValues(alpha: 0.15) : const Color(0xFFFFECEC))
                                 : isReauth
-                                    ? const Color(0xFFFEF3C7)
-                                    : const Color(0xFFDCFCE7),
+                                    ? (CC.isDark ? const Color(0xFFF59E0B).withValues(alpha: 0.15) : const Color(0xFFFEF3C7))
+                                    : (CC.isDark ? const Color(0xFF22C55E).withValues(alpha: 0.15) : const Color(0xFFDCFCE7)),
                             borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: isDisconnected
+                                  ? const Color(0xFFEF4444).withValues(alpha: 0.3)
+                                  : isReauth
+                                      ? const Color(0xFFF59E0B).withValues(alpha: 0.3)
+                                      : const Color(0xFF22C55E).withValues(alpha: 0.3),
+                              width: 0.8,
+                            ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -751,12 +762,8 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView>
                               Container(
                                 width: 6,
                                 height: 6,
-                                decoration: BoxDecoration(
-                                  color: isDisconnected
-                                      ? const Color(0xFFEF4444)
-                                      : isReauth
-                                          ? const Color(0xFFF59E0B)
-                                          : const Color(0xFF16A34A),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF22C55E),
                                   shape: BoxShape.circle,
                                 ),
                               ),
@@ -769,10 +776,10 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView>
                                         : "Active",
                                 style: TextStyle(
                                   color: isDisconnected
-                                      ? const Color(0xFFDC2626)
+                                      ? (CC.isDark ? const Color(0xFFFF6B6B) : const Color(0xFFDC2626))
                                       : isReauth
-                                          ? const Color(0xFFD97706)
-                                          : const Color(0xFF15803D),
+                                          ? (CC.isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706))
+                                          : (CC.isDark ? const Color(0xFF4ADE80) : const Color(0xFF15803D)),
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -792,38 +799,38 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView>
                         child: OutlinedButton.icon(
                           style: OutlinedButton.styleFrom(
                             side: BorderSide(
-                              color: const Color(0xFFEF4444).withValues(alpha: 0.35),
+                              color: const Color(0xFFEF4444).withValues(alpha: CC.isDark ? 0.3 : 0.35),
                               width: 1,
                             ),
                             backgroundColor: CC.isDark
                                 ? const Color(0xFFEF4444).withValues(alpha: 0.08)
                                 : const Color(0xFFFFF5F5),
-                            foregroundColor: const Color(0xFFDC2626),
+                            foregroundColor: CC.isDark ? const Color(0xFFFF6B6B) : const Color(0xFFDC2626),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                           ),
                           icon: isDisconnecting
-                              ? const SizedBox(
+                              ? SizedBox(
                                   width: 14,
                                   height: 14,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    color: Color(0xFFDC2626),
+                                    color: CC.isDark ? const Color(0xFFFF6B6B) : const Color(0xFFDC2626),
                                   ),
                                 )
-                              : const Icon(
+                              : Icon(
                                   Icons.link_off_rounded,
                                   size: 15,
-                                  color: Color(0xFFDC2626),
+                                  color: CC.isDark ? const Color(0xFFFF6B6B) : const Color(0xFFDC2626),
                                 ),
                           label: Text(
                             isDisconnecting ? "Disconnecting..." : "Disconnect",
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFFDC2626),
+                              color: CC.isDark ? const Color(0xFFFF6B6B) : const Color(0xFFDC2626),
                             ),
                           ),
                           onPressed: isDisconnecting
