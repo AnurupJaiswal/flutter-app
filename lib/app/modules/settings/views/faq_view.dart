@@ -49,6 +49,7 @@ class FaqView extends StatefulWidget {
 class _FaqViewState extends State<FaqView> {
   final PublicRepository _publicRepository = ApiPublicRepository();
   int? _expandedIndex;
+  bool _hasLoadedOnce = false;
   bool _isLoading = true;
   List<FaqItemData> _faqList = [];
 
@@ -58,10 +59,12 @@ class _FaqViewState extends State<FaqView> {
     _loadFaqs();
   }
 
-  Future<void> _loadFaqs() async {
-    setState(() {
-      _isLoading = true;
-    });
+  Future<void> _loadFaqs({bool isRefresh = false}) async {
+    if (!_hasLoadedOnce && _faqList.isEmpty) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
 
     try {
       final remoteFaqs = await _publicRepository.getFaqs();
@@ -69,6 +72,7 @@ class _FaqViewState extends State<FaqView> {
         setState(() {
           _faqList = remoteFaqs.map((m) => FaqItemData.fromModel(m)).toList();
           _isLoading = false;
+          _hasLoadedOnce = true;
         });
         return;
       }
@@ -78,8 +82,8 @@ class _FaqViewState extends State<FaqView> {
 
     if (mounted) {
       setState(() {
-        _faqList = [];
         _isLoading = false;
+        _hasLoadedOnce = true;
       });
     }
   }
@@ -129,12 +133,12 @@ class _FaqViewState extends State<FaqView> {
             child: RefreshIndicator(
               color: CC.primary,
               backgroundColor: CC.surface,
-              onRefresh: _loadFaqs,
+              onRefresh: () => _loadFaqs(isRefresh: true),
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(
                   parent: BouncingScrollPhysics(),
                 ),
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.fromLTRB(0, 12, 0, 36),
                 child: _isLoading
                     ? Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),

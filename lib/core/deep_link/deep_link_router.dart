@@ -173,6 +173,35 @@ class DeepLinkRouter {
     switch (type) {
       // -- APP OPEN (Canonical HTTPS route: /open-app) ----------------
       case DeepLinkType.openApp:
+        // 1. Handle OAuth completion redirect
+        if (params['source'] == 'oauth') {
+          final platform = params['platform'] ?? 'Account';
+          final isSuccess = params['status'] == 'success';
+
+          if (isSuccess) {
+            try {
+              final dashboardRepo = Get.isRegistered<DashboardRepository>()
+                  ? Get.find<DashboardRepository>()
+                  : Get.put<DashboardRepository>(ApiDashboardRepository());
+              await dashboardRepo.getConnectionsWithEntitlements();
+
+              final authRepo = Get.isRegistered<AuthRepository>()
+                  ? Get.find<AuthRepository>()
+                  : Get.put<AuthRepository>(ApiAuthRepository());
+              await authRepo.fetchAndSaveMe();
+            } catch (_) {}
+
+            AppToast.success("${platform.toUpperCase()} connected successfully!");
+            _navigateTo(Routes.CONNECT_ACCOUNTS);
+            return true;
+          } else {
+            AppToast.error("Failed to connect $platform account.");
+            _navigateTo(Routes.CONNECT_ACCOUNTS);
+            return false;
+          }
+        }
+
+        // 2. Handle Subscription verification
         final orderId = params['orderId'] ??
             params['order_id'] ??
             params['orderID'] ??

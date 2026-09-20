@@ -11,6 +11,7 @@ import 'package:lala_ai/utils/theme/text_style.dart';
 import 'package:lala_ai/utils/theme/theme_service.dart';
 import 'package:lala_ai/networking/api_service.dart';
 import 'package:lala_ai/app/modules/authentication/data/auth_repository.dart';
+import 'package:lala_ai/app/data/models/content_niche_model.dart';
 
 class EditProfileView extends StatefulWidget {
   const EditProfileView({super.key});
@@ -203,6 +204,251 @@ class _EditProfileViewState extends State<EditProfileView> {
               ),
             ),
           ),
+        );
+      },
+    );
+  }
+
+  // ── Content Niche Picker Sheet (Single Selection) ────────────────────────
+  void _showNichePickerSheet() {
+    final searchController = TextEditingController();
+    String query = "";
+
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: false,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            final filteredNiches = kContentNiches.where((niche) {
+              if (query.isEmpty) return true;
+              final q = query.toLowerCase();
+              return niche.title.toLowerCase().contains(q);
+            }).toList();
+
+            final currentNiche = _nicheController.text.trim();
+
+            return SafeArea(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(sheetContext).size.height * 0.85,
+                ),
+                child: Container(
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    12,
+                    20,
+                    16 + MediaQuery.of(sheetContext).viewInsets.bottom,
+                  ),
+                  decoration: BoxDecoration(
+                    color: CC.surface,
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(24)),
+                    border: Border.all(
+                      color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Drag handle
+                      Center(
+                        child: Container(
+                          width: 36,
+                          height: 4,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: CC.stroke,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                      Text(
+                        "Select Content Niche",
+                        style: TS.sectionTitle(
+                          color: CC.textPrimary,
+                          fontWeight: FontWeight.w700,
+                        ).copyWith(fontSize: 17),
+                      ),
+                      4.height,
+                      Text(
+                        "Choose the niche that best represents your content focus",
+                        style: TS.caption(color: CC.textSecondary)
+                            .copyWith(fontSize: 12),
+                      ),
+                      14.height,
+                      // Search bar
+                      TextField(
+                        controller: searchController,
+                        onChanged: (val) {
+                          setSheetState(() {
+                            query = val.trim();
+                          });
+                        },
+                        style: TS.bodyMedium(color: CC.textPrimary),
+                        cursorColor: CC.primary,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          hintText: "Search content niches...",
+                          hintStyle: TS.bodyMedium(
+                                  color: CC.grey.withValues(alpha: 0.7))
+                              .copyWith(fontSize: 13),
+                          prefixIcon: Icon(Icons.search_rounded,
+                              size: 20, color: CC.textSecondary),
+                          suffixIcon: query.isNotEmpty
+                              ? IconButton(
+                                  icon: Icon(Icons.clear_rounded,
+                                      size: 18, color: CC.textSecondary),
+                                  onPressed: () {
+                                    searchController.clear();
+                                    setSheetState(() {
+                                      query = "";
+                                    });
+                                  },
+                                )
+                              : null,
+                          filled: true,
+                          fillColor: CC.background,
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 12),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: CC.stroke,
+                              width: 1,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: CC.primary,
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                      12.height,
+                      // Niches list
+                      Flexible(
+                        child: filteredNiches.isEmpty
+                            ? Center(
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 36),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.search_off_rounded,
+                                          color: CC.grey, size: 36),
+                                      8.height,
+                                      Text(
+                                        "No niches matching \"$query\"",
+                                        style: TS.bodySmall(
+                                            color: CC.textSecondary),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            : ListView.separated(
+                                shrinkWrap: true,
+                                physics: const BouncingScrollPhysics(),
+                                itemCount: filteredNiches.length,
+                                separatorBuilder: (_, __) => 8.height,
+                                itemBuilder: (context, index) {
+                                  final niche = filteredNiches[index];
+                                  final isSelected =
+                                      niche.matches(currentNiche);
+
+                                  return Material(
+                                    color: Colors.transparent,
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(12),
+                                      onTap: () {
+                                        setState(() {
+                                          _nicheController.text = niche.title;
+                                        });
+                                        Navigator.of(sheetContext).pop();
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 14),
+                                        decoration: BoxDecoration(
+                                          color: isSelected
+                                              ? CC.primary.withValues(
+                                                  alpha: CC.isDark
+                                                      ? 0.18
+                                                      : 0.08)
+                                              : CC.background,
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: isSelected
+                                                ? CC.primary
+                                                : CC.stroke.withValues(
+                                                    alpha: CC.isDark
+                                                        ? 0.35
+                                                        : 0.6),
+                                            width: isSelected ? 1.5 : 1,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                niche.title,
+                                                style: TS.bodyMedium(
+                                                  color: isSelected
+                                                      ? CC.primary
+                                                      : CC.textPrimary,
+                                                  fontWeight: isSelected
+                                                      ? FontWeight.w700
+                                                      : FontWeight.w500,
+                                                ).copyWith(fontSize: 14),
+                                              ),
+                                            ),
+                                            8.width,
+                                            Container(
+                                              width: 22,
+                                              height: 22,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: isSelected
+                                                    ? CC.primary
+                                                    : Colors.transparent,
+                                                border: Border.all(
+                                                  color: isSelected
+                                                      ? CC.primary
+                                                      : CC.stroke,
+                                                  width: 1.5,
+                                                ),
+                                              ),
+                                              child: isSelected
+                                                  ? const Icon(
+                                                      Icons.check_rounded,
+                                                      size: 14,
+                                                      color: CC.whiteText,
+                                                    )
+                                                  : null,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         );
       },
     );
@@ -429,11 +675,11 @@ class _EditProfileViewState extends State<EditProfileView> {
                       ).copyWith(fontSize: 15),
                     ),
                     14.height,
-                    _buildTextField(
+                    _buildSelectableField(
                       label: "Content Niche",
-                      controller: _nicheController,
-                      hint: "e.g. Tech & AI, Finance, Fitness",
-                      textInputAction: TextInputAction.next,
+                      value: _nicheController.text,
+                      hint: "Select your content niche",
+                      onTap: _showNichePickerSheet,
                     ),
                     14.height,
                     _buildTextField(
@@ -496,6 +742,70 @@ class _EditProfileViewState extends State<EditProfileView> {
           ),
         );
       },
+    );
+  }
+
+  // ── Selectable Field Builder ─────────────────────────────────────────────
+  Widget _buildSelectableField({
+    required String label,
+    required String value,
+    required String hint,
+    required VoidCallback onTap,
+  }) {
+    final hasValue = value.trim().isNotEmpty;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TS.caption(
+            color: CC.textSecondary,
+            fontWeight: FontWeight.w500,
+          ).copyWith(fontSize: 13),
+        ),
+        6.height,
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: onTap,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              decoration: BoxDecoration(
+                color: CC.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: CC.stroke,
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      hasValue ? value : hint,
+                      style: TS.bodyMedium(
+                        color: hasValue
+                            ? CC.textPrimary
+                            : CC.grey.withValues(alpha: 0.7),
+                        fontWeight:
+                            hasValue ? FontWeight.w500 : FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    size: 22,
+                    color: CC.textSecondary,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
