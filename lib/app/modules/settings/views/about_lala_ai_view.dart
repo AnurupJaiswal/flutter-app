@@ -174,14 +174,14 @@ https://apps.apple.com/app/lala-ai/id123456789
                             child: Icon(Icons.language_rounded, color: CC.textPrimary, size: 18),
                           ),
                           title: Text("Official Website", style: TS.bodySmall(color: CC.textPrimary, fontWeight: FontWeight.w600)),
-                          subtitle: Text("https://lala.ai", style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11)),
+                          subtitle: Text("https://lala-ai-green.vercel.app", style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11)),
                           trailing: Icon(Icons.open_in_new_rounded, color: CC.grey, size: 16),
                           onTap: () async {
-                            final url = Uri.parse("https://lala.ai");
+                            final url = Uri.parse("https://lala-ai-green.vercel.app");
                             if (await canLaunchUrl(url)) {
                               await launchUrl(url, mode: LaunchMode.externalApplication);
                             } else {
-                              AppToast.info("Opening https://lala.ai...");
+                              AppToast.info("Opening https://lala-ai-green.vercel.app...");
                             }
                           },
                         ),
