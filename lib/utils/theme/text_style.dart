@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 
 class TS {
-  static const String fontFamily = 'Gilroy';
+  static const String fontFamily = 'Poppins';
 
   // 1. Material 3 Display & Screen Titles
   static TextStyle displayLarge({
@@ -15,7 +15,7 @@ class TS {
       TextStyle(
         fontSize: fontSize ?? 22,
         fontFamily: fontFamily ?? TS.fontFamily,
-        fontWeight: fontWeight ?? FontWeight.w700,
+        fontWeight: fontWeight ?? FontWeight.w600,
         color: color ?? CC.textPrimary,
         height: height ?? 1.2,
         letterSpacing: -0.6,
@@ -32,7 +32,7 @@ class TS {
       TextStyle(
         fontSize: fontSize ?? 18,
         fontFamily: fontFamily ?? TS.fontFamily,
-        fontWeight: fontWeight ?? FontWeight.w700,
+        fontWeight: fontWeight ?? FontWeight.w600,
         color: color ?? CC.textPrimary,
         height: height ?? 1.2,
         letterSpacing: -0.4,
@@ -50,7 +50,7 @@ class TS {
       TextStyle(
         fontSize: fontSize ?? 17,
         fontFamily: fontFamily ?? TS.fontFamily,
-        fontWeight: fontWeight ?? FontWeight.w700,
+        fontWeight: fontWeight ?? FontWeight.w600,
         color: color ?? CC.textPrimary,
         height: height ?? 1.25,
         letterSpacing: -0.3,

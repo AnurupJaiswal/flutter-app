@@ -34,8 +34,8 @@ void main() async {
         initialRoute: AppPages.INITIAL,
         getPages: AppPages.routes,
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme(fontFamily: "Gilroy"),
-        darkTheme: AppTheme.darkTheme(fontFamily: "Gilroy"),
+        theme: AppTheme.lightTheme(fontFamily: "Poppins"),
+        darkTheme: AppTheme.darkTheme(fontFamily: "Poppins"),
         themeMode: service.themeMode,
         builder: (context, child) {
           return KeyboardDismissWrapper(

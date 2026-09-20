@@ -50,6 +50,7 @@ dependencies:
   android_intent_plus: ^6.1.0
   pinput: ^6.0.2
   app_links: ^7.2.1
+  google_fonts: ^8.2.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -63,16 +64,15 @@ flutter:
     - assets/icons/
 
   fonts:
-    - family: Gilroy
+    - family: Poppins
       fonts:
-        - asset: assets/fonts/Gilroy-Regular.ttf
+        - asset: assets/fonts/Poppins-Regular.ttf
           weight: 400
-        - asset: assets/fonts/Gilroy-Medium.ttf
+        - asset: assets/fonts/Poppins-Medium.ttf
           weight: 500
-        - asset: assets/fonts/Gilroy-SemiBold.ttf
+        - asset: assets/fonts/Poppins-SemiBold.ttf
           weight: 600
-        - asset: assets/fonts/Gilroy-Bold.ttf
-          weight: 700
-        - asset: assets/fonts/Gilroy-Heavy.ttf
-          weight: 900
+
+
+
 
