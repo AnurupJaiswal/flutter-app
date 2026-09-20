@@ -90,18 +90,25 @@ class HomeView extends GetView<HomeController> {
                 onRefresh: controller.refreshDashboard,
                 color: CC.primary,
                 backgroundColor: CC.surface,
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(
-                    parent: BouncingScrollPhysics(),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildInitialEmptyState(),
-                      100.height,
-                    ],
-                  ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildInitialEmptyState(),
+                            32.height,
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 ),
               );
             }

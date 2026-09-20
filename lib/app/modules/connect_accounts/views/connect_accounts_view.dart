@@ -11,7 +11,6 @@ import 'package:lala_ai/networking/api_endpoints.dart';
 import 'package:lala_ai/networking/api_service.dart';
 import 'package:lala_ai/app/data/repositories/dashboard_repository.dart';
 import 'package:lala_ai/app/modules/authentication/data/auth_repository.dart';
-import 'package:lala_ai/app/modules/connect_accounts/widgets/connect_account_hero_widget.dart';
 import 'package:lala_ai/app/modules/home/controllers/home_controller.dart';
 
 class ConnectAccountsView extends StatefulWidget {
@@ -298,26 +297,29 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView>
             isNotHomepage: true,
             title: "Connect Channels",
           ),
-          body: SafeArea(
-            child: RefreshIndicator(
-              onRefresh: () => _refreshStatus(showFeedback: true),
-              color: CC.primary,
-              backgroundColor: CC.surface,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(
-                  parent: BouncingScrollPhysics(),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Connect and manage your social channels to enable automated audits, real-time analytics, and AI content scheduling.",
-                      style: TS.bodySmall(color: CC.textSecondary).copyWith(fontSize: 13, height: 1.4),
-                    ),
-                    14.height,
+          body: RefreshIndicator(
+            onRefresh: () => _refreshStatus(showFeedback: true),
+            color: CC.primary,
+            backgroundColor: CC.surface,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Connect and manage your social channels to enable automated audits, real-time analytics, and AI content scheduling.",
+                          style: TS.bodySmall(color: CC.textSecondary).copyWith(fontSize: 13, height: 1.4),
+                        ),
+                        14.height,
 
-                          // --- TOP SUMMARY BANNER CARD (DYNAMIC LIMITS & PROGRESS) ---
+                        // --- TOP SUMMARY BANNER CARD (DYNAMIC LIMITS & PROGRESS) ---
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                             decoration: BoxDecoration(
@@ -404,10 +406,6 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView>
                             connections: igConnections,
                             entitlement: igEntitlement,
                           ),
-                          16.height,
-
-                          // --- CONNECT MORE CHANNELS CARD ---
-                          _buildConnectMoreCard(),
                           20.height,
 
                           // --- SECURITY FOOTER ---
@@ -415,13 +413,15 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView>
                           24.height,
                         ],
                       ),
+                    ),
+                  );
+                },
               ),
             ),
-          ),
-        );
-      },
-    );
-  }
+          );
+        },
+      );
+    }
 
   Widget _buildPlatformSection({
     required String platform,
@@ -874,120 +874,6 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView>
           ],
         ],
       ),
-    );
-  }
-
-  Widget _buildConnectMoreCard() {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          ConnectAccountHeroWidget.showPlatformSelectionSheet(
-            context: context,
-            onSelectInstagram: () => _connectPlatform(platform: "Instagram"),
-            onSelectYouTube: () => _connectPlatform(platform: "YouTube"),
-          );
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: CC.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: CC.isDark
-                  ? CC.stroke.withValues(alpha: 0.35)
-                  : const Color(0xFFCCE3FF),
-              width: 1.2,
-            ),
-          ),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 58,
-                height: 58,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _buildSmallSocialIcon(
-                          backgroundColor: Colors.black,
-                          child: const Icon(Icons.music_note_rounded, color: Colors.white, size: 13),
-                        ),
-                        _buildSmallSocialIcon(
-                          backgroundColor: const Color(0xFF1877F2),
-                          child: const Text(
-                            "f",
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 13, height: 1.1),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _buildSmallSocialIcon(
-                          backgroundColor: Colors.black,
-                          child: const Text(
-                            "𝕏",
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
-                          ),
-                        ),
-                        _buildSmallSocialIcon(
-                          backgroundColor: const Color(0xFF0A66C2),
-                          child: const Text(
-                            "in",
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              16.width,
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Connect More Channels",
-                      style: TS.sectionTitle(color: CC.textPrimary, fontSize: 14),
-                    ),
-                    3.height,
-                    Text(
-                      "Get complete insights across all your social platforms.",
-                      style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 14,
-                color: CC.textSecondary,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSmallSocialIcon({
-    required Color backgroundColor,
-    required Widget child,
-  }) {
-    return Container(
-      width: 26,
-      height: 26,
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Center(child: child),
     );
   }
 

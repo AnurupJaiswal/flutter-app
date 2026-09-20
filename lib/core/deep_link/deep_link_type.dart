@@ -1,0 +1,21 @@
+/// Supported deep link action types in Lala AI.
+enum DeepLinkType {
+  subscriptionSuccess,
+  subscriptionFailed,
+  subscriptionPending,
+  oauthYoutube,
+  oauthInstagram,
+  resetPassword,
+  content,
+  post,
+  creator,
+  share,
+  invite,
+  settings,
+  studio,
+  trends,
+  calendar,
+  discover,
+  connectAccounts,
+  unknown,
+}

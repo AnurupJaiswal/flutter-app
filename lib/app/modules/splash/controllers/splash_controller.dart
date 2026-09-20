@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:lala_ai/app/modules/authentication/data/auth_repository.dart';
 import 'package:lala_ai/app/routes/app_routes.dart';
+
+import 'package:lala_ai/core/deep_link/deep_link_router.dart';
 
 class SplashController extends GetxController {
   final AuthRepository authRepository;
@@ -48,6 +51,11 @@ class SplashController extends GetxController {
         await authRepository.clearSession();
         Get.offAllNamed(Routes.WELCOME);
       }
+    } finally {
+      // Mark app navigation ready and process any pending cold-start deep links
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        DeepLinkRouter.setAppReady(ready: true);
+      });
     }
   }
 

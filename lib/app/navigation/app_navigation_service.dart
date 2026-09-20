@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:lala_ai/app/modules/settings/views/settings_view.dart';
 import 'package:lala_ai/app/routes/app_routes.dart';
-import 'package:lala_ai/utils/common_methods.dart';
+import 'package:lala_ai/core/deep_link/deep_link_router.dart';
 import 'package:lala_ai/utils/common_widget.dart';
 
 class AppNavigationService extends GetxService {
@@ -148,24 +147,9 @@ class AppNavigationService extends GetxService {
     Get.offAllNamed(Routes.AUTHENTICATION);
   }
 
-  /// Deep Link Handler: Format myapp://route
-  void handleDeepLink(Uri uri, Function(int) onTabChange) {
-    final path = uri.path.toLowerCase();
-    CM.log(msg: "Handling deep link path: $path");
-
-    if (path.contains("settings")) {
-      Get.to(() => const SettingsView());
-    } else if (path.contains("studio")) {
-      onTabChange(tabStudio);
-    } else if (path.contains("trends")) {
-      onTabChange(tabTrends);
-    } else if (path.contains("calendar")) {
-      onTabChange(tabCalendar);
-    } else if (path.contains("radar") || path.contains("competitor") || path.contains("discover")) {
-      onTabChange(tabDiscover);
-    } else {
-      onTabChange(tabDashboard);
-    }
+  /// Central Deep Link Handler: Forwards to DeepLinkRouter
+  void handleDeepLink(Uri uri, [Function(int)? onTabChange]) {
+    DeepLinkRouter.routeUri(uri);
   }
 }
 

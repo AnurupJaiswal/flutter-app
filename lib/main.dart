@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:lala_ai/app/routes/app_pages.dart';
 import 'package:lala_ai/utils/keyboard_dismiss_wrapper.dart';
-import 'package:lala_ai/utils/deep_link_service.dart';
+import 'package:lala_ai/core/deep_link/deep_link_service.dart';
 import 'package:lala_ai/utils/theme/app_theme.dart';
 import 'package:lala_ai/utils/theme/theme_service.dart';
 

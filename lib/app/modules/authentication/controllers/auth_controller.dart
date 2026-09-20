@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:lala_ai/app/modules/authentication/data/auth_repository.dart';
 import 'package:lala_ai/app/modules/authentication/views/forgot_password_view.dart';
 import 'package:lala_ai/app/routes/app_routes.dart';
+import 'package:lala_ai/core/deep_link/deep_link_router.dart';
 import 'package:lala_ai/networking/api_endpoints.dart';
 import 'package:lala_ai/utils/common_methods.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -88,6 +89,10 @@ class AuthController extends GetxController {
     if (response.isSuccess) {
       CM.showToast("Welcome back, ${response.data?.user?.effectiveDisplayName ?? 'User'}!");
       Get.offAllNamed(Routes.MAIN_CONTAINER);
+      // Resume any pending deep links waiting for authentication
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        DeepLinkRouter.onUserAuthenticated();
+      });
     } else {
       errorMessage.value = response.message;
       CM.showToast(response.message, isError: true);
