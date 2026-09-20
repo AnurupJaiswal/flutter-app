@@ -13,6 +13,13 @@ void main() {
       expect(DeepLinkRoutes.isValidDomainOrScheme(validHttps), isTrue);
     });
 
+    test('Validates active Cloudflare dev tunnel domain', () {
+      final tunnelUri = Uri.parse('https://notifications-independently-marie-determined.trycloudflare.com/subscription/success?orderId=ORD999');
+      expect(DeepLinkRoutes.isValidDomainOrScheme(tunnelUri), isTrue);
+      final segments = DeepLinkRoutes.extractNormalizedSegments(tunnelUri);
+      expect(DeepLinkRoutes.parseType(segments), equals(DeepLinkType.subscriptionSuccess));
+    });
+
     test('Validates custom scheme lala://', () {
       final validCustomScheme = Uri.parse('lala://subscription/success?orderId=TEST123');
       expect(DeepLinkRoutes.isValidDomainOrScheme(validCustomScheme), isTrue);

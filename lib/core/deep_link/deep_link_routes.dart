@@ -7,6 +7,7 @@ class DeepLinkRoutes {
   /// CURRENT SUPPORTED DOMAIN ONLY
   /// Note: lalaai.in will be added in a future update.
   static const String supportedDomain = 'lala-ai-green.vercel.app';
+  static const String devTunnelDomain = 'notifications-independently-marie-determined.trycloudflare.com';
 
   /// Custom URL scheme (legacy fallback)
   static const String customScheme = 'lala';

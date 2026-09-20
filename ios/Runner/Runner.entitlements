@@ -5,6 +5,7 @@
 	<key>com.apple.developer.associated-domains</key>
 	<array>
 		<string>applinks:lala-ai-green.vercel.app</string>
+		<string>applinks:notifications-independently-marie-determined.trycloudflare.com</string>
 	</array>
 </dict>
 </plist>

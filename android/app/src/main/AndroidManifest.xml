@@ -80,7 +80,45 @@
                     android:scheme="https" />
             </intent-filter>
 
-            <!-- Cloudflare Dev Tunnel Testing: https://*.trycloudflare.com/ -->
+            <!-- Cloudflare Dev Tunnel Deep Linking: https://notifications-independently-marie-determined.trycloudflare.com/ -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="notifications-independently-marie-determined.trycloudflare.com"
+                    android:pathPrefix="/open-app"
+                    android:scheme="https" />
+
+                <data
+                    android:host="notifications-independently-marie-determined.trycloudflare.com"
+                    android:pathPrefix="/open"
+                    android:scheme="https" />
+
+                <data
+                    android:host="notifications-independently-marie-determined.trycloudflare.com"
+                    android:pathPrefix="/app"
+                    android:scheme="https" />
+
+                <data
+                    android:host="notifications-independently-marie-determined.trycloudflare.com"
+                    android:pathPrefix="/subscription"
+                    android:scheme="https" />
+
+                <data
+                    android:host="notifications-independently-marie-determined.trycloudflare.com"
+                    android:pathPrefix="/oauth"
+                    android:scheme="https" />
+
+                <data
+                    android:host="notifications-independently-marie-determined.trycloudflare.com"
+                    android:pathPrefix="/invite"
+                    android:scheme="https" />
+            </intent-filter>
+
+            <!-- Production / Target Domain: lalaai.in -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
 

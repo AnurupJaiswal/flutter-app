@@ -5,11 +5,13 @@ class ApiEndpoints {
   // static const String baseUrl =
   //     'https://purple-primarily-coated-happens.trycloudflare.com';
 
+  static const String baseUrl =
+      'https://guru-oklahoma-month-organize.trycloudflare.com';
 
-   static const String baseUrl = 'https://guru-oklahoma-month-organize.trycloudflare.com';
-
+  // static const String signupUrl =
+  //     'https://lala-ai-green.vercel.app/auth/get-started?redirect=/checkout';
   static const String signupUrl =
-      'https://lala-ai-green.vercel.app/auth/get-started?redirect=/checkout';
+      'https://notifications-independently-marie-determined.trycloudflare.com/auth/get-started?redirect=/checkout';
 
   // --- Auth Endpoints ---
   static const String login = '/api/v1/auth/login';
@@ -61,21 +63,35 @@ class ApiEndpoints {
       '/api/v1/creators/me/analytics/${platform.toLowerCase()}/engagement?period=$period';
   static String analyticsActivity(String platform, [String period = '30d']) =>
       '/api/v1/creators/me/analytics/${platform.toLowerCase()}/activity?period=$period';
-  static String analyticsTopContent(String platform, [String period = '30d', int limit = 5]) =>
+  static String analyticsTopContent(
+    String platform, [
+    String period = '30d',
+    int limit = 5,
+  ]) =>
       '/api/v1/creators/me/analytics/${platform.toLowerCase()}/top-content?period=$period&limit=$limit';
 
   // Specific Platform Analytics Aliases
-  static String youtubeOverview([String period = '30d']) => analyticsOverview('youtube', period);
-  static String youtubeGrowth([String period = '30d']) => analyticsGrowth('youtube', period);
-  static String youtubeEngagement([String period = '30d']) => analyticsEngagement('youtube', period);
-  static String youtubeActivity([String period = '30d']) => analyticsActivity('youtube', period);
-  static String youtubeTopContent([String period = '30d', int limit = 5]) => analyticsTopContent('youtube', period, limit);
+  static String youtubeOverview([String period = '30d']) =>
+      analyticsOverview('youtube', period);
+  static String youtubeGrowth([String period = '30d']) =>
+      analyticsGrowth('youtube', period);
+  static String youtubeEngagement([String period = '30d']) =>
+      analyticsEngagement('youtube', period);
+  static String youtubeActivity([String period = '30d']) =>
+      analyticsActivity('youtube', period);
+  static String youtubeTopContent([String period = '30d', int limit = 5]) =>
+      analyticsTopContent('youtube', period, limit);
 
-  static String instagramOverview([String period = '30d']) => analyticsOverview('instagram', period);
-  static String instagramGrowth([String period = '30d']) => analyticsGrowth('instagram', period);
-  static String instagramEngagement([String period = '30d']) => analyticsEngagement('instagram', period);
-  static String instagramActivity([String period = '30d']) => analyticsActivity('instagram', period);
-  static String instagramTopContent([String period = '30d', int limit = 5]) => analyticsTopContent('instagram', period, limit);
+  static String instagramOverview([String period = '30d']) =>
+      analyticsOverview('instagram', period);
+  static String instagramGrowth([String period = '30d']) =>
+      analyticsGrowth('instagram', period);
+  static String instagramEngagement([String period = '30d']) =>
+      analyticsEngagement('instagram', period);
+  static String instagramActivity([String period = '30d']) =>
+      analyticsActivity('instagram', period);
+  static String instagramTopContent([String period = '30d', int limit = 5]) =>
+      analyticsTopContent('instagram', period, limit);
 
   // Dashboard & Audit Endpoints
   static String dashboardOverview(dynamic connectedAccountId) =>
@@ -85,11 +101,13 @@ class ApiEndpoints {
   // Creator To-Dos Endpoints
   static String dashboardTodos([dynamic connectedAccountId]) =>
       connectedAccountId != null
-          ? '/api/v1/dashboard/todos?connectedAccountId=$connectedAccountId'
-          : '/api/v1/dashboard/todos';
+      ? '/api/v1/dashboard/todos?connectedAccountId=$connectedAccountId'
+      : '/api/v1/dashboard/todos';
   static const String dashboardTodosConvert = '/api/v1/dashboard/todos/convert';
-  static String dashboardTodoUpdate(dynamic todoId) => '/api/v1/dashboard/todos/$todoId';
-  static String dashboardTodoDelete(dynamic todoId) => '/api/v1/dashboard/todos/$todoId';
+  static String dashboardTodoUpdate(dynamic todoId) =>
+      '/api/v1/dashboard/todos/$todoId';
+  static String dashboardTodoDelete(dynamic todoId) =>
+      '/api/v1/dashboard/todos/$todoId';
 
   // --- Public Documents & FAQs Endpoints ---
   static const String publicPrivacy = '/api/v1/public/documents/privacy';
