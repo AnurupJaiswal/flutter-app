@@ -10,6 +10,10 @@ import 'package:lala_ai/utils/theme/theme_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Low-end / Cross-device memory management: restrict imageCache to prevent OOM
+  PaintingBinding.instance.imageCache.maximumSize = 100;
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 40 * 1024 * 1024; // 40MB max cache buffer
+
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -26,7 +30,6 @@ void main() async {
   runApp(
     GetBuilder<ThemeService>(
       builder: (service) => GetMaterialApp(
-        key: ValueKey('${service.currentThemeSetting}_${service.effectiveBrightness.name}'),
         title: "Lala Ai",
         initialRoute: AppPages.INITIAL,
         getPages: AppPages.routes,

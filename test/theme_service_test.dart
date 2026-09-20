@@ -75,14 +75,14 @@ void main() {
       expect(prefs.getString(ThemeService.themeKey), equals(ThemeService.themeDark));
 
       // Verify Approved Dark Colors
-      expect(CC.primary, equals(const Color(0xFF00AFC0)));
-      expect(CC.background, equals(const Color(0xFF050505)));
-      expect(CC.surface, equals(const Color(0xFF121212)));
-      expect(CC.stroke, equals(const Color(0xFF252525)));
-      expect(CC.textPrimary, equals(const Color(0xFFF5F5F5)));
-      expect(CC.textSecondary, equals(const Color(0xFFA8A8A8)));
-      expect(CC.error, equals(const Color(0xFFEF4444)));
-      expect(CC.success, equals(const Color(0xFF22C55E)));
+      expect(CC.primary, equals(const Color(0xFF108CFF)));
+      expect(CC.background, equals(const Color(0xFF000000)));
+      expect(CC.surface, equals(const Color(0xFF000000)));
+      expect(CC.stroke, equals(const Color(0xFF515151)));
+      expect(CC.textPrimary, equals(const Color(0xFFFFFFFF)));
+      expect(CC.textSecondary, equals(const Color(0xFFC7C7C7)));
+      expect(CC.error, equals(const Color(0xFFFF1010)));
+      expect(CC.success, equals(const Color(0xFF10FF10)));
 
       // Switch to Light
       await themeService.setThemeMode(ThemeService.themeLight);
@@ -92,18 +92,18 @@ void main() {
       expect(prefs.getString(ThemeService.themeKey), equals(ThemeService.themeLight));
 
       // Verify Approved Light Colors
-      expect(CC.primary, equals(const Color(0xFF00808B)));
+      expect(CC.primary, equals(const Color(0xFF108CFF)));
       expect(CC.secondary, equals(const Color(0xFF222222)));
-      expect(CC.background, equals(const Color(0xFFEEEEEE)));
+      expect(CC.background, equals(const Color(0xFFFFFFFF)));
       expect(CC.surface, equals(const Color(0xFFFFFFFF)));
       expect(CC.disabled, equals(const Color(0xFFC0C8C9)));
-      expect(CC.textPrimary, equals(const Color(0xFF0D1B1D)));
+      expect(CC.textPrimary, equals(const Color(0xFF000000)));
       expect(CC.textSecondary, equals(const Color(0xFF465D61)));
       expect(CC.stroke, equals(const Color(0xFFD1D1D1)));
       expect(CC.commentStroke, equals(const Color(0xFFC8C8C8)));
-      expect(CC.notification, equals(const Color(0xFFE35151)));
-      expect(CC.error, equals(const Color(0xFFCC1F29)));
-      expect(CC.success, equals(const Color(0xFF1E800E)));
+      expect(CC.notification, equals(const Color(0xFFFF1010)));
+      expect(CC.error, equals(const Color(0xFFFF1010)));
+      expect(CC.success, equals(const Color(0xFF10FF10)));
       expect(CC.insightful, equals(const Color(0xFF966E00)));
 
       // Switch back to System
@@ -125,7 +125,7 @@ void main() {
       expect(themeService.currentThemeSetting, equals(ThemeService.themeSystem));
       expect(themeService.effectiveBrightness, equals(Brightness.light));
       expect(themeService.isDarkMode, isFalse);
-      expect(CC.background, equals(const Color(0xFFEEEEEE)));
+      expect(CC.background, equals(const Color(0xFFFFFFFF)));
     });
 
     testWidgets('Case 2 & 3: System selected + device changes Light -> Dark -> Light', (tester) async {
@@ -143,7 +143,7 @@ void main() {
       expect(themeService.currentThemeSetting, equals(ThemeService.themeSystem));
       expect(themeService.effectiveBrightness, equals(Brightness.dark));
       expect(themeService.isDarkMode, isTrue);
-      expect(CC.background, equals(const Color(0xFF050505)));
+      expect(CC.background, equals(const Color(0xFF000000)));
 
       // System changes back to Light
       tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
@@ -153,7 +153,7 @@ void main() {
       expect(themeService.currentThemeSetting, equals(ThemeService.themeSystem));
       expect(themeService.effectiveBrightness, equals(Brightness.light));
       expect(themeService.isDarkMode, isFalse);
-      expect(CC.background, equals(const Color(0xFFEEEEEE)));
+      expect(CC.background, equals(const Color(0xFFFFFFFF)));
     });
 
     testWidgets('Case 4: Light selected -> device changes to Dark -> App remains Light', (tester) async {
@@ -211,7 +211,7 @@ void main() {
       expect(themeService.currentThemeSetting, equals(ThemeService.themeSystem));
       expect(themeService.effectiveBrightness, equals(Brightness.dark));
       expect(themeService.isDarkMode, isTrue);
-      expect(CC.background, equals(const Color(0xFF050505)));
+      expect(CC.background, equals(const Color(0xFF000000)));
     });
   });
 
@@ -240,13 +240,16 @@ void main() {
       await tester.pumpAndSettle();
 
       // Bottom sheet should display options
-      expect(find.text("Choose Theme"), findsNothing);
-      expect(find.text("Appearance"), findsWidgets);
-      expect(find.text("Light"), findsOneWidget);
-      expect(find.text("Dark"), findsOneWidget);
+      expect(find.text("Appearance Theme"), findsOneWidget);
+      expect(find.text("Light Mode"), findsOneWidget);
+      expect(find.text("Dark Mode"), findsOneWidget);
 
-      // Tap "Dark"
-      await tester.tap(find.text("Dark"));
+      // Tap "Dark Mode"
+      await tester.tap(find.text("Dark Mode"));
+      await tester.pumpAndSettle();
+
+      // Tap "Apply Theme"
+      await tester.tap(find.text("Apply Theme"));
       await tester.pumpAndSettle();
 
       // Theme mode should now be dark

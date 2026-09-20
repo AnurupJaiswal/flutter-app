@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:lala_ai/app/routes/app_routes.dart';
+import 'package:lala_ai/networking/api_endpoints.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
@@ -21,7 +22,7 @@ class WelcomeView extends StatelessWidget {
   void _goToSignIn() => Get.toNamed(Routes.AUTHENTICATION);
 
   Future<void> _openSignupWebsite() async {
-    const url = 'https://pole-optimization-build-cultures.trycloudflare.com/auth/get-started?redirect=/checkout';
+    const url = ApiEndpoints.signupUrl  ;
     final uri = Uri.parse(url);
     try {
       if (Platform.isAndroid) {
@@ -56,29 +57,33 @@ class WelcomeView extends StatelessWidget {
         return Scaffold(
           backgroundColor: CC.background,
           body: SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildHeader(),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Spacer(),
-                        _buildCompactFeatureGrid(),
-                        const Spacer(flex: 2),
-                        _buildHero(),
-                        const Spacer(flex: 2),
-                        _buildBottomCta(),
-                        const Spacer(flex: 2),
-                        _buildFooter(),
-                      ],
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildHeader(),
+                          16.height,
+                          _buildCompactFeatureGrid(),
+                          20.height,
+                          _buildHero(),
+                          24.height,
+                          _buildBottomCta(),
+                          16.height,
+                          _buildFooter(),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                );
+              },
             ),
           ),
         );

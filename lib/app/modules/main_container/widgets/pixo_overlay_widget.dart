@@ -1,12 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lala_ai/app/navigation/app_navigation_service.dart';
 import 'package:lala_ai/app/routes/app_routes.dart';
 import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
-import 'package:lala_ai/utils/theme/theme_service.dart';
 
 enum PixoState { normal, minimized, hidden }
 
@@ -20,12 +20,16 @@ class PixoOverlayWidget extends StatefulWidget {
 class _PixoOverlayWidgetState extends State<PixoOverlayWidget>
     with TickerProviderStateMixin {
   PixoState _state = PixoState.normal;
-  Offset _position = const Offset(20, 20);
+  Offset? _position;
   bool _isDragging = false;
 
   late final AnimationController _pulseController;
   late final AnimationController _entranceController;
   late final AnimationController _rotationController;
+
+  static const double _pixoSize = 60.0;
+  static const double _margin = 14.0;
+  static const double _bottomNavHeight = 60.0;
 
   @override
   void initState() {
@@ -63,19 +67,16 @@ class _PixoOverlayWidgetState extends State<PixoOverlayWidget>
   }
 
   void _openVoiceDialog() {
-    // CM.showToast("Pixo Voice Assistant coming soon!");
+    // Voice dialog trigger
   }
 
-  void _snapToNearestEdge(Size screenSize) {
-    // Snap horizontally to whichever side is closer, spring-like via AnimatedPositioned
-    final screenWidth = screenSize.width;
-    final currentRight = _position.dx;
-    final isCloserToLeft = currentRight > screenWidth / 2 - 38;
-
+  void _snapToNearestEdge(double minX, double maxX, double minY, double maxY) {
+    if (_position == null) return;
+    final snapToLeft = _position!.dx < (minX + maxX) / 2;
     setState(() {
       _position = Offset(
-        isCloserToLeft ? screenWidth - 96 : 10,
-        _position.dy,
+        snapToLeft ? minX : maxX,
+        _position!.dy.clamp(minY, maxY),
       );
       _isDragging = false;
     });
@@ -83,63 +84,97 @@ class _PixoOverlayWidgetState extends State<PixoOverlayWidget>
 
   @override
   Widget build(BuildContext context) {
-    if (Get.isBottomSheetOpen == true || Get.isDialogOpen == true) {
+    final hasActiveOverlays = (Get.isBottomSheetOpen == true ||
+        Get.isDialogOpen == true ||
+        (Get.isRegistered<AppNavigationService>() &&
+            AppNavigationService.to.isOverlayOpen.value));
+
+    if (hasActiveOverlays) {
       return const SizedBox.shrink();
     }
 
-    final screenSize = MediaQuery.sizeOf(context);
+    final mediaQuery = MediaQuery.of(context);
+    final screenSize = mediaQuery.size;
+    final safePadding = mediaQuery.padding;
+    final keyboardInset = mediaQuery.viewInsets.bottom;
 
-    double rightPos;
-    double bottomPos;
-    if (_state == PixoState.hidden) {
-      rightPos = 0;
-      bottomPos = 90;
-    } else if (_state == PixoState.minimized) {
-      rightPos = 12;
-      bottomPos = 90;
+    final double minX = safePadding.left + _margin;
+    final double maxX = (screenSize.width - _pixoSize - safePadding.right - _margin).clamp(minX, double.infinity);
+    final double minY = safePadding.top + _margin;
+    final double maxY = (screenSize.height - _pixoSize - safePadding.bottom - _bottomNavHeight - keyboardInset - _margin).clamp(minY, double.infinity);
+
+    // Calculate/re-clamp safe position
+    if (_position == null) {
+      _position = Offset(maxX, (maxY - 24.0).clamp(minY, maxY));
     } else {
-      rightPos = _position.dx;
-      bottomPos = _position.dy;
+      _position = Offset(
+        _position!.dx.clamp(minX, maxX),
+        _position!.dy.clamp(minY, maxY),
+      );
+    }
+
+    double currentLeft;
+    double currentTop = _position!.dy;
+
+    if (_state == PixoState.hidden) {
+      currentLeft = screenSize.width - 18.0;
+    } else if (_state == PixoState.minimized) {
+      final isNearLeft = _position!.dx < (minX + maxX) / 2;
+      currentLeft = isNearLeft ? minX : (screenSize.width - 86.0 - safePadding.right - _margin).clamp(minX, double.infinity);
+    } else {
+      currentLeft = _position!.dx;
     }
 
     return AnimatedPositioned(
-      duration: _isDragging ? Duration.zero : const Duration(milliseconds: 400),
+      duration: _isDragging ? Duration.zero : const Duration(milliseconds: 300),
       curve: Curves.easeOutCubic,
-      right: rightPos,
-      bottom: bottomPos,
-      child: GetBuilder<ThemeService>(
-        builder: (_) {
-          return AnimatedSwitcher(
-            duration: const Duration(milliseconds: 320),
-            switchInCurve: Curves.easeOutBack,
-            switchOutCurve: Curves.easeIn,
-            transitionBuilder: (child, animation) => ScaleTransition(
-              scale: animation,
-              child: FadeTransition(opacity: animation, child: child),
-            ),
-            child: _buildForState(screenSize),
-          );
-        },
+      left: currentLeft,
+      top: currentTop,
+      child: RepaintBoundary(
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 280),
+          switchInCurve: Curves.easeOutBack,
+          switchOutCurve: Curves.easeIn,
+          transitionBuilder: (child, animation) => ScaleTransition(
+            scale: animation,
+            child: FadeTransition(opacity: animation, child: child),
+          ),
+          child: _buildForState(screenSize, minX, maxX, minY, maxY),
+        ),
       ),
     );
   }
 
-  Widget _buildForState(Size screenSize) {
+  Widget _buildForState(Size screenSize, double minX, double maxX, double minY, double maxY) {
     switch (_state) {
       case PixoState.hidden:
         return _buildHidden();
       case PixoState.minimized:
         return _buildMinimized();
       case PixoState.normal:
-        return _buildNormal(screenSize);
+        return _buildNormal(minX, maxX, minY, maxY);
     }
+  }
+
+  void _updateAnimationState(PixoState newState) {
+    if (_state == newState) return;
+    setState(() {
+      _state = newState;
+      if (_state == PixoState.hidden) {
+        _pulseController.stop();
+        _rotationController.stop();
+      } else {
+        if (!_pulseController.isAnimating) _pulseController.repeat(reverse: true);
+        if (!_rotationController.isAnimating) _rotationController.repeat();
+      }
+    });
   }
 
   // ---------------- HIDDEN ----------------
   Widget _buildHidden() {
     return GestureDetector(
       key: const ValueKey('hidden'),
-      onTap: () => setState(() => _state = PixoState.normal),
+      onTap: () => _updateAnimationState(PixoState.normal),
       child: Container(
         width: 18,
         height: 52,
@@ -169,11 +204,11 @@ class _PixoOverlayWidgetState extends State<PixoOverlayWidget>
       key: const ValueKey('minimized'),
       onTap: _openChat,
       onLongPress: _openVoiceDialog,
-      onDoubleTap: () => setState(() => _state = PixoState.normal),
+      onDoubleTap: () => _updateAnimationState(PixoState.normal),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
@@ -211,19 +246,20 @@ class _PixoOverlayWidgetState extends State<PixoOverlayWidget>
   }
 
   // ---------------- NORMAL (main bubble) ----------------
-  Widget _buildNormal(Size screenSize) {
+  Widget _buildNormal(double minX, double maxX, double minY, double maxY) {
     return GestureDetector(
       key: const ValueKey('normal'),
       onPanStart: (_) => setState(() => _isDragging = true),
       onPanUpdate: (details) {
+        if (_position == null) return;
         setState(() {
           _position = Offset(
-            (_position.dx - details.delta.dx).clamp(10.0, screenSize.width - 96),
-            (_position.dy - details.delta.dy).clamp(10.0, screenSize.height - 140),
+            (_position!.dx + details.delta.dx).clamp(minX, maxX),
+            (_position!.dy + details.delta.dy).clamp(minY, maxY),
           );
         });
       },
-      onPanEnd: (_) => _snapToNearestEdge(screenSize),
+      onPanEnd: (_) => _snapToNearestEdge(minX, maxX, minY, maxY),
       onTap: _openChat,
       onLongPress: _openVoiceDialog,
       child: AnimatedScale(
@@ -266,7 +302,7 @@ class _PixoOverlayWidgetState extends State<PixoOverlayWidget>
             },
             child: ClipOval(
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                 child: Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,

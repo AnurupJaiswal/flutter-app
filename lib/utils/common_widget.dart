@@ -704,4 +704,256 @@ class CW {
       fit: BoxFit.contain,
     );
   }
+
+  /// Memory-optimized Network Image loader that downsamples images to exact rendered physical dimensions
+  static Widget networkImage({
+    required String url,
+    required double width,
+    required double height,
+    BoxFit fit = BoxFit.cover,
+    BorderRadius? borderRadius,
+    Widget? placeholder,
+    Widget? errorWidget,
+    double? devicePixelRatio,
+  }) {
+    if (url.trim().isEmpty || !url.startsWith("http")) {
+      return errorWidget ??
+          Container(
+            width: width,
+            height: height,
+            decoration: BoxDecoration(
+              color: CC.surface,
+              borderRadius: borderRadius ?? BorderRadius.circular(8),
+            ),
+            child: Icon(Icons.broken_image_rounded, size: width * 0.4, color: CC.grey),
+          );
+    }
+
+    return Builder(
+      builder: (context) {
+        final dpr = devicePixelRatio ?? (MediaQuery.maybeDevicePixelRatioOf(context) ?? 2.0);
+        final int targetCacheWidth = (width * dpr).round().clamp(1, 2048);
+        final int targetCacheHeight = (height * dpr).round().clamp(1, 2048);
+
+        Widget imageWidget = Image.network(
+          url,
+          width: width,
+          height: height,
+          fit: fit,
+          cacheWidth: targetCacheWidth,
+          cacheHeight: targetCacheHeight,
+          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+            if (wasSynchronouslyLoaded || frame != null) {
+              return child;
+            }
+            return placeholder ??
+                skeletonBox(
+                  width: width,
+                  height: height,
+                  borderRadius: borderRadius ?? BorderRadius.circular(8),
+                );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return errorWidget ??
+                Container(
+                  width: width,
+                  height: height,
+                  decoration: BoxDecoration(
+                    color: CC.surface,
+                    borderRadius: borderRadius ?? BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.broken_image_rounded, size: width * 0.4, color: CC.grey),
+                );
+          },
+        );
+
+        if (borderRadius != null) {
+          return ClipRRect(
+            borderRadius: borderRadius,
+            child: imageWidget,
+          );
+        }
+        return imageWidget;
+      },
+    );
+  }
+
+  /// Lightweight Shimmer container using single controller and RepaintBoundary to avoid parent repaints
+  static Widget shimmer({
+    required Widget child,
+    Duration duration = const Duration(milliseconds: 1200),
+  }) {
+    return RepaintBoundary(
+      child: _ShimmerWidget(
+        duration: duration,
+        child: child,
+      ),
+    );
+  }
+
+  /// Generic Skeleton Box placeholder
+  static Widget skeletonBox({
+    double? width,
+    double? height,
+    BorderRadius? borderRadius,
+    EdgeInsetsGeometry? margin,
+  }) {
+    return Container(
+      width: width,
+      height: height,
+      margin: margin,
+      decoration: BoxDecoration(
+        color: CC.shimmerBase,
+        borderRadius: borderRadius ?? BorderRadius.circular(8),
+      ),
+    );
+  }
+
+  /// Standard Skeleton Card matching Lala AI surface style
+  static Widget skeletonCard({
+    double height = 90,
+    double? width,
+    EdgeInsetsGeometry? margin,
+  }) {
+    return Container(
+      width: width ?? double.infinity,
+      height: height,
+      margin: margin ?? const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: CC.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          skeletonBox(width: 44, height: 44, borderRadius: BorderRadius.circular(10)),
+          12.width,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                skeletonBox(width: double.infinity, height: 14, borderRadius: BorderRadius.circular(4)),
+                8.height,
+                skeletonBox(width: 120, height: 10, borderRadius: BorderRadius.circular(4)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Skeleton List for instant, non-jank initial screen loading
+  static Widget skeletonList({
+    int itemCount = 4,
+    double itemHeight = 90,
+    EdgeInsetsGeometry? padding,
+  }) {
+    return shimmer(
+      child: ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        padding: padding ?? const EdgeInsets.all(16),
+        itemCount: itemCount,
+        itemBuilder: (_, __) => skeletonCard(height: itemHeight),
+      ),
+    );
+  }
 }
+
+/// Lightweight Animated Shimmer Widget
+class _ShimmerWidget extends StatefulWidget {
+  final Widget child;
+  final Duration duration;
+
+  const _ShimmerWidget({
+    required this.child,
+    this.duration = const Duration(milliseconds: 1200),
+  });
+
+  @override
+  State<_ShimmerWidget> createState() => _ShimmerWidgetState();
+}
+
+class _ShimmerWidgetState extends State<_ShimmerWidget>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: widget.duration)
+      ..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return ShaderMask(
+          blendMode: BlendMode.srcATop,
+          shaderCallback: (bounds) {
+            return LinearGradient(
+              begin: const Alignment(-1.0, -0.3),
+              end: const Alignment(1.0, 0.3),
+              stops: [
+                (_controller.value - 0.3).clamp(0.0, 1.0),
+                _controller.value.clamp(0.0, 1.0),
+                (_controller.value + 0.3).clamp(0.0, 1.0),
+              ],
+              colors: [
+                CC.shimmerBase,
+                CC.shimmerHighlight,
+                CC.shimmerBase,
+              ],
+            ).createShader(bounds);
+          },
+          child: child,
+        );
+      },
+      child: widget.child,
+    );
+  }
+}
+
+/// Generic Debouncer utility to avoid firing costly computations / network queries on every keystroke
+class Debouncer {
+  final Duration delay;
+  void Function()? _action;
+  bool _disposed = false;
+
+  Debouncer({this.delay = const Duration(milliseconds: 350)});
+
+  void run(void Function() action) {
+    _action = action;
+    Future.delayed(delay, () {
+      if (!_disposed && _action != null) {
+        _action!();
+        _action = null;
+      }
+    });
+  }
+
+  void cancel() {
+    _action = null;
+  }
+
+  void dispose() {
+    _disposed = true;
+    _action = null;
+  }
+}
+

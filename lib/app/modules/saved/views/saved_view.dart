@@ -6,6 +6,7 @@ import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
+
 import 'package:lala_ai/utils/theme/theme_service.dart';
 
 class SavedView extends GetView<SavedController> {
@@ -16,56 +17,75 @@ class SavedView extends GetView<SavedController> {
     return GetBuilder<ThemeService>(
       builder: (_) {
         return Scaffold(
-      backgroundColor: CC.background,
-      appBar: CW.commonAppbar(
-        wantBackIcon: false,
-        titleWidget: Row(
-          children: [
-            Icon(Icons.bookmark_border_rounded, color: CC.primary, size: 20),
-            8.width,
-            Text("Saved Workspace", style: TS.sectionTitle(fontSize: 16)),
-          ],
-        ),
-      ),
-      body: SafeArea(
-        child: Obx(() {
-          if (controller.isLoading.value) {
-            return Center(child: CircularProgressIndicator(strokeWidth: 2, color: CC.primary));
-          }
+          backgroundColor: CC.background,
+          appBar: CW.commonAppbar(
+            wantBackIcon: false,
+            titleWidget: Row(
+              children: [
+                Icon(Icons.bookmark_border_rounded, color: CC.primary, size: 20),
+                8.width,
+                Text("Saved Workspace", style: TS.sectionTitle(fontSize: 16)),
+              ],
+            ),
+          ),
+          body: SafeArea(
+            child: RefreshIndicator(
+              onRefresh: controller.loadSavedItems,
+              color: CC.primary,
+              backgroundColor: CC.surface,
+              child: Obx(() {
+                if (controller.isLoading.value) {
+                  return CW.skeletonList(itemCount: 3, itemHeight: 80);
+                }
 
-          final list = controller.savedItems;
-          if (list.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.bookmark_border_rounded, size: 40, color: CC.grey),
-                  12.height,
-                  Text("No saved topics yet.", style: TS.sectionTitle(color: CC.textPrimary)),
-                  4.height,
-                  Text("Explore Trending & Discover to save items.", style: TS.caption(color: CC.textSecondary)),
-                ],
-              ),
-            );
-          }
+                final list = controller.savedItems;
+                if (list.isEmpty) {
+                  return SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics(),
+                    ),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: MediaQuery.of(context).size.height - 180,
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.bookmark_border_rounded, size: 40, color: CC.grey),
+                            12.height,
+                            Text("No saved topics yet.", style: TS.sectionTitle(color: CC.textPrimary)),
+                            4.height,
+                            Text("Explore Trending & Discover to save items.", style: TS.caption(color: CC.textSecondary)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: list.length,
-            itemBuilder: (context, index) {
-              final item = list[index];
-              return _buildSavedCard(context, item);
-            },
-          );
-        }),
-      ),
-    );
+                return ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  itemCount: list.length,
+                  itemBuilder: (context, index) {
+                    final item = list[index];
+                    return _buildSavedCard(context, item);
+                  },
+                );
+              }),
+            ),
+          ),
+        );
       },
     );
   }
 
   Widget _buildSavedCard(BuildContext context, SavedItemModel item) {
     return Container(
+      key: ValueKey(item.id),
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: CC.surface,

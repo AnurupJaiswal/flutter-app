@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lala_ai/app/modules/authentication/data/auth_repository.dart';
 import 'package:lala_ai/utils/app_toast.dart';
+import 'package:lala_ai/utils/constants.dart';
 
 class ChangePasswordController extends GetxController {
   final AuthRepository _authRepository = Get.isRegistered<AuthRepository>()
@@ -44,7 +45,7 @@ class ChangePasswordController extends GetxController {
     final confirm = confirmPasswordController.text.trim();
 
     isValid.value = current.isNotEmpty &&
-        newPass.length >= 6 &&
+        newPass.length >= AppConstants.minPasswordLength &&
         confirm == newPass;
   }
 
@@ -71,8 +72,8 @@ class ChangePasswordController extends GetxController {
     if (value == null || value.trim().isEmpty) {
       return "New password is required";
     }
-    if (value.trim().length < 6) {
-      return "Password must be at least 6 characters";
+    if (value.trim().length < AppConstants.minPasswordLength) {
+      return "Password must be at least ${AppConstants.minPasswordLength} characters";
     }
     return null;
   }

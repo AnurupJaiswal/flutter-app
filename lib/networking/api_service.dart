@@ -1,8 +1,13 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Response;
+import 'package:lala_ai/app/navigation/app_navigation_service.dart';
 import 'package:lala_ai/app/routes/app_routes.dart';
 import 'package:lala_ai/networking/api_endpoints.dart';
+import 'package:lala_ai/networking/api_error_handler.dart';
 import 'package:lala_ai/networking/api_response.dart';
 import 'package:lala_ai/utils/common_methods.dart';
 import 'package:lala_ai/utils/extensions.dart';
@@ -13,7 +18,6 @@ import 'package:lala_ai/Models/connected_accounts_model.dart';
 import 'package:lala_ai/Models/subscription_model.dart';
 import 'package:lala_ai/Models/user_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 class ApiService {
   ApiService._();
@@ -29,16 +33,15 @@ class ApiService {
   static ConnectedAccountsModel? currentConnectedAccounts;
   static CreatorStatsModel? currentStats;
 
+  // Cached SharedPreferences instance to prevent repeated getInstance() overhead
+  static SharedPreferences? _prefs;
+  static Future<SharedPreferences> get _getPrefs async =>
+      _prefs ??= await SharedPreferences.getInstance();
+
   /// Returns true if an active access token exists
   static bool get isAuthenticated => token != null && token!.trim().isNotEmpty;
 
   /// Returns the standardized display name for the user across the entire app.
-  /// Priority:
-  /// 1. currentCreatorProfile.displayName
-  /// 2. currentUser.displayName
-  /// 3. userName (persisted display name)
-  /// 4. currentUser.fullName / currentUser.name
-  /// 5. Fallback: "Creator"
   static String get effectiveDisplayName {
     final creatorName = currentCreatorProfile?.displayName?.trim();
     if (creatorName != null && creatorName.isNotEmpty) return creatorName;
@@ -62,20 +65,20 @@ class ApiService {
     return effectiveDisplayName;
   }
 
-  static bool _sessionExpiredDialogShowing = false;
-  static bool _isRefreshing = false;
+  static bool _sessionExpiredHandled = false;
+  static Completer<bool>? _refreshCompleter;
   static final Dio _dio = _createDio();
 
   static Dio _createDio() {
     final dio = Dio(BaseOptions(
-      baseUrl: ApiEndpoints.baseUrl,
+      baseUrl: ApiEndpoints.baseUrl.trim(),
       connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 30),
       contentType: 'application/json',
       responseType: ResponseType.json,
     ));
 
-    // Request Interceptor
+    // Request & Concurrency-Safe 401 Interceptor
     dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
         if (token != null && token!.isNotEmpty) {
@@ -84,98 +87,146 @@ class ApiService {
         return handler.next(options);
       },
       onError: (DioException e, handler) async {
-        if (e.response?.statusCode == 401) {
-          // Token expired, attempt refresh
-          if (refreshToken != null && refreshToken!.isNotEmpty) {
-            final refreshed = await _attemptRefresh(dio);
-            if (refreshed) {
-              // Retry the original request
-              final retryOptions = Options(
-                method: e.requestOptions.method,
-                headers: e.requestOptions.headers,
+        final statusCode = e.response?.statusCode;
+        final isRefreshEndpoint = e.requestOptions.path.contains(ApiEndpoints.refresh);
+        final alreadyRetried = e.requestOptions.extra['isRetry'] == true;
+
+        // Check for HTTP 401 or non-standard HTTP 400 with auth error messages from backend
+        final responseData = e.response?.data;
+        final String errorMsg = (responseData is Map
+                ? (responseData['message'] ?? responseData['error'] ?? '')
+                : responseData?.toString() ?? '')
+            .toString()
+            .toLowerCase();
+
+        final isAuthFailure = statusCode == 401 ||
+            (statusCode == 400 &&
+                (errorMsg.contains('authentication required') ||
+                    errorMsg.contains('authorization required') ||
+                    errorMsg.contains('unauthorized') ||
+                    errorMsg.contains('token expired') ||
+                    errorMsg.contains('jwt expired') ||
+                    errorMsg.contains('invalid token')));
+
+        if (isAuthFailure && !isRefreshEndpoint && !alreadyRetried) {
+          // Token expired, attempt or wait for concurrent refresh
+          final refreshed = await _attemptRefresh();
+          if (refreshed && token != null) {
+            final requestOptions = e.requestOptions;
+            requestOptions.extra['isRetry'] = true;
+            requestOptions.headers['Authorization'] = 'Bearer $token';
+
+            try {
+              final retryResponse = await dio.request(
+                requestOptions.path,
+                data: requestOptions.data,
+                queryParameters: requestOptions.queryParameters,
+                cancelToken: requestOptions.cancelToken,
+                options: Options(
+                  method: requestOptions.method,
+                  headers: requestOptions.headers,
+                  extra: requestOptions.extra,
+                  responseType: requestOptions.responseType,
+                  contentType: requestOptions.contentType,
+                  validateStatus: requestOptions.validateStatus,
+                  receiveTimeout: requestOptions.receiveTimeout,
+                  sendTimeout: requestOptions.sendTimeout,
+                ),
+                onReceiveProgress: requestOptions.onReceiveProgress,
+                onSendProgress: requestOptions.onSendProgress,
               );
-              // Update authorization header
-              retryOptions.headers?['Authorization'] = 'Bearer $token';
-              try {
-                final retryResponse = await dio.request(
-                  e.requestOptions.path,
-                  options: retryOptions,
-                  data: e.requestOptions.data,
-                  queryParameters: e.requestOptions.queryParameters,
-                );
-                return handler.resolve(retryResponse);
-              } catch (retryError) {
-                return handler.next(e);
-              }
-            } else {
-              _handleSessionExpired();
+              return handler.resolve(retryResponse);
+            } on DioException catch (retryErr) {
+              return handler.next(retryErr);
+            } catch (retryOther) {
               return handler.next(e);
             }
           } else {
             _handleSessionExpired();
             return handler.next(e);
           }
+        } else if (isAuthFailure && isRefreshEndpoint) {
+          _handleSessionExpired();
+          return handler.next(e);
         }
+
         return handler.next(e);
       },
     ));
 
-    // Logger Interceptor
-    dio.interceptors.add(PrettyDioLogger(
-      requestHeader: true,
-      requestBody: true,
-      responseBody: true,
-      responseHeader: false,
-      error: true,
-      compact: true,
-      maxWidth: 90,
-    ));
+    // Safe Network Logger Interceptor with Sensitive Data Redaction
+    dio.interceptors.add(_SafeNetworkLoggerInterceptor());
 
     return dio;
   }
 
-  static Future<bool> _attemptRefresh(Dio dio) async {
-    if (_isRefreshing) return false;
-    _isRefreshing = true;
+  /// Concurrency-safe token refresh: single shared Completer prevents multiple refresh requests
+  static Future<bool> _attemptRefresh() async {
+    if (_refreshCompleter != null) {
+      // Refresh already running, wait for active refresh
+      return _refreshCompleter!.future;
+    }
+
+    final completer = Completer<bool>();
+    _refreshCompleter = completer;
+
     try {
-      // Use a separate Dio instance or clear authorization to avoid loops
-      final refreshDio = Dio(BaseOptions(baseUrl: ApiEndpoints.baseUrl));
+      if (refreshToken == null || refreshToken!.trim().isEmpty) {
+        completer.complete(false);
+        _refreshCompleter = null;
+        return false;
+      }
+
+      final refreshDio = Dio(BaseOptions(
+        baseUrl: ApiEndpoints.baseUrl.trim(),
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 15),
+      ));
+
       final response = await refreshDio.post(
         ApiEndpoints.refresh,
         data: {'refreshToken': refreshToken},
       );
 
       if (response.statusCode == 200 && response.data != null) {
-        final data = response.data['data'] ?? response.data;
-        final newToken = data['accessToken'];
+        final dynamic raw = response.data;
+        final data = raw is Map && raw['data'] != null ? raw['data'] : raw;
+        final newToken = data['accessToken'] ?? data['token'];
         final newRefresh = data['refreshToken'];
 
-        if (newToken != null) {
-          token = newToken;
-          if (newRefresh != null) refreshToken = newRefresh;
+        if (newToken != null && newToken.toString().trim().isNotEmpty) {
+          token = newToken.toString().trim();
+          if (newRefresh != null && newRefresh.toString().trim().isNotEmpty) {
+            refreshToken = newRefresh.toString().trim();
+          }
 
-          final pref = await SharedPreferences.getInstance();
+          final pref = await _getPrefs;
           await pref.setString('accessToken', token!);
-          if (refreshToken != null) await pref.setString('refreshToken', refreshToken!);
+          if (refreshToken != null) {
+            await pref.setString('refreshToken', refreshToken!);
+          }
 
-          _isRefreshing = false;
+          _sessionExpiredHandled = false;
+          completer.complete(true);
+          _refreshCompleter = null;
           return true;
         }
       }
+      completer.complete(false);
     } catch (e) {
       CM.log(msg: "Token refresh failed: $e");
+      completer.complete(false);
+    } finally {
+      _refreshCompleter = null;
     }
-    _isRefreshing = false;
     return false;
   }
 
   static void _handleSessionExpired() {
-    if (!_sessionExpiredDialogShowing) {
-      _sessionExpiredDialogShowing = true;
-      CM.showToast("Session expired. Please log in again.", isError: true);
-      logout();
-      _sessionExpiredDialogShowing = false;
-    }
+    if (_sessionExpiredHandled) return;
+    _sessionExpiredHandled = true;
+    CM.showToast("Your session has expired. Please sign in again.", isError: true);
+    logout();
   }
 
   /// Clears all session credentials, cached user and subscription info from memory and local storage
@@ -190,8 +241,9 @@ class ApiService {
     currentCreatorProfile = null;
     currentConnectedAccounts = null;
     currentStats = null;
+    _sessionExpiredHandled = false;
 
-    final pref = await SharedPreferences.getInstance();
+    final pref = await _getPrefs;
     await pref.remove('accessToken');
     await pref.remove('refreshToken');
     await pref.remove('userUuid');
@@ -215,6 +267,9 @@ class ApiService {
   static Future<void> logout() async {
     await clearSessionData();
     clearUserControllers();
+    if (Get.isRegistered<AppNavigationService>()) {
+      AppNavigationService.to.resetAllTabStacks();
+    }
     Get.offAllNamed(Routes.AUTHENTICATION);
   }
 
@@ -287,7 +342,10 @@ class ApiService {
     } on DioException catch (e) {
       return _handleDioError(e);
     } catch (e) {
-      return ApiResponse.error(message: "An unexpected error occurred: $e");
+      return ApiResponse.error(
+        message: ApiErrorHandler.getMessage(e),
+        statusCode: 500,
+      );
     }
   }
 
@@ -299,7 +357,10 @@ class ApiService {
     } on DioException catch (e) {
       return _handleDioError(e);
     } catch (e) {
-      return ApiResponse.error(message: "An unexpected error occurred: $e");
+      return ApiResponse.error(
+        message: ApiErrorHandler.getMessage(e),
+        statusCode: 500,
+      );
     }
   }
 
@@ -311,7 +372,10 @@ class ApiService {
     } on DioException catch (e) {
       return _handleDioError(e);
     } catch (e) {
-      return ApiResponse.error(message: "An unexpected error occurred: $e");
+      return ApiResponse.error(
+        message: ApiErrorHandler.getMessage(e),
+        statusCode: 500,
+      );
     }
   }
 
@@ -322,57 +386,202 @@ class ApiService {
     } on DioException catch (e) {
       return _handleDioError(e);
     } catch (e) {
-      return ApiResponse.error(message: "An unexpected error occurred: $e");
+      return ApiResponse.error(
+        message: ApiErrorHandler.getMessage(e),
+        statusCode: 500,
+      );
     }
   }
 
   static ApiResponse _handleResponse(Response response) {
     if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+      if (response.data is Map) {
+        final map = Map<String, dynamic>.from(response.data as Map);
+        final bool isExplicitFailure = map['success'] == false;
+        final String? message = map['message']?.toString();
+        final String? errorCode = map['errorCode']?.toString();
+
+        if (isExplicitFailure) {
+          final safeMessage = (message != null && ApiErrorHandler.isSafeForUser(message))
+              ? message
+              : ApiErrorHandler.fromStatusCode(response.statusCode, rawData: map);
+
+          return ApiResponse.error(
+            message: safeMessage,
+            statusCode: response.statusCode,
+            errorCode: errorCode,
+            data: map['data'],
+          );
+        }
+
+        // Unpack data field when wrapped with global response schema
+        final dynamic unwrapped = (map.containsKey('data') && map.containsKey('success'))
+            ? map['data']
+            : response.data;
+
+        return ApiResponse.success(
+          data: unwrapped,
+          message: message ?? "Success",
+          statusCode: response.statusCode,
+          errorCode: errorCode,
+        );
+      }
+
       return ApiResponse.success(
         data: response.data,
-        message: response.data is Map ? response.data['message'] : null,
+        message: "Success",
         statusCode: response.statusCode,
       );
     }
-    String defaultMessage = "Oops! Something went wrong on our end. Please try again later.";
+
+    String? errorCode;
+    if (response.data is Map) {
+      errorCode = (response.data as Map)['errorCode']?.toString();
+    }
+
+    final safeMessage = ApiErrorHandler.fromStatusCode(
+      response.statusCode,
+      rawData: response.data,
+    );
 
     return ApiResponse.error(
-      message: _extractErrorMessage(response.data) ?? defaultMessage,
+      message: safeMessage,
       statusCode: response.statusCode,
-      data: response.data,
+      errorCode: errorCode,
+      data: response.data is Map && (response.data as Map).containsKey('data')
+          ? (response.data as Map)['data']
+          : response.data,
     );
   }
 
   static ApiResponse _handleDioError(DioException e) {
-    if (e.type == DioExceptionType.connectionTimeout ||
-        e.type == DioExceptionType.receiveTimeout ||
-        e.type == DioExceptionType.sendTimeout) {
-      return ApiResponse.error(message: "Connection timed out. Please try again.", statusCode: 408);
+    final safeMessage = ApiErrorHandler.fromDioException(e);
+    final statusCode = e.response?.statusCode ?? (e.type == DioExceptionType.connectionTimeout ||
+            e.type == DioExceptionType.receiveTimeout ||
+            e.type == DioExceptionType.sendTimeout
+        ? 408
+        : 0);
+
+    String? errorCode;
+    dynamic errorData = e.response?.data;
+
+    if (e.response?.data is Map) {
+      final errMap = Map<String, dynamic>.from(e.response!.data as Map);
+      errorCode = errMap['errorCode']?.toString();
+      if (errMap.containsKey('data')) {
+        errorData = errMap['data'];
+      }
     }
 
-    if (e.response != null) {
-      if (e.response!.statusCode == 401) {
-        return ApiResponse.error(
-          message: "Unauthorized. Session expired.",
-          statusCode: 401,
-          data: e.response!.data,
-        );
-      }
-      String defaultMessage = "Oops! Something went wrong on our end. Please try again later.";
-
+    if (statusCode == 401) {
       return ApiResponse.error(
-        message: _extractErrorMessage(e.response!.data) ?? defaultMessage,
-        statusCode: e.response!.statusCode,
-        data: e.response!.data,
+        message: "Your session has expired. Please sign in again.",
+        statusCode: 401,
+        errorCode: errorCode ?? "UNAUTHORIZED",
+        data: errorData,
       );
     }
-    return ApiResponse.error(message: "Network connection failed.", statusCode: 0);
-  }
 
-  static String? _extractErrorMessage(dynamic data) {
-    if (data is Map) {
-      return data['message']?.toString() ?? data['error']?.toString();
-    }
-    return null;
+    return ApiResponse.error(
+      message: safeMessage,
+      statusCode: statusCode,
+      errorCode: errorCode,
+      data: errorData,
+    );
   }
 }
+
+/// Production-ready network logger interceptor that pretty-prints requests, responses,
+/// and errors in a formatted, human-readable layout while automatically redacting sensitive tokens and credentials.
+class _SafeNetworkLoggerInterceptor extends Interceptor {
+  static const _jsonEncoder = JsonEncoder.withIndent('  ');
+
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    if (kDebugMode) {
+      final sanitizedHeaders = Map<String, dynamic>.from(options.headers);
+      if (sanitizedHeaders.containsKey('Authorization')) {
+        sanitizedHeaders['Authorization'] = 'Bearer [REDACTED]';
+      }
+      final sanitizedData = _sanitizeData(options.data);
+      final query = options.queryParameters.isNotEmpty ? " | Params: ${_pretty(options.queryParameters)}" : "";
+
+      debugPrint("┌─────────────────────────────────────────────────────────────────────────");
+      debugPrint("│ 🚀 [HTTP REQUEST] --> ${options.method} ${options.uri}$query");
+      debugPrint("│ Headers: ${_pretty(sanitizedHeaders)}");
+      if (sanitizedData != null) {
+        debugPrint("│ Request Payload:\n${_indent(_pretty(sanitizedData))}");
+      }
+      debugPrint("└─────────────────────────────────────────────────────────────────────────");
+    }
+    return handler.next(options);
+  }
+
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    if (kDebugMode) {
+      debugPrint("┌─────────────────────────────────────────────────────────────────────────");
+      debugPrint("│ ✅ [HTTP RESPONSE] <-- ${response.statusCode} ${response.requestOptions.uri}");
+      if (response.data != null) {
+        debugPrint("│ Response Payload:\n${_indent(_pretty(response.data))}");
+      }
+      debugPrint("└─────────────────────────────────────────────────────────────────────────");
+    }
+    return handler.next(response);
+  }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    if (kDebugMode) {
+      debugPrint("┌─────────────────────────────────────────────────────────────────────────");
+      debugPrint("│ ❌ [HTTP ERROR] <-- ${err.response?.statusCode ?? 'NO_STATUS'} ${err.requestOptions.uri}");
+      debugPrint("│ Message: ${err.message}");
+      if (err.requestOptions.data != null) {
+        debugPrint("│ Request Payload:\n${_indent(_pretty(_sanitizeData(err.requestOptions.data)))}");
+      }
+      if (err.response?.data != null) {
+        debugPrint("│ Error Response Payload:\n${_indent(_pretty(err.response?.data))}");
+      }
+      debugPrint("└─────────────────────────────────────────────────────────────────────────");
+    }
+    return handler.next(err);
+  }
+
+  String _pretty(dynamic data) {
+    try {
+      if (data is Map || data is List) {
+        return _jsonEncoder.convert(data);
+      }
+      return data.toString();
+    } catch (_) {
+      return data.toString();
+    }
+  }
+
+  String _indent(String text) {
+    return text.split('\n').map((line) => '│   $line').join('\n');
+  }
+
+  dynamic _sanitizeData(dynamic data) {
+    if (data is Map) {
+      final sanitized = <String, dynamic>{};
+      for (final entry in data.entries) {
+        final key = entry.key.toString().toLowerCase();
+        if (key.contains('password') ||
+            key.contains('token') ||
+            key.contains('otp') ||
+            key.contains('secret') ||
+            key.contains('auth') ||
+            key.contains('key') ||
+            key.contains('credential')) {
+          sanitized[entry.key.toString()] = '[REDACTED]';
+        } else {
+          sanitized[entry.key.toString()] = _sanitizeData(entry.value);
+        }
+      }
+      return sanitized;
+    }
+    return data;
+  }
+}
+

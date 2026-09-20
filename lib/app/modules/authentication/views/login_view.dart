@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lala_ai/app/modules/authentication/controllers/auth_controller.dart';
 import 'package:lala_ai/utils/common_widget.dart';
+import 'package:lala_ai/utils/constants.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
@@ -111,8 +112,8 @@ class LoginView extends GetView<AuthController> {
                   if (val == null || val.isEmpty) {
                     return "Please enter your password.";
                   }
-                  if (val.length < 6) {
-                    return "Password must be at least 6 characters.";
+                  if (val.length < AppConstants.minPasswordLength) {
+                    return "Password must be at least ${AppConstants.minPasswordLength} characters.";
                   }
                   return null;
                 },

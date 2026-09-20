@@ -21,7 +21,7 @@ class MainContainerBinding extends Bindings {
 
     // Repositories
     Get.lazyPut<TrendRepository>(() => MockTrendRepository());
-    Get.put<AnalyticsRepository>(MockAnalyticsRepository(), permanent: true);
+    Get.put<AnalyticsRepository>(ApiAnalyticsRepository(), permanent: true);
     Get.lazyPut<DiscoverRepository>(() => MockDiscoverRepository());
     Get.lazyPut<SavedRepository>(() => MockSavedRepository());
 

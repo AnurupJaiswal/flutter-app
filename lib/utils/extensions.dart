@@ -24,6 +24,50 @@ extension StringExtension on String {
       return this;
     }
   }
+
+  String get formatDateTimeFriendly {
+    try {
+      final dt = DateTime.parse(this).toLocal();
+      final now = DateTime.now();
+      final diff = now.difference(dt);
+
+      if (diff.inSeconds < 60 && diff.inSeconds >= 0) {
+        return "just now";
+      } else if (diff.inMinutes < 60 && diff.inMinutes > 0) {
+        return "${diff.inMinutes}m ago";
+      } else if (diff.inHours < 24 && dt.day == now.day && dt.month == now.month && dt.year == now.year) {
+        return DateFormat('h:mm a').format(dt);
+      } else if (dt.year == now.year) {
+        return DateFormat('MMM d, h:mm a').format(dt);
+      } else {
+        return DateFormat('MMM d, yyyy').format(dt);
+      }
+    } catch (e) {
+      return this;
+    }
+  }
+
+  String get formatSyncDate {
+    try {
+      final dt = DateTime.parse(this).toLocal();
+      final now = DateTime.now();
+      final diff = now.difference(dt);
+
+      if (diff.inSeconds < 60 && diff.inSeconds >= 0) {
+        return "just now";
+      } else if (diff.inMinutes < 60 && diff.inMinutes > 0) {
+        return "${diff.inMinutes}m ago";
+      } else if (diff.inHours < 24 && dt.day == now.day && dt.month == now.month && dt.year == now.year) {
+        return "today at ${DateFormat('h:mm a').format(dt)}";
+      } else if (dt.year == now.year) {
+        return DateFormat('MMM d, h:mm a').format(dt);
+      } else {
+        return DateFormat('MMM d, yyyy').format(dt);
+      }
+    } catch (e) {
+      return this;
+    }
+  }
 }
 
 extension CommonShadow on BoxDecoration {

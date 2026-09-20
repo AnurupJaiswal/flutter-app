@@ -22,70 +22,69 @@ class StudioView extends GetView<StudioController> {
     }
 
     return GetBuilder<ThemeService>(
-      builder: (themeService) {
-        return Scaffold(
-          backgroundColor: CC.background,
-          appBar: CW.commonAppbar(
-            isNotHomepage: false,
-            wantBackIcon: false,
-            title: "AI Content Studio",
-            actions: [
-              IconButton(
-                icon: Icon(Icons.person_outline_rounded, color: CC.textPrimary, size: 22),
-                splashRadius: 20,
-                onPressed: () => Get.to(() => const ProfileView()),
-              ),
-            ],
-          ),
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Generator Mode Switcher
-                  Obx(() => Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: CC.isDark ? CC.darkBg2 : CC.surface,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
-                        width: 1,
+      builder: (_) => Scaffold(
+        backgroundColor: CC.background,
+        appBar: CW.commonAppbar(
+          isNotHomepage: false,
+          wantBackIcon: false,
+          title: "AI Content Studio",
+          actions: [
+            IconButton(
+              icon: Icon(Icons.person_outline_rounded, color: CC.textPrimary, size: 22),
+              splashRadius: 20,
+              onPressed: () => Get.to(() => const ProfileView()),
+            ),
+          ],
+        ),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Generator Mode Switcher
+                Obx(() => Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: CC.isDark ? CC.darkBg2 : CC.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: CC.isDark ? CC.black.withValues(alpha: 0.4) : CC.black.withValues(alpha: 0.08),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: CC.isDark ? CC.black.withValues(alpha: 0.4) : CC.black.withValues(alpha: 0.08),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(child: _modeTab("Script Generator", 0)),
-                        Expanded(child: _modeTab("Hooks & Keywords", 1)),
-                      ],
-                    ),
-                  )),
-                  16.height,
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(child: _modeTab("Script Generator", 0)),
+                      Expanded(child: _modeTab("Hooks & Keywords", 1)),
+                    ],
+                  ),
+                )),
+                16.height,
 
-                  // Dynamic Tab View
-                  Obx(() {
-                    if (controller.activeTab.value == 0) {
-                      return _buildScriptGenerator();
-                    } else {
-                      return _buildHooksGenerator();
-                    }
-                  }),
-                ],
-              ),
+                // Dynamic Tab View
+                Obx(() {
+                  if (controller.activeTab.value == 0) {
+                    return _buildScriptGenerator();
+                  } else {
+                    return _buildHooksGenerator();
+                  }
+                }),
+              ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
+
 
   Widget _modeTab(String title, int index) {
     final isSelected = controller.activeTab.value == index;

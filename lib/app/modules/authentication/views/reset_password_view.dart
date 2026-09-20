@@ -5,6 +5,7 @@ import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
+
 import 'package:lala_ai/utils/theme/theme_service.dart';
 
 class ResetPasswordView extends StatelessWidget {
@@ -22,7 +23,9 @@ class ResetPasswordView extends StatelessWidget {
       });
     }
 
-    return Scaffold(
+    return GetBuilder<ThemeService>(
+      builder: (_) {
+        return Scaffold(
           backgroundColor: CC.background,
           appBar: CW.commonAppbar(
             title: "Create Password",
@@ -139,5 +142,7 @@ class ResetPasswordView extends StatelessWidget {
             ),
           ),
         );
+      },
+    );
   }
 }

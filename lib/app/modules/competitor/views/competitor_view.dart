@@ -7,6 +7,7 @@ import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
+
 import 'package:lala_ai/utils/theme/theme_service.dart';
 
 class CompetitorView extends StatefulWidget {
@@ -22,18 +23,25 @@ class _CompetitorViewState extends State<CompetitorView> {
   bool _hasSearched = true;
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GetBuilder<ThemeService>(
       builder: (_) {
         return Scaffold(
-          backgroundColor: CC.background,
-          appBar: widget.isEmbedded 
-            ? null 
-            : CW.commonAppbar(
-                isNotHomepage: true,
-                wantBackIcon: true,
-                title: "Competitor Intelligence",
-              ),
+      backgroundColor: CC.background,
+      appBar: widget.isEmbedded 
+        ? null 
+        : CW.commonAppbar(
+            isNotHomepage: true,
+            wantBackIcon: true,
+            title: "Competitor Intelligence",
+          ),
+
           body: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),

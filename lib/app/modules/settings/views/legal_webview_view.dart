@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
+import 'package:lala_ai/utils/theme/theme_service.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class LegalWebViewView extends StatefulWidget {
@@ -161,9 +162,11 @@ class _LegalWebViewViewState extends State<LegalWebViewView> {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: CC.background,
-      child: Scaffold(
+    return GetBuilder<ThemeService>(
+      builder: (_) {
+        return Material(
+          color: CC.background,
+          child: Scaffold(
         backgroundColor: CC.background,
         appBar: CW.commonAppbar(
           isNotHomepage: true,
@@ -241,6 +244,8 @@ class _LegalWebViewViewState extends State<LegalWebViewView> {
           ),
         ),
       ),
+    );
+      },
     );
   }
 

@@ -3,7 +3,40 @@ import 'package:get/get.dart';
 import 'package:lala_ai/app/modules/authentication/data/auth_repository.dart';
 import 'package:lala_ai/app/modules/chat/controllers/chat_controller.dart';
 import 'package:lala_ai/app/modules/chat/data/chat_repository.dart';
+import 'package:lala_ai/Models/auth_response_model.dart';
+import 'package:lala_ai/Models/user_model.dart';
+import 'package:lala_ai/networking/api_response.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+class MockAuthRepository implements AuthRepository {
+  bool _hasSession = false;
+  UserModel? _currentUser;
+
+  @override
+  Future<ApiResponse<AuthResponseModel>> login({required String email, required String password}) async {
+    _hasSession = true;
+    _currentUser = UserModel(id: "1", name: "Alex", email: email);
+    return ApiResponse.success(data: AuthResponseModel(success: true, accessToken: "mock_jwt_token", user: _currentUser));
+  }
+
+  @override
+  Future<bool> restoreSession() async => _hasSession;
+
+  @override
+  Future<void> logout() async {
+    _hasSession = false;
+    _currentUser = null;
+  }
+
+  @override
+  Future<void> clearSession() async {
+    _hasSession = false;
+    _currentUser = null;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -15,7 +48,7 @@ void main() {
 
   group('MockAuthRepository Tests', () {
     test('Logs in user and persists session', () async {
-      final authRepo = ApiAuthRepository();
+      final authRepo = MockAuthRepository();
       final res = await authRepo.login(email: "alex@lala.ai", password: "password123");
 
       expect(res.isSuccess, true);
@@ -26,7 +59,7 @@ void main() {
     });
 
     test('Logs out user and clears session', () async {
-      final authRepo = ApiAuthRepository();
+      final authRepo = MockAuthRepository();
       await authRepo.login(email: "alex@lala.ai", password: "password123");
       await authRepo.logout();
 

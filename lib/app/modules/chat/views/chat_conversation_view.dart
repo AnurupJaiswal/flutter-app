@@ -21,31 +21,31 @@ class ChatConversationView extends GetView<ChatController> {
         final isDesktop = MediaQuery.of(context).size.width >= 800;
 
         Widget mainContent = Scaffold(
-          backgroundColor: CC.background,
-          drawer: isDesktop ? null : const ChatDrawerSidebar(),
-          appBar: CW.commonAppbar(
-            wantBackIcon: true,
-            onBackTap: () => controller.startNewChat(),
-            leadingWidget: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: Icon(Icons.arrow_back_ios_new_rounded, color: CC.textPrimary, size: 16),
-                  splashRadius: 16,
-                  tooltip: "Back to Home",
-                  onPressed: () => controller.startNewChat(),
-                ),
-                if (!isDesktop)
-                  Builder(
-                    builder: (scaffoldContext) => IconButton(
-                      icon: Icon(Icons.menu_rounded, color: CC.textSecondary, size: 18),
-                      splashRadius: 16,
-                      tooltip: "Open History",
-                      onPressed: () => Scaffold.of(scaffoldContext).openDrawer(),
-                    ),
-                  ),
-              ],
+      backgroundColor: CC.background,
+      drawer: isDesktop ? null : const ChatDrawerSidebar(),
+      appBar: CW.commonAppbar(
+        wantBackIcon: true,
+        onBackTap: () => controller.startNewChat(),
+        leadingWidget: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(Icons.arrow_back_ios_new_rounded, color: CC.textPrimary, size: 16),
+              splashRadius: 16,
+              tooltip: "Back to Home",
+              onPressed: () => controller.startNewChat(),
             ),
+            if (!isDesktop)
+              Builder(
+                builder: (scaffoldContext) => IconButton(
+                  icon: Icon(Icons.menu_rounded, color: CC.textSecondary, size: 18),
+                  splashRadius: 16,
+                  tooltip: "Open History",
+                  onPressed: () => Scaffold.of(scaffoldContext).openDrawer(),
+                ),
+              ),
+          ],
+        ),
         titleWidget: Obx(() => Text(
               controller.activeChat.value?.title ?? "Conversation",
               style: TS.sectionTitle(fontSize: 14),
@@ -89,6 +89,7 @@ class ChatConversationView extends GetView<ChatController> {
 
                     final msg = list[index];
                     return MessageBubbleWidget(
+                      key: ValueKey(msg.id),
                       message: msg,
                       onRegenerate: (index == list.length - 1 && msg.isAssistant)
                           ? controller.regenerateLastMessage

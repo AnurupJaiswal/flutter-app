@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lala_ai/networking/api_error_handler.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
 
@@ -24,10 +25,14 @@ class AppToast {
   static void _show(String message, ToastType type) {
     if (Get.isSnackbarOpen) Get.closeCurrentSnackbar();
 
+    final safeMessage = type == ToastType.error
+        ? ApiErrorHandler.getMessage(message)
+        : message;
+
     final config = _ToastConfig._of(type);
 
     Get.rawSnackbar(
-      messageText: _ToastWidget(message: message, config: config),
+      messageText: _ToastWidget(message: safeMessage, config: config),
       backgroundColor: Colors.transparent,
       boxShadows: const [],
       padding: EdgeInsets.zero,

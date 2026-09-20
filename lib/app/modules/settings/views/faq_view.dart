@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lala_ai/utils/theme/theme_service.dart';
 import 'package:lala_ai/utils/common_methods.dart';
 import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
-import 'package:lala_ai/utils/theme/theme_service.dart';
 
 class FaqItemData {
   final String question;
@@ -163,248 +163,249 @@ class _FaqViewState extends State<FaqView> {
         final filteredList = _filteredFaqs;
 
         return Scaffold(
-          backgroundColor: CC.background,
-          appBar: CW.commonAppbar(
-            isNotHomepage: true,
-            title: "FAQ & Help Center",
-          ),
-          body: SafeArea(
-            child: NestedScrollView(
-              headerSliverBuilder: (context, innerBoxIsScrolled) {
-                return [
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: _StickyCategoryChipsDelegate(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        physics: const BouncingScrollPhysics(),
-                        clipBehavior: Clip.none,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          children: _categories.map((category) {
-                            final isSelected = _selectedCategory == category;
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: ChoiceChip(
-                                label: Text(category),
-                                selected: isSelected,
-                                onSelected: (selected) {
-                                  if (selected) {
-                                    setState(() {
-                                      _selectedCategory = category;
-                                      _expandedIndex = null;
-                                    });
-                                  }
-                                },
-                                selectedColor: CC.primary,
-                                backgroundColor: CC.surface,
-                                labelStyle: TS.caption(
-                                  color: isSelected ? CC.whiteText : CC.textPrimary,
-                                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                  side: BorderSide(
-                                    color: isSelected ? CC.primary : CC.stroke,
-                                    width: 1,
-                                  ),
-                                ),
-                                showCheckmark: false,
-                                elevation: 0,
-                                pressElevation: 0,
+      backgroundColor: CC.background,
+      appBar: CW.commonAppbar(
+        isNotHomepage: true,
+        title: "FAQ & Help Center",
+      ),
+      body: SafeArea(
+        child: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
+            return [
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _StickyCategoryChipsDelegate(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    clipBehavior: Clip.none,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: _categories.map((category) {
+                        final isSelected = _selectedCategory == category;
+                        return Padding(
+                          key: ValueKey(category),
+                          padding: const EdgeInsets.only(right: 8),
+                          child: ChoiceChip(
+                            label: Text(category),
+                            selected: isSelected,
+                            onSelected: (selected) {
+                              if (selected) {
+                                setState(() {
+                                  _selectedCategory = category;
+                                  _expandedIndex = null;
+                                });
+                              }
+                            },
+                            selectedColor: CC.primary,
+                            backgroundColor: CC.surface,
+                            labelStyle: TS.caption(
+                              color: isSelected ? CC.whiteText : CC.textPrimary,
+                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              side: BorderSide(
+                                color: isSelected ? CC.primary : CC.stroke,
+                                width: 1,
                               ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
+                            ),
+                            showCheckmark: false,
+                            elevation: 0,
+                            pressElevation: 0,
+                          ),
+                        );
+                      }).toList(),
                     ),
                   ),
-                ];
-              },
-              body: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // ── Header count ──────────────────────────────────────────
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "FREQUENTLY ASKED QUESTIONS",
-                            style: TS.caption(
-                              color: CC.primary,
-                              fontWeight: FontWeight.w700,
-                            ).copyWith(fontSize: 11, letterSpacing: 1.2),
+                ),
+              ),
+            ];
+          },
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Header count ──────────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "FREQUENTLY ASKED QUESTIONS",
+                        style: TS.caption(
+                          color: CC.primary,
+                          fontWeight: FontWeight.w700,
+                        ).copyWith(fontSize: 11, letterSpacing: 1.2),
+                      ),
+                      Text(
+                        "${filteredList.length} ${filteredList.length == 1 ? 'article' : 'articles'}",
+                        style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+                10.height,
+
+                // ── FAQ Accordion List ────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: filteredList.isEmpty
+                      ? Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+                          decoration: BoxDecoration(
+                            color: CC.surface,
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                          Text(
-                            "${filteredList.length} ${filteredList.length == 1 ? 'article' : 'articles'}",
-                            style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11),
+                          child: Column(
+                            children: [
+                              Icon(Icons.search_off_rounded, color: CC.grey, size: 42),
+                              12.height,
+                              Text(
+                                "No matching questions found",
+                                style: TS.sectionTitle(color: CC.textPrimary, fontSize: 15),
+                              ),
+                              6.height,
+                              Text(
+                                "Try searching with different keywords or switch categories.",
+                                textAlign: TextAlign.center,
+                                style: TS.caption(color: CC.textSecondary),
+                              ),
+                            ],
                           ),
+                        )
+                      : Column(
+                          children: List.generate(filteredList.length, (index) {
+                            final faq = filteredList[index];
+                            final isExpanded = _expandedIndex == index;
+
+                            return _buildFaqAccordionItem(
+                              key: ValueKey(faq.question),
+                              faq: faq,
+                              isExpanded: isExpanded,
+                              onTap: () {
+                                setState(() {
+                                  if (_expandedIndex == index) {
+                                    _expandedIndex = null;
+                                  } else {
+                                    _expandedIndex = index;
+                                  }
+                                });
+                              },
+                            );
+                          }),
+                        ),
+                ),
+                20.height,
+
+                // ── Support CTA Banner ────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          CC.primary.withValues(alpha: 0.15),
+                          CC.primary.withValues(alpha: 0.05),
                         ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: CC.primary.withValues(alpha: 0.25),
+                        width: 1,
                       ),
                     ),
-                    10.height,
-
-                    // ── FAQ Accordion List ────────────────────────────────────
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: filteredList.isEmpty
-                          ? Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: CC.surface,
-                                borderRadius: BorderRadius.circular(16),
+                                color: CC.primary,
+                                shape: BoxShape.circle,
                               ),
+                              child: const Icon(
+                                Icons.headset_mic_rounded,
+                                color: CC.whiteText,
+                                size: 18,
+                              ),
+                            ),
+                            12.width,
+                            Expanded(
                               child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(Icons.search_off_rounded, color: CC.grey, size: 42),
-                                  12.height,
                                   Text(
-                                    "No matching questions found",
-                                    style: TS.sectionTitle(color: CC.textPrimary, fontSize: 15),
+                                    "Still need assistance?",
+                                    style: TS.sectionTitle(
+                                      color: CC.textPrimary,
+                                      fontSize: 15,
+                                    ),
                                   ),
-                                  6.height,
+                                  2.height,
                                   Text(
-                                    "Try searching with different keywords or switch categories.",
-                                    textAlign: TextAlign.center,
+                                    "Our creator support team is available 24/7",
                                     style: TS.caption(color: CC.textSecondary),
                                   ),
                                 ],
                               ),
-                            )
-                          : ListView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: filteredList.length,
-                              itemBuilder: (context, index) {
-                                final faq = filteredList[index];
-                                final isExpanded = _expandedIndex == index;
-
-                                return _buildFaqAccordionItem(
-                                  faq: faq,
-                                  isExpanded: isExpanded,
-                                  onTap: () {
-                                    setState(() {
-                                      if (_expandedIndex == index) {
-                                        _expandedIndex = null;
-                                      } else {
-                                        _expandedIndex = index;
-                                      }
-                                    });
-                                  },
-                                );
-                              },
-                            ),
-                    ),
-                    20.height,
-
-                    // ── Support CTA Banner ────────────────────────────────────
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Container(
-                        padding: const EdgeInsets.all(18),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              CC.primary.withValues(alpha: 0.15),
-                              CC.primary.withValues(alpha: 0.05),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: CC.primary.withValues(alpha: 0.25),
-                            width: 1,
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: CC.primary,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.headset_mic_rounded,
-                                    color: CC.whiteText,
-                                    size: 18,
-                                  ),
-                                ),
-                                12.width,
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Still need assistance?",
-                                        style: TS.sectionTitle(
-                                          color: CC.textPrimary,
-                                          fontSize: 15,
-                                        ),
-                                      ),
-                                      2.height,
-                                      Text(
-                                        "Our creator support team is available 24/7",
-                                        style: TS.caption(color: CC.textSecondary),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            14.height,
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                onPressed: () => _showContactSupportSheet(context),
-                                icon: const Icon(Icons.support_agent_rounded, size: 18, color: CC.whiteText),
-                                label: Text(
-                                  "Contact Creator Support",
-                                  style: TS.bodySmall(
-                                    color: CC.whiteText,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: CC.primary,
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  elevation: 0,
-                                ),
-                              ),
                             ),
                           ],
                         ),
-                      ),
+                        14.height,
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () => _showContactSupportSheet(context),
+                            icon: const Icon(Icons.support_agent_rounded, size: 18, color: CC.whiteText),
+                            label: Text(
+                              "Contact Creator Support",
+                              style: TS.bodySmall(
+                                color: CC.whiteText,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: CC.primary,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              elevation: 0,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    24.height,
-                  ],
+                  ),
                 ),
-              ),
+                24.height,
+              ],
             ),
           ),
-        );
+        ),
+      ),
+    );
       },
     );
   }
 
   Widget _buildFaqAccordionItem({
+    Key? key,
     required FaqItemData faq,
     required bool isExpanded,
     required VoidCallback onTap,
   }) {
     return Container(
+      key: key,
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: CC.surface,

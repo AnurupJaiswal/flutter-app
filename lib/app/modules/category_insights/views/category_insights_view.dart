@@ -6,6 +6,7 @@ import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
+
 import 'package:lala_ai/utils/theme/theme_service.dart';
 
 class CategoryInsightsView extends StatelessWidget {
@@ -17,193 +18,197 @@ class CategoryInsightsView extends StatelessWidget {
     final controller = Get.put(CategoryInsightsController());
 
     return GetBuilder<ThemeService>(
-      builder: (themeService) {
+      builder: (_) {
         final body = SafeArea(
-          child: Obx(() {
-              if (controller.userCategories.isEmpty) {
-                return _buildEmptyState(context, controller);
-              }
+      child: Obx(() {
+        if (controller.userCategories.isEmpty) {
+          return _buildEmptyState(context, controller);
+        }
 
-              final insights = controller.currentInsights;
+        final insights = controller.currentInsights;
 
-              return SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Category Selector Header ─────────────────────
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // ── Category Selector Header ─────────────────────
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "YOUR CATEGORIES",
-                            style: TS.caption(
-                              color: CC.textSecondary,
-                              fontWeight: FontWeight.w700,
-                            ).copyWith(letterSpacing: 1.1),
-                          ),
-                          GestureDetector(
-                            onTap: () => controller.manageCategories(context),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 4, horizontal: 2),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.edit_note_rounded,
-                                      size: 16, color: CC.primary),
-                                  4.width,
-                                  Text(
-                                    "Manage Categories",
-                                    style: TS.caption(
-                                      color: CC.primary,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                    Text(
+                      "YOUR CATEGORIES",
+                      style: TS.caption(
+                        color: CC.textSecondary,
+                        fontWeight: FontWeight.w700,
+                      ).copyWith(letterSpacing: 1.1),
                     ),
-                    10.height,
-
-                    // Full-width edge-to-edge scrollable chips list
-                    SizedBox(
-                      height: 38,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        clipBehavior: Clip.none,
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: controller.userCategories.length,
-                        separatorBuilder: (_, __) => 8.width,
-                        itemBuilder: (context, index) {
-                          final category = controller.userCategories[index];
-                          final isSelected =
-                              controller.selectedCategory.value == category;
-
-                          return InkWell(
-                            onTap: () => controller.selectCategory(category),
-                            borderRadius: BorderRadius.circular(20),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                    color: isSelected ? CC.primary : Colors.transparent,
-                                    width: 2,
-                                  ),
-                                ),
-                              ),
-                              child: Text(
-                                category,
-                                style: TS
-                                    .bodySmall(
-                                      color: isSelected
-                                          ? CC.primary
-                                          : CC.textSecondary,
-                                      fontWeight: isSelected
-                                          ? FontWeight.w700
-                                          : FontWeight.w500,
-                                    )
-                                    .copyWith(fontSize: 14),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    24.height,
-
-                    // Loading or Content State
-                    if (controller.isLoading.value)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 40),
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            color: CC.primary,
-                            strokeWidth: 2.5,
-                          ),
-                        ),
-                      )
-                    else if (insights == null)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: _buildUnavailableState(),
-                      )
-                    else ...[
-                      // ── Selected Category Header & Freshness ─────────────
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                    GestureDetector(
+                      onTap: () => controller.manageCategories(context),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 4, horizontal: 2),
                         child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
                           children: [
-                            Text(
-                              controller.selectedCategory.value,
-                              style: TS.displayLarge(
-                                color: CC.textPrimary,
-                                fontSize: 22,
-                              ),
-                            ),
-                            10.width,
-                            Icon(
-                              Icons.schedule_rounded,
-                              size: 13,
-                              color: CC.textSecondary,
-                            ),
+                            Icon(Icons.edit_note_rounded,
+                                size: 16, color: CC.primary),
                             4.width,
                             Text(
-                              insights.updatedTime,
+                              "Manage Categories",
                               style: TS.caption(
-                                color: CC.textSecondary,
-                              ).copyWith(fontSize: 12),
+                                color: CC.primary,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      16.height,
-
-                      // ── Category Overview Section ─────────────────────────
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: _buildCategoryOverview(context, insights),
-                      ),
-                      24.height,
-
-                      // ── Shared Insights Section ───────────────────────────
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          "SHARED INSIGHTS",
-                          style: TS.caption(
-                            color: CC.textSecondary,
-                            fontWeight: FontWeight.w700,
-                          ).copyWith(letterSpacing: 1.1),
-                        ),
-                      ),
-                      12.height,
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: _buildSharedInsightsList(insights),
-                      ),
-                    ],
-
-                    // Generous bottom padding to prevent cutoff by bottom nav & floaters
-                    100.height,
+                    ),
                   ],
                 ),
-              );
-            }),
+              ),
+              10.height,
+
+              // Full-width edge-to-edge scrollable chips list
+              SizedBox(
+                height: 38,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  clipBehavior: Clip.none,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: controller.userCategories.length,
+                  separatorBuilder: (_, __) => 8.width,
+                  itemBuilder: (context, index) {
+                    final category = controller.userCategories[index];
+                    final isSelected =
+                        controller.selectedCategory.value == category;
+
+                    return InkWell(
+                      key: ValueKey(category),
+                      onTap: () => controller.selectCategory(category),
+                      borderRadius: BorderRadius.circular(20),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: isSelected ? CC.primary : Colors.transparent,
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          category,
+                          style: TS
+                              .bodySmall(
+                                color: isSelected
+                                    ? CC.primary
+                                    : CC.textSecondary,
+                                fontWeight: isSelected
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                              )
+                              .copyWith(fontSize: 14),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              24.height,
+
+              // Loading or Content State
+              if (controller.isLoading.value)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Column(
+                    children: [
+                      CW.skeletonCard(height: 140),
+                      16.height,
+                      CW.skeletonCard(height: 100),
+                      16.height,
+                      CW.skeletonCard(height: 100),
+                    ],
+                  ),
+                )
+              else if (insights == null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _buildUnavailableState(),
+                )
+              else ...[
+                // ── Selected Category Header & Freshness ─────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        controller.selectedCategory.value,
+                        style: TS.displayLarge(
+                          color: CC.textPrimary,
+                          fontSize: 22,
+                        ),
+                      ),
+                      10.width,
+                      Icon(
+                        Icons.schedule_rounded,
+                        size: 13,
+                        color: CC.textSecondary,
+                      ),
+                      4.width,
+                      Text(
+                        insights.updatedTime,
+                        style: TS.caption(
+                          color: CC.textSecondary,
+                        ).copyWith(fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+                16.height,
+
+                // ── Category Overview Section ─────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _buildCategoryOverview(context, insights),
+                ),
+                24.height,
+
+                // ── Shared Insights Section ───────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    "SHARED INSIGHTS",
+                    style: TS.caption(
+                      color: CC.textSecondary,
+                      fontWeight: FontWeight.w700,
+                    ).copyWith(letterSpacing: 1.1),
+                  ),
+                ),
+                12.height,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _buildSharedInsightsList(insights),
+                ),
+              ],
+
+              // Generous bottom padding to prevent cutoff by bottom nav & floaters
+              100.height,
+            ],
+          ),
         );
-        
+      }),
+    );
+    
         if (isEmbedded) return body;
 
         return Scaffold(

@@ -15,6 +15,9 @@ class AppNavigationService extends GetxService {
   static const int tabCalendar = 3;
   static const int tabDiscover = 4;
 
+  // Reactive flag for modal/bottom-sheet overlay visibility
+  final isOverlayOpen = false.obs;
+
   // 5 Independent Navigator Keys for each Bottom Navigation Tab
   final Map<int, GlobalKey<NavigatorState>> tabNavigatorKeys = {
     tabDashboard: GlobalKey<NavigatorState>(debugLabel: 'DashboardTabKey'),
@@ -23,6 +26,16 @@ class AppNavigationService extends GetxService {
     tabCalendar: GlobalKey<NavigatorState>(debugLabel: 'CalendarTabKey'),
     tabDiscover: GlobalKey<NavigatorState>(debugLabel: 'DiscoverTabKey'),
   };
+
+  // Cached TabNavigatorObserver instances to avoid recreating them on every build
+  final Map<int, TabNavigatorObserver> _cachedObservers = {};
+
+  TabNavigatorObserver getTabObserver(int tabIndex) {
+    return _cachedObservers.putIfAbsent(
+      tabIndex,
+      () => TabNavigatorObserver(getTabName(tabIndex)),
+    );
+  }
 
   // Debouncing lock to prevent rapid duplicate pushes
   DateTime? _lastNavigatedTime;
@@ -68,13 +81,25 @@ class AppNavigationService extends GetxService {
     }
   }
 
+  /// Reset all 5 tab navigator stacks back to root (called on logout)
+  void resetAllTabStacks() {
+    for (final key in tabNavigatorKeys.values) {
+      if (key.currentState != null && key.currentState!.canPop()) {
+        key.currentState!.popUntil((route) => route.isFirst);
+      }
+    }
+  }
+
   /// Navigate to nested screen inside active tab stack
-  Future<T?>? pushNestedRoute<T>(int tabIndex, Widget page) {
+  Future<T?>? pushNestedRoute<T>(int tabIndex, Widget page, {String? routeName}) {
     if (_isNavigatingFast()) return null;
     final key = tabNavigatorKeys[tabIndex];
     if (key?.currentState != null) {
       return key!.currentState!.push<T>(
-        MaterialPageRoute(builder: (_) => page),
+        MaterialPageRoute(
+          settings: RouteSettings(name: routeName ?? '${getTabName(tabIndex)}_${page.runtimeType}'),
+          builder: (_) => page,
+        ),
       );
     }
     return null;
@@ -119,6 +144,7 @@ class AppNavigationService extends GetxService {
 
   /// Authentication Flow Stack Management: Clear all stacks on logout
   void navigateToAuth() {
+    resetAllTabStacks();
     Get.offAllNamed(Routes.AUTHENTICATION);
   }
 
@@ -151,14 +177,15 @@ class TabNavigatorObserver extends NavigatorObserver {
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
     super.didPush(route, previousRoute);
-    final routeName = route.settings.name ?? route.runtimeType.toString();
+    final routeName = route.settings.name ?? "${tabName}_Root";
     debugPrint("NAV PUSH: $routeName | CURRENT NAVIGATOR: ${tabName}Navigator | BOTTOM TAB: $tabName");
   }
 
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
     super.didPop(route, previousRoute);
-    final routeName = route.settings.name ?? route.runtimeType.toString();
+    final routeName = route.settings.name ?? "${tabName}_Root";
     debugPrint("NAV POP: $routeName | CURRENT NAVIGATOR: ${tabName}Navigator | BOTTOM TAB: $tabName");
   }
 }
+

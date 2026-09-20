@@ -11,6 +11,7 @@ import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
+
 import 'package:lala_ai/utils/theme/theme_service.dart';
 
 class TrendingView extends GetView<TrendingController> {
@@ -19,67 +20,75 @@ class TrendingView extends GetView<TrendingController> {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<ThemeService>(
-      builder: (themeService) {
+      builder: (_) {
         return Scaffold(
-          backgroundColor: CC.background,
-          appBar: CW.commonAppbar(
-            isNotHomepage: false,
-            wantBackIcon: false,
-            title: "Trend Discovery & Alerts",
-            actions: [
-              IconButton(
-                icon: Icon(Icons.person_outline_rounded, color: CC.textPrimary, size: 22),
-                splashRadius: 20,
-                onPressed: () => Get.to(() => const ProfileView()),
-              ),
-            ],
+      backgroundColor: CC.background,
+      appBar: CW.commonAppbar(
+        isNotHomepage: false,
+        wantBackIcon: false,
+        title: "Trend Discovery & Alerts",
+        actions: [
+          IconButton(
+            icon: Icon(Icons.person_outline_rounded, color: CC.textPrimary, size: 22),
+            splashRadius: 20,
+            onPressed: () => Get.to(() => const ProfileView()),
           ),
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Tab Switcher (Discover vs Alerts)
-                  Obx(() => Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: CC.isDark ? CC.darkBg2 : CC.surface,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
-                        width: 1,
+        ],
+      ),
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: controller.loadTrends,
+          color: CC.primary,
+          backgroundColor: CC.surface,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Tab Switcher (Discover vs Alerts)
+                Obx(() => Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: CC.isDark ? CC.darkBg2 : CC.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: CC.isDark ? CC.black.withValues(alpha: 0.4) : CC.black.withValues(alpha: 0.08),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: CC.isDark ? CC.black.withValues(alpha: 0.4) : CC.black.withValues(alpha: 0.08),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(child: _topTab("Discover Trends", 0)),
-                        Expanded(child: _topTab("My Trend Alerts", 1)),
-                      ],
-                    ),
-                  )),
-                  16.height,
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(child: _topTab("Discover Trends", 0)),
+                      Expanded(child: _topTab("My Trend Alerts", 1)),
+                    ],
+                  ),
+                )),
+                16.height,
 
-                  // Dynamic Tab Output
-                  Obx(() {
-                    if (controller.activeTab.value == 0) {
-                      return _buildDiscoverTab(context);
-                    } else {
-                      return _buildAlertsTab(context);
-                    }
-                  }),
-                ],
-              ),
+                // Dynamic Tab Output
+                Obx(() {
+                  if (controller.activeTab.value == 0) {
+                    return _buildDiscoverTab(context);
+                  } else {
+                    return _buildAlertsTab(context);
+                  }
+                }),
+              ],
             ),
           ),
-        );
+        ),
+      ),
+    );
       },
     );
   }
@@ -151,18 +160,22 @@ class TrendingView extends GetView<TrendingController> {
         // Trend Cards List
         Obx(() {
           if (controller.isLoading.value) {
-            return const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator()));
+            return CW.skeletonList(itemCount: 4, itemHeight: 110, padding: EdgeInsets.zero);
           }
 
-          return ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: controller.trends.length,
-            separatorBuilder: (context, index) => 12.height,
-            itemBuilder: (context, index) {
-              final trend = controller.trends[index];
-              return _trendCard(context: context, rank: index + 1, trend: trend);
-            },
+          final list = controller.trends;
+          return Column(
+            children: [
+              for (int i = 0; i < list.length; i++) ...[
+                _trendCard(
+                  key: ValueKey('trend_${list[i].id}_$i'),
+                  context: context,
+                  rank: i + 1,
+                  trend: list[i],
+                ),
+                if (i < list.length - 1) 12.height,
+              ],
+            ],
           );
         }),
       ],
@@ -198,8 +211,9 @@ class TrendingView extends GetView<TrendingController> {
     );
   }
 
-  Widget _trendCard({required BuildContext context, required int rank, required TrendModel trend}) {
+  Widget _trendCard({Key? key, required BuildContext context, required int rank, required TrendModel trend}) {
     return Container(
+      key: key,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: CC.surface,
@@ -303,98 +317,105 @@ class TrendingView extends GetView<TrendingController> {
         ),
         10.height,
 
-        Obx(() => ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: controller.alerts.length,
-          separatorBuilder: (context, index) => 12.height,
-          itemBuilder: (context, index) {
-            final alert = controller.alerts[index];
-            final bool isEnabled = alert["enabled"] as bool? ?? true;
-            return Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: CC.surface,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
-                    blurRadius: 14,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  if (alert["unread"] == true)
-                    Container(
-                      width: 8,
-                      height: 8,
-                      margin: const EdgeInsets.only(right: 10),
-                      decoration: BoxDecoration(color: CC.notification, shape: BoxShape.circle),
-                    ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          alert["title"] ?? "",
-                          style: TS.bodySmall(
-                            color: CC.textPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        4.height,
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: CC.primary.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                alert["type"] ?? "Keyword",
-                                style: TS.caption(
-                                  color: CC.primary,
-                                  fontWeight: FontWeight.w700,
-                                ).copyWith(fontSize: 10),
-                              ),
-                            ),
-                            if (alert["sensitivity"] != null) ...[
-                              6.width,
-                              Text(
-                                "• ${alert["sensitivity"]}",
-                                style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 10),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  10.width,
-                  _buildCustomToggleSwitch(
-                    value: isEnabled,
-                    onChanged: (val) => controller.toggleAlert(index),
-                  ),
-                  4.width,
-                  IconButton(
-                    icon: Icon(Icons.delete_outline_rounded, size: 20, color: CC.error.withValues(alpha: 0.8)),
-                    onPressed: () => controller.deleteAlert(index),
-                  ),
-                ],
-              ),
-            );
-          },
-        )),
+        Obx(() {
+          final list = controller.alerts;
+          return Column(
+            children: [
+              for (int index = 0; index < list.length; index++) ...[
+                _buildAlertCard(context, index, list[index]),
+                if (index < list.length - 1) 12.height,
+              ],
+            ],
+          );
+        }),
       ],
     );
   }
+
+  Widget _buildAlertCard(BuildContext context, int index, Map<String, dynamic> alert) {
+    final bool isEnabled = alert["enabled"] as bool? ?? true;
+    return Container(
+      key: ValueKey('alert_${alert["title"]}_$index'),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: CC.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          if (alert["unread"] == true)
+            Container(
+              width: 8,
+              height: 8,
+              margin: const EdgeInsets.only(right: 10),
+              decoration: BoxDecoration(color: CC.notification, shape: BoxShape.circle),
+            ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  alert["title"] as String? ?? "",
+                  style: TS.bodySmall(
+                    color: CC.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                4.height,
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: CC.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        alert["type"] as String? ?? "Keyword",
+                        style: TS.caption(
+                          color: CC.primary,
+                          fontWeight: FontWeight.w700,
+                        ).copyWith(fontSize: 10),
+                      ),
+                    ),
+                    if (alert["sensitivity"] != null) ...[
+                      6.width,
+                      Text(
+                        "• ${alert["sensitivity"]}",
+                        style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 10),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+          10.width,
+          _buildCustomToggleSwitch(
+            value: isEnabled,
+            onChanged: (val) => controller.toggleAlert(index),
+          ),
+          4.width,
+          IconButton(
+            icon: Icon(Icons.delete_outline_rounded, size: 20, color: CC.error.withValues(alpha: 0.8)),
+            onPressed: () => controller.deleteAlert(index),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   /// Custom Sleek Animated Toggle Switch
   Widget _buildCustomToggleSwitch({
