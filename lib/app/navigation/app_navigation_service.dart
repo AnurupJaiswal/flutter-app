@@ -49,6 +49,16 @@ class AppNavigationService extends GetxService {
     return false;
   }
 
+  /// Re-creates unique GlobalKeys for each tab to prevent duplicate key collisions across view recreations
+  void reinitializeKeys() {
+    tabNavigatorKeys[tabDashboard] = GlobalKey<NavigatorState>(debugLabel: 'DashboardTabKey');
+    tabNavigatorKeys[tabStudio] = GlobalKey<NavigatorState>(debugLabel: 'StudioTabKey');
+    tabNavigatorKeys[tabTrends] = GlobalKey<NavigatorState>(debugLabel: 'TrendsTabKey');
+    tabNavigatorKeys[tabCalendar] = GlobalKey<NavigatorState>(debugLabel: 'CalendarTabKey');
+    tabNavigatorKeys[tabDiscover] = GlobalKey<NavigatorState>(debugLabel: 'DiscoverTabKey');
+    _cachedObservers.clear();
+  }
+
   /// Get the active navigator key for a given tab index
   GlobalKey<NavigatorState>? getTabNavigatorKey(int tabIndex) {
     return tabNavigatorKeys[tabIndex];

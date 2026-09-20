@@ -1,5 +1,6 @@
 /// Supported deep link action types in Lala AI.
 enum DeepLinkType {
+  openApp,
   subscriptionSuccess,
   subscriptionFailed,
   subscriptionPending,

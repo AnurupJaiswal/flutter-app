@@ -9,7 +9,7 @@ void main() {
 
   group('DeepLinkRoutes Domain & Segment Parsing Tests', () {
     test('Validates current domain https://lala-ai-green.vercel.app', () {
-      final validHttps = Uri.parse('https://lala-ai-green.vercel.app/subscription/success?orderId=TEST123');
+      final validHttps = Uri.parse('https://lala-ai-green.vercel.app/open-app');
       expect(DeepLinkRoutes.isValidDomainOrScheme(validHttps), isTrue);
     });
 
@@ -27,15 +27,21 @@ void main() {
     });
 
     test('Extracts normalized segments for HTTPS URLs', () {
-      final uri = Uri.parse('https://lala-ai-green.vercel.app/subscription/success?orderId=TEST123');
+      final uri = Uri.parse('https://lala-ai-green.vercel.app/open-app?orderId=ORD123');
       final segments = DeepLinkRoutes.extractNormalizedSegments(uri);
-      expect(segments, equals(['subscription', 'success']));
+      expect(segments, equals(['open-app']));
     });
 
-    test('Extracts normalized segments for custom scheme lala://', () {
-      final uri = Uri.parse('lala://subscription/success?orderId=TEST123');
+    test('Parses 0. /open-app to DeepLinkType.openApp', () {
+      final uri = Uri.parse('https://lala-ai-green.vercel.app/open-app');
       final segments = DeepLinkRoutes.extractNormalizedSegments(uri);
-      expect(segments, equals(['subscription', 'success']));
+      expect(DeepLinkRoutes.parseType(segments), equals(DeepLinkType.openApp));
+    });
+
+    test('Parses 0b. /open-app?orderId=ORD123 to DeepLinkType.openApp', () {
+      final uri = Uri.parse('https://lala-ai-green.vercel.app/open-app?orderId=ORD123');
+      final segments = DeepLinkRoutes.extractNormalizedSegments(uri);
+      expect(DeepLinkRoutes.parseType(segments), equals(DeepLinkType.openApp));
     });
 
     test('Parses 1. /subscription/success', () {
@@ -104,12 +110,6 @@ void main() {
       expect(segments[1], equals('abc123'));
     });
 
-    test('Parses 11. lala://subscription/success?orderId=TEST123', () {
-      final uri = Uri.parse('lala://subscription/success?orderId=TEST123');
-      final segments = DeepLinkRoutes.extractNormalizedSegments(uri);
-      expect(DeepLinkRoutes.parseType(segments), equals(DeepLinkType.subscriptionSuccess));
-    });
-
     test('Parses password reset links /auth/reset-password', () {
       final uri = Uri.parse('https://lala-ai-green.vercel.app/auth/reset-password?token=XYZ_TOKEN');
       final segments = DeepLinkRoutes.extractNormalizedSegments(uri);
@@ -132,20 +132,19 @@ void main() {
       ApiService.token = null;
     });
 
-    test('Queues link as pending when app is not yet ready (Cold Start)', () async {
-      final uri = Uri.parse('https://lala-ai-green.vercel.app/subscription/success?orderId=TEST123');
+    test('Queues open-app with orderId when app is not yet ready (Cold Start)', () async {
+      final uri = Uri.parse('https://lala-ai-green.vercel.app/open-app?orderId=ORD123');
       final routed = await DeepLinkRouter.routeUri(uri, isColdStart: true);
 
       expect(routed, isTrue);
       expect(DeepLinkRouter.pendingLink, isNotNull);
-      expect(DeepLinkRouter.pendingLink!.type, equals(DeepLinkType.subscriptionSuccess));
-      expect(DeepLinkRouter.pendingLink!.queryParameters['orderId'], equals('TEST123'));
+      expect(DeepLinkRouter.pendingLink!.type, equals(DeepLinkType.openApp));
+      expect(DeepLinkRouter.pendingLink!.queryParameters['orderId'], equals('ORD123'));
     });
 
     test('Queues protected link when user is unauthenticated', () async {
-      // Simulate app is ready but user is not logged in
       DeepLinkRouter.setAppReady(ready: true);
-      ApiService.token = null; // Unauthenticated
+      ApiService.token = null;
 
       final uri = Uri.parse('https://lala-ai-green.vercel.app/content/123');
       final routed = await DeepLinkRouter.routeUri(uri);

@@ -25,10 +25,6 @@ class ApiEndpoints {
   static const String completeSetup = '/api/v1/auth/complete-setup';
   static const String me = '/api/v1/auth/me';
 
-  static const String mobileCreateHandoff =
-      '/api/v1/auth/mobile/create-handoff';
-  static const String mobileExchangeHandoff =
-      '/api/v1/auth/mobile/exchange-handoff';
   static const String magicLinkRequest = '/api/v1/auth/magic-link/request';
   static const String magicLinkVerify = '/api/v1/auth/magic-link/verify';
 

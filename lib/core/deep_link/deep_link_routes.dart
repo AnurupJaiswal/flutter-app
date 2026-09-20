@@ -8,7 +8,7 @@ class DeepLinkRoutes {
   /// Note: lalaai.in will be added in a future update.
   static const String supportedDomain = 'lala-ai-green.vercel.app';
 
-  /// Custom URL scheme
+  /// Custom URL scheme (legacy fallback)
   static const String customScheme = 'lala';
 
   /// Normalizes URI into a clean list of lowercased path segments.
@@ -49,7 +49,11 @@ class DeepLinkRoutes {
     }
     if (scheme == 'https' || scheme == 'http') {
       final host = uri.host.toLowerCase();
-      return host == supportedDomain;
+      // Allow production domain as well as trycloudflare dev tunnels for testing
+      return host == supportedDomain ||
+          host.endsWith('.trycloudflare.com') ||
+          host == 'localhost' ||
+          host == '127.0.0.1';
     }
     return false;
   }
@@ -59,6 +63,11 @@ class DeepLinkRoutes {
     if (segments.isEmpty) return DeepLinkType.unknown;
 
     final first = segments[0];
+
+    // 0. App Open Route: /open-app, /open, /app
+    if (first == 'open-app' || first == 'open' || first == 'app') {
+      return DeepLinkType.openApp;
+    }
 
     // 1. Subscription Routes: /subscription/success, /subscription/failed, /subscription/pending
     if (first == 'subscription') {

@@ -1,3 +1,5 @@
+import 'package:lala_ai/app/modules/splash/bindings/splash_binding.dart';
+import 'package:lala_ai/app/modules/splash/views/splash_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -33,6 +35,11 @@ void main() async {
         title: "Lala Ai",
         initialRoute: AppPages.INITIAL,
         getPages: AppPages.routes,
+        unknownRoute: GetPage(
+          name: '/notfound',
+          page: () => const SplashView(),
+          binding: SplashBinding(),
+        ),
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme(fontFamily: "Poppins"),
         darkTheme: AppTheme.darkTheme(fontFamily: "Poppins"),

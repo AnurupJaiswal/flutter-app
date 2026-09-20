@@ -1036,7 +1036,7 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView>
                   textAlign: TextAlign.center,
                   style: TS.bodySmall(color: CC.textSecondary).copyWith(height: 1.4),
                 ),
-                24.height,
+                 24.height,
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(

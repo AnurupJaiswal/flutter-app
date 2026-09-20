@@ -156,6 +156,7 @@ class DeepLinkRouter {
       case DeepLinkType.connectAccounts:
       case DeepLinkType.settings:
         return true;
+      case DeepLinkType.openApp:
       case DeepLinkType.resetPassword:
       case DeepLinkType.unknown:
         return false;
@@ -170,6 +171,32 @@ class DeepLinkRouter {
     required Uri uri,
   }) async {
     switch (type) {
+      // -- APP OPEN (Canonical HTTPS route: /open-app) ----------------
+      case DeepLinkType.openApp:
+        final orderId = params['orderId'] ??
+            params['order_id'] ??
+            params['orderID'] ??
+            params['id'] ??
+            params['sessionId'] ??
+            params['session_id'] ??
+            params['reference'];
+        if (orderId != null && orderId.trim().isNotEmpty) {
+          try {
+            if (Get.isRegistered<AuthRepository>()) {
+              await Get.find<AuthRepository>().fetchAndSaveMe();
+            } else {
+              await Get.put<AuthRepository>(ApiAuthRepository()).fetchAndSaveMe();
+            }
+          } catch (_) {}
+          AppToast.success("Subscription verified for Order #$orderId");
+        }
+        if (ApiService.isAuthenticated) {
+          _switchTab(AppNavigationService.tabDashboard);
+        } else {
+          _navigateToLogin();
+        }
+        return true;
+
       // ── SUBSCRIPTION LINKS ──────────────────────────────────────────────────
       case DeepLinkType.subscriptionSuccess:
         return await _handleSubscription(status: 'success', params: params);

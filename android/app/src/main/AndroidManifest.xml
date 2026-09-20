@@ -40,17 +40,37 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
             
-            <!-- Android App Links: https://lala-ai-green.vercel.app/ -->
+            <!-- Android App Links: Canonical HTTPS Deep Links (Specific Path Prefixes Only) -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="https"
-                    android:host="lala-ai-green.vercel.app" />
+                <data android:scheme="https" android:host="lala-ai-green.vercel.app" android:pathPrefix="/open-app" />
+                <data android:scheme="https" android:host="lala-ai-green.vercel.app" android:pathPrefix="/open" />
+                <data android:scheme="https" android:host="lala-ai-green.vercel.app" android:pathPrefix="/app" />
+                <data android:scheme="https" android:host="lala-ai-green.vercel.app" android:pathPrefix="/subscription" />
+                <data android:scheme="https" android:host="lala-ai-green.vercel.app" android:pathPrefix="/oauth" />
+                <data android:scheme="https" android:host="lala-ai-green.vercel.app" android:pathPrefix="/auth/reset-password" />
+                <data android:scheme="https" android:host="lala-ai-green.vercel.app" android:pathPrefix="/content" />
+                <data android:scheme="https" android:host="lala-ai-green.vercel.app" android:pathPrefix="/post" />
+                <data android:scheme="https" android:host="lala-ai-green.vercel.app" android:pathPrefix="/creator" />
+                <data android:scheme="https" android:host="lala-ai-green.vercel.app" android:pathPrefix="/share" />
+                <data android:scheme="https" android:host="lala-ai-green.vercel.app" android:pathPrefix="/invite" />
             </intent-filter>
 
-            <!-- Custom URL Scheme: lala:// -->
+            <!-- Cloudflare Dev Tunnel Testing: https://*.trycloudflare.com/ -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="everyone-sleeve-pioneer-emotions.trycloudflare.com" android:pathPrefix="/open-app" />
+                <data android:scheme="https" android:host="everyone-sleeve-pioneer-emotions.trycloudflare.com" android:pathPrefix="/open" />
+                <data android:scheme="https" android:host="everyone-sleeve-pioneer-emotions.trycloudflare.com" android:pathPrefix="/app" />
+                <data android:scheme="https" android:host="everyone-sleeve-pioneer-emotions.trycloudflare.com" android:pathPrefix="/subscription" />
+                <data android:scheme="https" android:host="everyone-sleeve-pioneer-emotions.trycloudflare.com" android:pathPrefix="/oauth" />
+            </intent-filter>
+
+            <!-- Custom URL Scheme: lala:// (Legacy fallback) -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
