@@ -177,18 +177,34 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView>
         return;
       }
 
-      // Launch in-app browser view
+      // Launch in-app browser view (forces Custom Tabs / In-App Browser to prevent native app intent hijacking and preserve OAuth state)
       bool launched = false;
       try {
-        launched = await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
+        launched = await launchUrl(
+          uri,
+          mode: LaunchMode.inAppBrowserView,
+          browserConfiguration: const BrowserConfiguration(showTitle: true),
+        );
       } catch (_) {
         launched = false;
       }
 
-      // Fallback to external browser if inAppBrowserView failed
+      // Fallback to inAppWebView if inAppBrowserView is unsupported
       if (!launched) {
         try {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
+          launched = await launchUrl(
+            uri,
+            mode: LaunchMode.inAppWebView,
+          );
+        } catch (_) {
+          launched = false;
+        }
+      }
+
+      // Final fallback to platformDefault web browser
+      if (!launched) {
+        try {
+          await launchUrl(uri, mode: LaunchMode.platformDefault);
         } catch (e) {
           AppToast.error("Failed to open browser: $e");
           return;
