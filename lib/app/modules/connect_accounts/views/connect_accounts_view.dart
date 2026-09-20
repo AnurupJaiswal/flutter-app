@@ -407,10 +407,6 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView>
                             entitlement: igEntitlement,
                           ),
                           20.height,
-
-                          // --- SECURITY FOOTER ---
-                          _buildSecurityFooter(),
-                          24.height,
                         ],
                       ),
                     ),
@@ -872,26 +868,6 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView>
               );
             }),
           ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSecurityFooter() {
-    return Center(
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.lock_outline_rounded, size: 13, color: CC.textSecondary.withValues(alpha: 0.8)),
-          6.width,
-          Flexible(
-            child: Text(
-              "Your data is secure and never shared without your permission.",
-              textAlign: TextAlign.center,
-              style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11),
-            ),
-          ),
         ],
       ),
     );
