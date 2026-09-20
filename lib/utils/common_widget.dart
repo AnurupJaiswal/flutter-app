@@ -814,12 +814,19 @@ class CW {
     double height = 90,
     double? width,
     EdgeInsetsGeometry? margin,
+    EdgeInsetsGeometry? padding,
   }) {
+    final effectivePadding = padding ??
+        (height < 75
+            ? const EdgeInsets.symmetric(horizontal: 14, vertical: 8)
+            : const EdgeInsets.all(16));
+    final avatarSize = height < 75 ? (height - 20).clamp(24.0, 44.0) : 44.0;
+
     return Container(
       width: width ?? double.infinity,
       height: height,
       margin: margin ?? const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      padding: effectivePadding,
       decoration: BoxDecoration(
         color: CC.surface,
         borderRadius: BorderRadius.circular(14),
@@ -831,16 +838,25 @@ class CW {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          skeletonBox(width: 44, height: 44, borderRadius: BorderRadius.circular(10)),
+          skeletonBox(width: avatarSize, height: avatarSize, borderRadius: BorderRadius.circular(10)),
           12.width,
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                skeletonBox(width: double.infinity, height: 14, borderRadius: BorderRadius.circular(4)),
-                8.height,
-                skeletonBox(width: 120, height: 10, borderRadius: BorderRadius.circular(4)),
+                skeletonBox(
+                  width: double.infinity,
+                  height: height < 75 ? 12 : 14,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                (height < 75 ? 5 : 8).height,
+                skeletonBox(
+                  width: 120,
+                  height: height < 75 ? 9 : 10,
+                  borderRadius: BorderRadius.circular(4),
+                ),
               ],
             ),
           ),

@@ -6,6 +6,7 @@ import 'package:lala_ai/app/modules/authentication/data/auth_repository.dart';
 import 'package:lala_ai/app/modules/home/controllers/home_controller.dart';
 import 'package:lala_ai/networking/api_service.dart';
 import 'package:lala_ai/utils/app_toast.dart';
+import 'package:lala_ai/utils/extensions.dart';
 
 class AnalyticsController extends GetxController {
   final AnalyticsRepository analyticsRepository;
@@ -38,6 +39,18 @@ class AnalyticsController extends GetxController {
   final engagementDataRx = Rxn<AnalyticsEngagementData>();
   final activityData = Rxn<AnalyticsActivityData>();
   final topContentItems = <AnalyticsTopContentItem>[].obs;
+
+  // Audit & Health Score States (from GET /api/v1/dashboard/overview?connectedAccountId=...)
+  final hasAuditData = false.obs;
+  final healthScore = 0.obs;
+  final engagementScore = 0.obs;
+  final consistencyScore = 0.obs;
+  final growthScore = 0.obs;
+  final reachScore = 0.obs;
+  final auditStatus = "".obs;
+  final lastSyncedText = "".obs;
+  final isAuditing = false.obs;
+  final auditData = Rxn<ChannelAuditData>();
 
   bool get hasAnyChannels => availableChannels.isNotEmpty;
 
@@ -186,7 +199,7 @@ class AnalyticsController extends GetxController {
         if (active != null) {
           selectedChannel.value = active;
           selectedPlatform.value = active.platform == 'INSTAGRAM' ? 'Instagram' : 'YouTube';
-          await _fetchAnalyticsData();
+          await _fetchAnalyticsData(isRefresh: true);
         } else {
           _resetAnalyticsState();
         }
@@ -205,26 +218,84 @@ class AnalyticsController extends GetxController {
     }
   }
 
-  Future<void> _fetchAnalyticsData() async {
+  Future<void> _fetchAnalyticsData({bool isRefresh = false}) async {
     final platform = selectedPlatform.value.toLowerCase();
     final period = _periodParam;
+    final channelId = selectedChannel.value?.id;
 
     try {
-      final results = await Future.wait([
+      final futures = <Future<dynamic>>[
         analyticsRepository.getOverview(platform, period: period),
         analyticsRepository.getGrowth(platform, period: period),
         analyticsRepository.getEngagement(platform, period: period),
         analyticsRepository.getActivity(platform, period: period),
         analyticsRepository.getTopContent(platform, period: period, limit: 5),
-      ]);
+      ];
+      if (channelId != null) {
+        futures.add(dashboardRepository.getDashboardOverview(channelId));
+      }
+
+      final results = await Future.wait(futures);
 
       overviewData.value = results[0] as AnalyticsOverviewData?;
       growthData.value = results[1] as AnalyticsGrowthData?;
       engagementDataRx.value = results[2] as AnalyticsEngagementData?;
       activityData.value = results[3] as AnalyticsActivityData?;
       topContentItems.assignAll((results[4] as List<AnalyticsTopContentItem>?) ?? []);
+
+      if (channelId != null && results.length > 5) {
+        final audit = results[5] as ChannelAuditData?;
+        if (audit != null) {
+          auditData.value = audit;
+          hasAuditData.value = true;
+          healthScore.value = audit.healthScore;
+          engagementScore.value = audit.engagementScore;
+          consistencyScore.value = audit.consistencyScore;
+          growthScore.value = audit.growthScore;
+          reachScore.value = audit.reachScore;
+          auditStatus.value = audit.auditStatus.isNotEmpty
+              ? audit.auditStatus
+              : (audit.healthScore > 0 ? "AUDITED" : "Needs Audit");
+          lastSyncedText.value = audit.dataAsOf != null && audit.dataAsOf!.isNotEmpty
+              ? "Data as of ${audit.dataAsOf!.formatSyncDate}"
+              : "Synced recently";
+        } else if (!isRefresh) {
+          hasAuditData.value = false;
+          auditData.value = null;
+          healthScore.value = 0;
+          engagementScore.value = 0;
+          consistencyScore.value = 0;
+          growthScore.value = 0;
+          reachScore.value = 0;
+          auditStatus.value = "";
+          lastSyncedText.value = "";
+        }
+      }
     } catch (e) {
       debugPrint("Error fetching analytics data: $e");
+    }
+  }
+
+  Future<void> runChannelAudit() async {
+    final activeId = selectedChannel.value?.id;
+    if (activeId == null) {
+      AppToast.info("Please select or connect a channel first.");
+      return;
+    }
+    isAuditing.value = true;
+    try {
+      final success = await dashboardRepository.triggerAudit(activeId);
+      if (success) {
+        AppToast.success("Channel audit initiated! Refreshing analysis...");
+        await _fetchAnalyticsData(isRefresh: true);
+      } else {
+        AppToast.error("Failed to run channel audit. Please try again.");
+      }
+    } catch (e) {
+      debugPrint("runChannelAudit error: $e");
+      AppToast.error("Error triggering channel audit.");
+    } finally {
+      isAuditing.value = false;
     }
   }
 
@@ -234,6 +305,15 @@ class AnalyticsController extends GetxController {
     engagementDataRx.value = null;
     activityData.value = null;
     topContentItems.clear();
+    hasAuditData.value = false;
+    healthScore.value = 0;
+    engagementScore.value = 0;
+    consistencyScore.value = 0;
+    growthScore.value = 0;
+    reachScore.value = 0;
+    auditStatus.value = "";
+    lastSyncedText.value = "";
+    auditData.value = null;
   }
 
   void setDateRange(String range) {
@@ -265,7 +345,7 @@ class AnalyticsController extends GetxController {
 
   // 1. Overall Channel Score
   Map<String, dynamic> get channelScoreData {
-    final score = overviewData.value?.channelScore ?? 0;
+    final score = hasAuditData.value ? healthScore.value : (overviewData.value?.channelScore ?? 0);
     String status = "Needs Audit";
     if (score >= 80) {
       status = "Excellent";

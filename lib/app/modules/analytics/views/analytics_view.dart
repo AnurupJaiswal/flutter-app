@@ -70,10 +70,8 @@ class AnalyticsView extends StatelessWidget {
                   if (controller.isLoading.value && !controller.isRefreshing.value) ...[
                     _buildLoadingPlaceholder(),
                   ] else ...[
-                    // ── 1. Overall Channel Score (Compact Hero Section) ────
-                    _buildSectionHeader("OVERALL CHANNEL SCORE"),
-                    8.height,
-                    _buildOverallScoreCard(controller),
+                    // ── 1. Channel Health Audit (Score & 4 Pillars Breakdown) ────
+                    _buildHealthScoreSection(context, controller),
                     20.height,
 
                         // ── 2. Key Performance Metrics Grid ────────────────────
@@ -473,87 +471,193 @@ class AnalyticsView extends StatelessWidget {
   }
 
 
-  // ── 1. Overall Channel Score (Compact Hero Section) ──────────────────────
-  Widget _buildOverallScoreCard(AnalyticsController controller) {
-    final data = controller.channelScoreData;
-    final score = data["score"] as int;
-    final status = data["status"] as String;
-    final subtitle = data["subtitle"] as String;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: CC.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: CC.isDark ? CC.black.withValues(alpha: 0.35) : CC.black.withValues(alpha: 0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
+  // ── 1. Channel Health Audit (Score & 4 Pillars Breakdown) ──────────────────
+  Widget _buildHealthScoreSection(BuildContext context, AnalyticsController controller) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildSectionHeader("CHANNEL HEALTH AUDIT"),
+            Obx(() => GestureDetector(
+              onTap: controller.isAuditing.value ? null : () => controller.runChannelAudit(),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: CC.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: CC.primary.withValues(alpha: 0.25), width: 0.8),
+                ),
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      "$score",
-                      style: TS.displayLarge(
-                        color: CC.textPrimary,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 34,
+                    if (controller.isAuditing.value) ...[
+                      SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: CC.primary),
+                      ),
+                      6.width,
+                      Text("Auditing...", style: TS.caption(color: CC.primary, fontWeight: FontWeight.w700).copyWith(fontSize: 11)),
+                    ] else ...[
+                      Icon(Icons.refresh_rounded, size: 14, color: CC.primary),
+                      4.width,
+                      Text("Run Audit", style: TS.caption(color: CC.primary, fontWeight: FontWeight.w700).copyWith(fontSize: 11)),
+                    ],
+                  ],
+                ),
+              ),
+            )),
+          ],
+        ),
+        8.height,
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: CC.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
+                blurRadius: 14,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Obx(() {
+            final hasAudit = controller.hasAuditData.value;
+            final score = controller.healthScore.value;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    // RepaintBoundary isolates circular meter repaints
+                    RepaintBoundary(
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          SizedBox(
+                            width: 72,
+                            height: 72,
+                            child: CircularProgressIndicator(
+                              value: hasAudit && score > 0 ? (score / 100) : 0.0,
+                              strokeWidth: 7,
+                              backgroundColor: CC.primary.withValues(alpha: 0.12),
+                              color: score >= 80
+                                  ? CC.success
+                                  : (score >= 60 ? CC.primary : CC.error),
+                              strokeCap: StrokeCap.round,
+                            ),
+                          ),
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                hasAudit ? "$score" : "--",
+                                style: TS.sectionTitle(color: CC.textPrimary, fontSize: 20),
+                              ),
+                              Text(
+                                "/100",
+                                style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 10),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                    Text(
-                      "/100",
-                      style: TS.sectionTitle(color: CC.textSecondary, fontSize: 16),
-                    ),
-                    10.width,
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: score > 0 ? const Color(0xFFE8F5E9) : CC.searchBackground,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        status,
-                        style: TS.caption(
-                          color: score > 0 ? const Color(0xFF2E7D32) : CC.textSecondary,
-                          fontWeight: FontWeight.w700,
-                        ).copyWith(fontSize: 11.5),
+                    18.width,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            hasAudit
+                                ? (score >= 80
+                                    ? "Channel Health: Excellent ($score%)"
+                                    : (score >= 50 ? "Channel Health: Good ($score%)" : "Channel Health: Needs Work ($score%)"))
+                                : "Channel Health: Pending Audit",
+                            style: TS.bodySmall(color: CC.textPrimary, fontWeight: FontWeight.w700),
+                          ),
+                          4.height,
+                          Text(
+                            hasAudit
+                                ? (controller.lastSyncedText.value.isNotEmpty
+                                    ? "Audit score calculated from retention, SEO metadata, and upload pacing. ${controller.lastSyncedText.value}."
+                                    : "Audit score calculated from your live channel metrics.")
+                                : "No audit data yet. Tap 'Run Audit' above to calculate your score.",
+                            style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11, height: 1.3),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: CC.primary.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
+                16.height,
+                // 4-pillar audit sub-scores breakdown
+                Row(
+                  children: [
+                    _buildScorePill(
+                        "Engagement",
+                        hasAudit ? "${controller.engagementScore.value}%" : "--",
+                        Icons.thumb_up_alt_outlined),
+                    6.width,
+                    _buildScorePill(
+                        "Consistency",
+                        hasAudit ? "${controller.consistencyScore.value}%" : "--",
+                        Icons.calendar_month_outlined),
+                    6.width,
+                    _buildScorePill(
+                        "Growth",
+                        hasAudit ? "${controller.growthScore.value}%" : "--",
+                        Icons.trending_up_rounded),
+                    6.width,
+                    _buildScorePill(
+                        "Reach",
+                        hasAudit ? "${controller.reachScore.value}%" : "--",
+                        Icons.remove_red_eye_outlined),
+                  ],
                 ),
-                child: Icon(Icons.auto_awesome_rounded, color: CC.primary, size: 20),
-              ),
-            ],
-          ),
-          8.height,
-          Text(
-            subtitle,
-            style: TS.bodySmall(color: CC.textSecondary).copyWith(fontSize: 13, height: 1.45),
-          ),
-        ],
+              ],
+            );
+          }),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildScorePill(String title, String value, IconData icon) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
+        decoration: BoxDecoration(
+          color: CC.primary.withValues(alpha: 0.07),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: CC.primary.withValues(alpha: 0.15)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 13, color: CC.primary),
+            4.height,
+            Text(
+              value,
+              style: TS.caption(color: CC.textPrimary, fontWeight: FontWeight.w700).copyWith(fontSize: 11),
+            ),
+            2.height,
+            Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 9),
+            ),
+          ],
+        ),
       ),
     );
   }

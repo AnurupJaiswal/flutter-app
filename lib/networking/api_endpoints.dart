@@ -90,4 +90,9 @@ class ApiEndpoints {
   static const String dashboardTodosConvert = '/api/v1/dashboard/todos/convert';
   static String dashboardTodoUpdate(dynamic todoId) => '/api/v1/dashboard/todos/$todoId';
   static String dashboardTodoDelete(dynamic todoId) => '/api/v1/dashboard/todos/$todoId';
+
+  // --- Public Documents & FAQs Endpoints ---
+  static const String publicPrivacy = '/api/v1/public/documents/privacy';
+  static const String publicTerms = '/api/v1/public/documents/terms';
+  static const String publicFaqs = '/api/v1/public/faqs';
 }

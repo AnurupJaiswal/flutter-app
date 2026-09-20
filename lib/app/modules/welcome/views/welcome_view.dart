@@ -64,7 +64,7 @@ class WelcomeView extends StatelessWidget {
                   child: ConstrainedBox(
                     constraints: BoxConstraints(minHeight: constraints.maxHeight),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -94,26 +94,26 @@ class WelcomeView extends StatelessWidget {
   // ── Header ───────────────────────────────────────────────────
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+      padding: const EdgeInsets.only(top: 4, bottom: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            width: 36,
-            height: 36,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              color: CC.primary.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(11),
+              color: CC.primary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: CC.primary.withValues(alpha: 0.33),
-                width: 0.8,
+                color: CC.primary.withValues(alpha: 0.25),
+                width: 1,
               ),
             ),
             child: Center(
               child: Icon(
                 Icons.auto_awesome_rounded,
                 color: CC.primary,
-                size: 18,
+                size: 20,
               ),
             ),
           ),
@@ -148,14 +148,14 @@ class WelcomeView extends StatelessWidget {
                 style: TS.caption(
                   color: CC.textSecondary,
                   fontWeight: FontWeight.w600,
-                  fontSize: 7,
+                  fontSize: 7.5,
                 ).copyWith(letterSpacing: 1.5),
               ),
             ],
           ),
           const Spacer(),
           ClipRRect(
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(24),
             child: Material(
               color: CC.primary,
               child: InkWell(
@@ -163,13 +163,13 @@ class WelcomeView extends StatelessWidget {
                 splashColor: CC.white.withValues(alpha: 0.20),
                 highlightColor: CC.white.withValues(alpha: 0.10),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   child: Text(
                     'Sign In',
                     style: TS.button(
                       color: CC.white,
                       fontWeight: FontWeight.w700,
-                      fontSize: 13.5,
+                      fontSize: 14,
                     ),
                   ),
                 ),

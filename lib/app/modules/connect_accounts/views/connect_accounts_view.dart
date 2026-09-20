@@ -177,38 +177,27 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView>
         return;
       }
 
-      // Launch in-app browser view (forces Custom Tabs / In-App Browser to prevent native app intent hijacking and preserve OAuth state)
+      debugPrint("══════════════════════════════════════════════════════════");
+      debugPrint("[OAuth Connect] Opening Auth URL for $platform:");
+      debugPrint("[OAuth Connect] URL: $authUrl");
+      debugPrint("[OAuth Connect] Scheme: ${uri.scheme} | Host: ${uri.host}");
+      debugPrint("[OAuth Connect] Query Params: ${uri.queryParameters}");
+      debugPrint("══════════════════════════════════════════════════════════");
+
       bool launched = false;
       try {
         launched = await launchUrl(
           uri,
-          mode: LaunchMode.inAppBrowserView,
-          browserConfiguration: const BrowserConfiguration(showTitle: true),
+          mode: LaunchMode.externalApplication,
         );
-      } catch (_) {
+      } catch (e) {
         launched = false;
+        debugPrint("[OAuth Connect] Error launching external browser: $e");
       }
 
-      // Fallback to inAppWebView if inAppBrowserView is unsupported
       if (!launched) {
-        try {
-          launched = await launchUrl(
-            uri,
-            mode: LaunchMode.inAppWebView,
-          );
-        } catch (_) {
-          launched = false;
-        }
-      }
-
-      // Final fallback to platformDefault web browser
-      if (!launched) {
-        try {
-          await launchUrl(uri, mode: LaunchMode.platformDefault);
-        } catch (e) {
-          AppToast.error("Failed to open browser: $e");
-          return;
-        }
+        AppToast.error("Could not open web browser for authorization.");
+        return;
       }
 
       // When user returns from browser, refresh connection status from backend
