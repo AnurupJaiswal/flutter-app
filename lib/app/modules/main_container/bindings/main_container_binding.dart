@@ -13,6 +13,8 @@ import 'package:lala_ai/app/modules/main_container/controllers/main_container_co
 import 'package:lala_ai/app/modules/saved/controllers/saved_controller.dart';
 import 'package:lala_ai/app/modules/settings/controllers/settings_controller.dart';
 import 'package:lala_ai/app/modules/trending/controllers/trending_controller.dart';
+import 'package:lala_ai/app/modules/studio/controllers/studio_controller.dart';
+import 'package:lala_ai/app/modules/studio/data/studio_chat_repository.dart';
 
 class MainContainerBinding extends Bindings {
   @override
@@ -39,6 +41,14 @@ class MainContainerBinding extends Bindings {
         ));
     Get.lazyPut<SavedController>(() => SavedController(savedRepository: Get.find()));
     Get.lazyPut<ChatController>(() => ChatController(repository: Get.find()));
+
+    // Studio — registered here because StudioView lives in IndexedStack (not a route push)
+    if (!Get.isRegistered<StudioChatRepository>()) {
+      Get.lazyPut<StudioChatRepository>(() => MockStudioChatRepository());
+    }
+    if (!Get.isRegistered<StudioController>()) {
+      Get.lazyPut<StudioController>(() => StudioController(repository: Get.find<StudioChatRepository>()));
+    }
 
     if (!Get.isRegistered<SettingsController>()) {
       Get.lazyPut<SettingsController>(() => SettingsController(

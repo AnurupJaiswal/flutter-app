@@ -1,4 +1,4 @@
-﻿class ApiEndpoints {
+class ApiEndpoints {
   // Base URLs
   // static const String baseUrl =
   //     'https://purple-primarily-coated-happens.trycloudflare.com';
@@ -138,6 +138,37 @@
       '/api/v1/dashboard/todos/$todoId';
   static String dashboardTodoDelete(dynamic todoId) =>
       '/api/v1/dashboard/todos/$todoId';
+
+  // --- Auth Endpoints (aliases & extended) ---
+  static const String refresh = '/api/v1/auth/refresh';
+  static const String register = '/api/v1/auth/register';
+  static const String magicLinkRequest = '/api/v1/auth/magic-link/request';
+  static const String magicLinkVerify = '/api/v1/auth/magic-link/verify';
+  static const String sendEmailOtp = '/api/v1/auth/email-otp/send';
+  static const String verifyEmailOtp = '/api/v1/auth/email-otp/verify';
+  static const String forgotPassword = '/api/v1/auth/forgot-password';
+  static const String resetPassword = '/api/v1/auth/reset-password';
+  static const String changePassword = '/api/v1/auth/password';
+
+  // --- Creator Profile Endpoints ---
+  static const String creatorProfile = '/api/v1/creators/me/profile';
+  static const String updateCreatorProfile = '/api/v1/creators/me/profile';
+
+  // --- Platform Auth & Disconnect Endpoints ---
+  static String platformAuthUrl(String platform) =>
+      '/api/v1/creators/me/connections/${platform.toUpperCase()}/auth-url';
+  static String disconnectConnectionAccount(dynamic accountId) =>
+      '/api/v1/creators/me/connections/accounts/$accountId';
+  static String disconnectPlatform(String platform) =>
+      '/api/v1/creators/me/connections/${platform.toUpperCase()}';
+
+  // --- Chat Endpoints ---
+  static const String chats = '/api/v1/chats';
+  static String chatDetails(String chatId) => '/api/v1/chats/$chatId';
+  static String chatMessages(String chatId) => '/api/v1/chats/$chatId/messages';
+
+  // --- Dashboard Audit Endpoint ---
+  static const String dashboardAudit = '/api/v1/dashboard/audit';
 
   // --- Public Documents & FAQs Endpoints ---
   static const String publicPrivacy = '/api/v1/public/documents/privacy';

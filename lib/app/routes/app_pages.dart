@@ -20,6 +20,8 @@ import 'package:lala_ai/app/modules/settings/views/legal_webview_view.dart';
 import 'package:lala_ai/app/modules/settings/views/settings_view.dart';
 import 'package:lala_ai/app/modules/splash/bindings/splash_binding.dart';
 import 'package:lala_ai/app/modules/splash/views/splash_view.dart';
+import 'package:lala_ai/app/modules/studio/bindings/studio_binding.dart';
+import 'package:lala_ai/app/modules/studio/views/studio_conversation_view.dart';
 import 'package:lala_ai/app/modules/studio/views/studio_view.dart';
 import 'package:lala_ai/app/modules/welcome/bindings/welcome_binding.dart';
 import 'package:lala_ai/app/modules/welcome/views/welcome_view.dart';
@@ -82,6 +84,14 @@ class AppPages {
     GetPage(
       name: Routes.STUDIO,
       page: () => const StudioView(),
+      binding: StudioBinding(),
+      transition: Transition.rightToLeftWithFade,
+      middlewares: [AuthGuardMiddleware()],
+    ),
+    GetPage(
+      name: Routes.STUDIO_CONVERSATION,
+      page: () => const StudioConversationView(),
+      binding: StudioBinding(),
       transition: Transition.rightToLeftWithFade,
       middlewares: [AuthGuardMiddleware()],
     ),
