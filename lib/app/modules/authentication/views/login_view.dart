@@ -151,7 +151,35 @@ class LoginView extends GetView<AuthController> {
                 onTap: controller.signIn,
               )),
 
+          24.height,
 
+          // 7. Don't have an account? Sign up on Website Link
+          Center(
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  "Don't have an account? ",
+                  style: TS.bodySmall(color: CC.textSecondary, fontSize: 13.5),
+                ),
+                GestureDetector(
+                  onTap: controller.openSignupWebsite,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text(
+                      "Sign up",
+                      style: TS.bodySmall(
+                        color: CC.primary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

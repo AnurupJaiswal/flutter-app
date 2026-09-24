@@ -386,6 +386,8 @@ class _CompetitorViewState extends State<CompetitorView> {
                     final isSelected = homeController?.selectedChannel.value?.id.toString() == ch.id.toString();
                     final isYt = ch.platform.toUpperCase() == 'YOUTUBE';
                     final displayHandle = ch.handle.startsWith('@') ? ch.handle : "@${ch.handle}";
+                    final statusColor = ch.statusColor;
+                    final statusText = ch.statusDisplay;
 
                     return Container(
                       margin: const EdgeInsets.only(bottom: 10),
@@ -398,27 +400,101 @@ class _CompetitorViewState extends State<CompetitorView> {
                         ),
                       ),
                       child: ListTile(
-                        leading: Container(
-                          width: 38,
-                          height: 38,
-                          decoration: BoxDecoration(
-                            color: isYt
-                                ? const Color(0xFFFF0000).withValues(alpha: 0.08)
-                                : const Color(0xFFE1306C).withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Center(
-                            child: isYt ? CW.youtubeIcon(size: 20) : CW.instagramIcon(size: 20),
-                          ),
+                        dense: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                        leading: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Container(
+                              width: 38,
+                              height: 38,
+                              decoration: BoxDecoration(
+                                color: isYt
+                                    ? const Color(0xFFFF0000).withValues(alpha: 0.08)
+                                    : const Color(0xFFE1306C).withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: isYt
+                                      ? const Color(0xFFFF0000).withValues(alpha: 0.2)
+                                      : const Color(0xFFE1306C).withValues(alpha: 0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Center(
+                                child: isYt ? CW.youtubeIcon(size: 20) : CW.instagramIcon(size: 20),
+                              ),
+                            ),
+                            Positioned(
+                              right: -2,
+                              bottom: -2,
+                              child: Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  color: statusColor,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: CC.surface,
+                                    width: 1.5,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        title: Text(
-                          ch.name.isNotEmpty ? ch.name : displayHandle,
-                          style: TS.bodySmall(
-                            color: CC.textPrimary,
-                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                          ),
+                        title: Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                ch.name.isNotEmpty ? ch.name : displayHandle,
+                                style: TS.bodySmall(
+                                  color: CC.textPrimary,
+                                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            8.width,
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: statusColor.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: statusColor.withValues(alpha: 0.3),
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 5,
+                                    height: 5,
+                                    decoration: BoxDecoration(
+                                      color: statusColor,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  4.width,
+                                  Text(
+                                    statusText,
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: statusColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                        subtitle: Text("${ch.platform} • $displayHandle", style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11)),
+                        subtitle: Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Text("${ch.platform} • $displayHandle", style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11)),
+                        ),
                         trailing: isSelected
                             ? Icon(Icons.check_circle_rounded, color: CC.primary, size: 22)
                             : null,
@@ -566,8 +642,8 @@ class _CompetitorViewState extends State<CompetitorView> {
           // Table Row 5: Posting Frequency
           _buildTableRow(
               "Posting Frequency", 
-              "${_formatMetric(you.postingFrequencyPerWeek, isFrequency: true)}", 
-              "${_formatMetric(them.postingFrequencyPerWeek, isFrequency: true)}",
+              _formatMetric(you.postingFrequencyPerWeek, isFrequency: true), 
+              _formatMetric(them.postingFrequencyPerWeek, isFrequency: true),
               them.dataStatus),
           
           if (them.dataStatus == 'PARTIAL') ...[

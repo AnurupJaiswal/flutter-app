@@ -18,7 +18,7 @@ class SkeletonShimmer extends StatefulWidget {
   const SkeletonShimmer({
     super.key,
     required this.child,
-    this.duration = const Duration(milliseconds: 1300),
+    this.duration = const Duration(milliseconds: 1500),
     this.baseColor,
     this.highlightColor,
   });
@@ -67,16 +67,18 @@ class _SkeletonShimmerState extends State<SkeletonShimmer>
               return LinearGradient(
                 begin: const Alignment(-1.0, -0.3),
                 end: const Alignment(1.0, 0.3),
-                stops: [
-                  (_controller.value - 0.3).clamp(0.0, 1.0),
-                  _controller.value.clamp(0.0, 1.0),
-                  (_controller.value + 0.3).clamp(0.0, 1.0),
-                ],
                 colors: [
                   base,
                   highlight,
                   base,
                 ],
+                stops: const [
+                  0.1,
+                  0.5,
+                  0.9,
+                ],
+                tileMode: TileMode.clamp,
+                transform: _SlidingGradientTransform(slidePercent: _controller.value),
               ).createShader(bounds);
             },
             child: child,
@@ -87,3 +89,17 @@ class _SkeletonShimmerState extends State<SkeletonShimmer>
     );
   }
 }
+
+class _SlidingGradientTransform extends GradientTransform {
+  final double slidePercent;
+
+  const _SlidingGradientTransform({
+    required this.slidePercent,
+  });
+
+  @override
+  Matrix4? transform(Rect bounds, {TextDirection? textDirection}) {
+    return Matrix4.translationValues(bounds.width * (slidePercent * 2 - 1), 0.0, 0.0);
+  }
+}
+

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lala_ai/app/modules/analytics/controllers/analytics_controller.dart';
 import 'package:lala_ai/app/modules/connect_accounts/views/connect_accounts_view.dart';
+import 'package:lala_ai/core/widgets/skeleton/app_skeleton.dart';
 import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
@@ -204,8 +205,40 @@ class AnalyticsView extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          4.width,
-                          Icon(Icons.check_circle_rounded, color: CC.primary, size: 15),
+                          6.width,
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: (current?.statusColor ?? const Color(0xFF22C55E)).withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: (current?.statusColor ?? const Color(0xFF22C55E)).withValues(alpha: 0.3),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 5,
+                                  height: 5,
+                                  decoration: BoxDecoration(
+                                    color: current?.statusColor ?? const Color(0xFF22C55E),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                4.width,
+                                Text(
+                                  current?.statusDisplay ?? "Connected",
+                                  style: TextStyle(
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: current?.statusColor ?? const Color(0xFF22C55E),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                           if (channels.length > 1) ...[
                             6.width,
                             Container(
@@ -337,6 +370,9 @@ class AnalyticsView extends StatelessWidget {
                     ...controller.availableChannels.map((chan) {
                       final isSelected = chan.id.toString() == controller.selectedChannel.value?.id.toString();
                       final isYt = chan.platform == 'YOUTUBE';
+                      final displayHandle = chan.handle.startsWith('@') ? chan.handle : "@${chan.handle}";
+                      final statusColor = chan.statusColor;
+                      final statusText = chan.statusDisplay;
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 8),
@@ -350,35 +386,102 @@ class AnalyticsView extends StatelessWidget {
                         ),
                         child: ListTile(
                           dense: true,
-                          leading: Container(
-                            width: 38,
-                            height: 38,
-                            decoration: BoxDecoration(
-                              color: isYt
-                                  ? const Color(0xFFFF0000).withValues(alpha: 0.08)
-                                  : const Color(0xFFE1306C).withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: isYt
-                                    ? const Color(0xFFFF0000).withValues(alpha: 0.2)
-                                    : const Color(0xFFE1306C).withValues(alpha: 0.2),
-                                width: 1,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                          leading: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Container(
+                                width: 38,
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  color: isYt
+                                      ? const Color(0xFFFF0000).withValues(alpha: 0.08)
+                                      : const Color(0xFFE1306C).withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: isYt
+                                        ? const Color(0xFFFF0000).withValues(alpha: 0.2)
+                                        : const Color(0xFFE1306C).withValues(alpha: 0.2),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: isYt ? CW.youtubeIcon(size: 22) : CW.instagramIcon(size: 22),
+                                ),
                               ),
-                            ),
-                            child: Center(
-                              child: isYt ? CW.youtubeIcon(size: 22) : CW.instagramIcon(size: 22),
-                            ),
+                              Positioned(
+                                right: -2,
+                                bottom: -2,
+                                child: Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: statusColor,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: CC.surface,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          title: Text(
-                            chan.name,
-                            style: TS.bodySmall(
-                              color: CC.textPrimary,
-                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                            ),
+                          title: Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  chan.name.isNotEmpty ? chan.name : displayHandle,
+                                  style: TS.bodySmall(
+                                    color: CC.textPrimary,
+                                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              8.width,
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: statusColor.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: statusColor.withValues(alpha: 0.3),
+                                    width: 0.8,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 5,
+                                      height: 5,
+                                      decoration: BoxDecoration(
+                                        color: statusColor,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    4.width,
+                                    Text(
+                                      statusText,
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: statusColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                          subtitle: Text(
-                            chan.handle.startsWith('@') ? chan.handle : "@${chan.handle}",
-                            style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                              displayHandle,
+                              style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11),
+                            ),
                           ),
                           trailing: isSelected
                               ? Container(
@@ -536,7 +639,43 @@ class AnalyticsView extends StatelessWidget {
           ),
           child: Obx(() {
             if (controller.isLoading.value || controller.isAuditing.value) {
-              return CW.skeletonCard(height: 120, margin: EdgeInsets.zero);
+              return SkeletonShimmer(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const SkeletonCircle(size: 72),
+                        18.width,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SkeletonBox(width: 160, height: 16),
+                              8.height,
+                              const SkeletonBox(width: double.infinity, height: 11),
+                              6.height,
+                              const SkeletonBox(width: 140, height: 11),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    16.height,
+                    Row(
+                      children: [
+                        Expanded(child: const SkeletonBox(height: 38, borderRadius: BorderRadius.all(Radius.circular(8)))),
+                        6.width,
+                        Expanded(child: const SkeletonBox(height: 38, borderRadius: BorderRadius.all(Radius.circular(8)))),
+                        6.width,
+                        Expanded(child: const SkeletonBox(height: 38, borderRadius: BorderRadius.all(Radius.circular(8)))),
+                        6.width,
+                        Expanded(child: const SkeletonBox(height: 38, borderRadius: BorderRadius.all(Radius.circular(8)))),
+                      ],
+                    ),
+                  ],
+                ),
+              );
             }
 
             final hasAudit = controller.hasAuditData.value;

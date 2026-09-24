@@ -70,7 +70,7 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
               20.height,
               Obx(() => CW.commonTextFormField(
                     controller: controller.newPasswordController,
-                    hintText: "New password (min. 6 characters)",
+                    hintText: "New password (min. 8 characters)",
                     labelText: "New Password",
                     prefixIcon: Icons.lock_outline_rounded,
                     obscureText: !controller.isNewPasswordVisible.value,

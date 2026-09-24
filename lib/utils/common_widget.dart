@@ -823,32 +823,34 @@ class CW {
       height: height,
       margin: margin ?? const EdgeInsets.only(bottom: 12),
       padding: effectivePadding,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          skeletonBox(width: avatarSize, height: avatarSize, borderRadius: BorderRadius.circular(10)),
-          12.width,
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                skeletonBox(
-                  width: double.infinity,
-                  height: height < 75 ? 12 : 14,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                (height < 75 ? 5 : 8).height,
-                skeletonBox(
-                  width: 120,
-                  height: height < 75 ? 9 : 10,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ],
+      child: SkeletonShimmer(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            skeletonBox(width: avatarSize, height: avatarSize, borderRadius: BorderRadius.circular(10)),
+            12.width,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  skeletonBox(
+                    width: double.infinity,
+                    height: height < 75 ? 12 : 14,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  (height < 75 ? 5 : 8).height,
+                  skeletonBox(
+                    width: 120,
+                    height: height < 75 ? 9 : 10,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
