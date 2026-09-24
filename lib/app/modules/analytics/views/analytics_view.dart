@@ -533,15 +533,12 @@ class AnalyticsView extends StatelessWidget {
               color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
               width: 1,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
-                blurRadius: 14,
-                offset: const Offset(0, 6),
-              ),
-            ],
           ),
           child: Obx(() {
+            if (controller.isLoading.value || controller.isAuditing.value) {
+              return CW.skeletonCard(height: 120, margin: EdgeInsets.zero);
+            }
+
             final hasAudit = controller.hasAuditData.value;
             final score = controller.healthScore.value;
 

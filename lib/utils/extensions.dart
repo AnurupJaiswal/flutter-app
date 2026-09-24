@@ -53,11 +53,11 @@ extension StringExtension on String {
       final now = DateTime.now();
       final diff = now.difference(dt);
 
-      if (diff.inSeconds < 60 && diff.inSeconds >= 0) {
+      if (diff.abs().inSeconds < 60) {
         return "just now";
       } else if (diff.inMinutes < 60 && diff.inMinutes > 0) {
         return "${diff.inMinutes}m ago";
-      } else if (diff.inHours < 24 && dt.day == now.day && dt.month == now.month && dt.year == now.year) {
+      } else if (diff.abs().inHours < 24 && dt.day == now.day && dt.month == now.month && dt.year == now.year) {
         return "today at ${DateFormat('h:mm a').format(dt)}";
       } else if (dt.year == now.year) {
         return DateFormat('MMM d, h:mm a').format(dt);
@@ -147,4 +147,17 @@ extension NumExtension on num {
   // Duration
   Duration get milliseconds => Duration(milliseconds: toInt());
   Duration get seconds => Duration(seconds: toInt());
+
+  // Formatting
+  String get formatK {
+    if (this == null) return "0";
+    if (this >= 1000000) return "${(this / 1000000).toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '')}M";
+    if (this >= 1000) return "${(this / 1000).toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '')}K";
+    return toString();
+  }
+
+  String get formatDecimal {
+    if (this == null) return "0";
+    return toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '');
+  }
 }

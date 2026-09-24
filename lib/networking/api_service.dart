@@ -17,6 +17,7 @@ import 'package:lala_ai/Models/creator_profile_model.dart';
 import 'package:lala_ai/Models/connected_accounts_model.dart';
 import 'package:lala_ai/Models/subscription_model.dart';
 import 'package:lala_ai/Models/user_model.dart';
+import 'package:lala_ai/Models/compare_creator_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
@@ -347,6 +348,31 @@ class ApiService {
         statusCode: 500,
       );
     }
+  }
+
+  static Future<ApiResponse> compareCreator({
+    required int accountId,
+    required String competitorIdentifier,
+    required String platform,
+  }) async {
+    final response = await post(
+      ApiEndpoints.compareCreator,
+      body: {
+        'accountId': accountId,
+        'competitorIdentifier': competitorIdentifier,
+        'platform': platform.toUpperCase(),
+      },
+    );
+
+    if (response.success && response.data != null) {
+      try {
+        final model = CompareCreatorModel.fromJson(response.data as Map<String, dynamic>);
+        return ApiResponse.success(data: model, message: response.message);
+      } catch (e) {
+        return ApiResponse.error(message: 'Failed to parse comparison data.');
+      }
+    }
+    return response;
   }
 
   static Future<ApiResponse> post(String endpoint, {dynamic body, dynamic data}) async {

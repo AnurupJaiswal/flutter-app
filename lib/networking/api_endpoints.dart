@@ -28,6 +28,7 @@ class ApiEndpoints {
       '/api/v1/creators/me/connections/instagram/auth';
   static String deleteConnection(String connectionId) =>
       '/api/v1/creators/me/connections/$connectionId';
+  static const String compareCreator = '/api/v1/creators/me/compare';
 
   // --- Category Endpoints ---
   static const String categories = '/api/v1/categories';

@@ -31,7 +31,7 @@ class PixoOverlayWidget extends StatelessWidget {
       child: Center(
         child: GestureDetector(
           onTap: _openChat,
-          child: Container(
+          child: Obx(() => Container(
             height: 52,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
@@ -52,7 +52,7 @@ class PixoOverlayWidget extends StatelessWidget {
                 Icon(Icons.auto_awesome_rounded, color: CC.primary, size: 22),
               ],
             ),
-          ),
+          )),
         ),
       ),
     );

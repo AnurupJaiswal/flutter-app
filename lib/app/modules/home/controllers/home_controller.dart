@@ -447,7 +447,7 @@ class HomeController extends GetxController {
       if (accountId != null) {
         final started = await dashboardRepository.triggerAudit(accountId);
         if (started) {
-          await loadDashboardData();
+          await loadDashboardData(isRefresh: true);
           AppToast.success("Channel audit triggered! Updating Health Score...");
         } else {
           AppToast.error("Failed to run audit on this channel.");
@@ -455,7 +455,6 @@ class HomeController extends GetxController {
       } else {
         AppToast.error("No active connected channel found.");
       }
-      lastSyncedText.value = "Audited just now";
     } catch (_) {
       AppToast.error("Failed to run channel audit. Please try again.");
     } finally {
@@ -466,8 +465,7 @@ class HomeController extends GetxController {
   Future<void> syncChannelData() async {
     isSyncing.value = true;
     try {
-      await loadDashboardData();
-      lastSyncedText.value = "Synced just now";
+      await loadDashboardData(isRefresh: true);
       AppToast.success("Channel data & audit refreshed!");
     } catch (_) {
       AppToast.error("Channel sync failed.");

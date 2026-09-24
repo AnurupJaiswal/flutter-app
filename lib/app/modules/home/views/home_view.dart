@@ -83,8 +83,14 @@ class HomeView extends GetView<HomeController> {
         ),
         body: SafeArea(
           child: Obx(() {
+            // 1. Initial Load: show full-screen shimmer skeleton while fetching first API call
+            if (controller.isDashboardLoading.value && !controller.isRefreshing.value) {
+              return _buildInitialShimmerLoading();
+            }
+
             final hasChannels = controller.hasAnyChannels;
 
+            // 2. If no channels are connected after initial load, show connected prompt page
             if (!hasChannels) {
               return RefreshIndicator(
                 onRefresh: controller.refreshDashboard,
@@ -113,6 +119,7 @@ class HomeView extends GetView<HomeController> {
               );
             }
 
+            // 3. Connected Dashboard: Keep existing data visible during pull-to-refresh & re-audit
             return RefreshIndicator(
               onRefresh: controller.refreshDashboard,
               color: CC.primary,
@@ -132,8 +139,6 @@ class HomeView extends GetView<HomeController> {
                     _buildSwotAuditSection(),
                     24.height,
                     _buildActionableToDosSection(context),
-                    24.height,
-                    _buildRecentContentSection(),
                     100.height, // padding so floating bubble doesn't overlap
                   ],
                 ),
@@ -416,19 +421,8 @@ class HomeView extends GetView<HomeController> {
                   color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
                   width: 1,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
-                    blurRadius: 14,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
               ),
               child: Obx(() {
-                if (controller.isDashboardLoading.value) {
-                  return CW.skeletonCard(height: 120, margin: EdgeInsets.zero);
-                }
-
                 final hasAudit = controller.hasAuditData.value;
                 final score = controller.healthScore.value;
 
@@ -694,10 +688,6 @@ class HomeView extends GetView<HomeController> {
         12.height,
         // SWOT Cards List with Convert to To-Do Action
         Obx(() {
-          if (controller.isDashboardLoading.value) {
-            return CW.skeletonCard(height: 90, margin: EdgeInsets.zero);
-          }
-
           final cat = controller.selectedSwotCategory.value;
           final items = controller.swotItems[cat] ?? [];
 
@@ -743,13 +733,6 @@ class HomeView extends GetView<HomeController> {
                     color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
                     width: 1,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
-                      blurRadius: 14,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -835,6 +818,10 @@ class HomeView extends GetView<HomeController> {
       ],
     );
   }
+
+
+
+
 
   // ─── Actionable Creator To-Dos Section ────────────────────────────────────
   Widget _buildActionableToDosSection(BuildContext context) {
@@ -940,13 +927,6 @@ class HomeView extends GetView<HomeController> {
                         : CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
                     width: 1,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: CC.isDark ? CC.black.withValues(alpha: 0.35) : CC.black.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
                 ),
                 child: Material(
                   color: Colors.transparent,
@@ -1187,67 +1167,20 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
-  Widget _buildRecentContentSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text("Recent Content", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 16)),
-          ],
-        ),
-        16.height,
-        if (!controller.isYoutubeConnected.value && !controller.isInstagramConnected.value)
-          _buildEmptyState(
-            "No channels connected",
-            "Connect your YouTube or Instagram account to start managing your content with Lala AI.",
-            "Connect a Channel",
-            () => Get.to(() => const ConnectAccountsView()),
-          )
-        else
-          _buildEmptyState(
-            "No recent content",
-            "Your uploaded videos and reels will sync here once available.",
-            "Refresh Channel",
-            () => controller.syncChannelData(),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildEmptyState(String title, String subtitle, String btnTitle, VoidCallback onBtnTap) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-      decoration: BoxDecoration(
-        color: CC.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
+  Widget _buildInitialShimmerLoading() {
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.video_library_outlined, size: 40, color: CC.grey),
-          12.height,
-          Text(title, style: TS.titleMedium(color: CC.textPrimary)),
-          6.height,
-          Text(subtitle, textAlign: TextAlign.center, style: TS.bodySmall(color: CC.textSecondary)),
-          20.height,
-          CW.commonBtn(
-            title: btnTitle,
-            width: 180,
-            onTap: onBtnTap,
-          ),
+          CW.skeletonCard(height: 50, margin: EdgeInsets.zero),
+          24.height,
+          CW.skeletonCard(height: 140, margin: EdgeInsets.zero),
+          24.height,
+          CW.skeletonCard(height: 180, margin: EdgeInsets.zero),
+          24.height,
+          CW.skeletonCard(height: 120, margin: EdgeInsets.zero),
         ],
       ),
     );
