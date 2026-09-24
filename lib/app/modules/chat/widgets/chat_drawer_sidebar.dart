@@ -60,15 +60,10 @@ class ChatDrawerSidebar extends GetView<ChatController> {
             Expanded(
               child: Obx(() {
                 if (controller.isChatsLoading.value) {
-                  return Center(
-                    child: SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(CC.primary),
-                      ),
-                    ),
+                  return CW.skeletonList(
+                    itemCount: 5,
+                    itemHeight: 40,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   );
                 }
 

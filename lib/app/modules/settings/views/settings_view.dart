@@ -7,7 +7,6 @@ import 'package:lala_ai/app/modules/settings/views/change_password_view.dart';
 import 'package:lala_ai/app/modules/settings/views/faq_view.dart';
 import 'package:lala_ai/app/routes/app_routes.dart';
 import 'package:lala_ai/services/app_review_service.dart';
-import 'package:lala_ai/app/navigation/app_navigation_service.dart';
 import 'package:lala_ai/utils/common_methods.dart';
 import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
@@ -23,25 +22,25 @@ class SettingsView extends GetView<SettingsController> {
     return GetBuilder<ThemeService>(
       builder: (_) {
         return Scaffold(
-          backgroundColor: CC.background,
-          appBar: CW.commonAppbar(
-            isNotHomepage: true,
-            title: "Settings",
-            actions: [
-              IconButton(
-                icon: Icon(Icons.logout_rounded, color: CC.textPrimary, size: 22),
-                tooltip: "Log Out",
-                onPressed: () => CW.showLogoutSheet(
-                  context: context,
-                onConfirm: () {
-                  // Actually trigger the logout process which clears the token
-                  controller.logout();
-                },
-                ),
-              ),
-            ],
+      backgroundColor: CC.background,
+      appBar: CW.commonAppbar(
+        isNotHomepage: true,
+        title: "Settings",
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout_rounded, color: CC.textPrimary, size: 22),
+            tooltip: "Log Out",
+            onPressed: () => CW.showLogoutSheet(
+              context: context,
+            onConfirm: () {
+              // Actually trigger the logout process which clears the token
+              controller.logout();
+            },
+            ),
           ),
-          body: SingleChildScrollView(
+        ],
+      ),
+      body: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -188,7 +187,7 @@ class SettingsView extends GetView<SettingsController> {
     return Padding(
       padding: const EdgeInsets.only(left: 20, top: 20, bottom: 6),
       child: Text(
-        label.toUpperCase(),
+        label,
         style: TS.caption(
           color: CC.primary,
           fontWeight: FontWeight.w700,

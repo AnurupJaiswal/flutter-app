@@ -84,11 +84,18 @@ class _ProfileViewState extends State<ProfileView> {
             ],
           ),
           body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            child: RefreshIndicator(
+              onRefresh: _refreshProfileData,
+              color: CC.primary,
+              backgroundColor: CC.surface,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                   // ── User Profile Header Card ───────────────────────────────
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -283,9 +290,10 @@ class _ProfileViewState extends State<ProfileView> {
               ),
             ),
           ),
-        );
-      },
-    );
+        ),
+      );
+    },
+  );
   }
 
   Widget _journeyStat(String val, String label, IconData icon) {
@@ -467,9 +475,13 @@ class _ProfileViewState extends State<ProfileView> {
       );
     }
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: chips,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: chips,
+      ),
     );
   }
 }

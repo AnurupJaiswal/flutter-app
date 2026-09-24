@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lala_ai/app/data/repositories/public_repository.dart';
 import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
+import 'package:lala_ai/utils/theme/theme_service.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class LegalWebViewView extends StatefulWidget {
@@ -10,6 +12,7 @@ class LegalWebViewView extends StatefulWidget {
   final String? url;
   final String? htmlData;
   final bool? isPrivacyPolicy;
+  final String? slug;
 
   const LegalWebViewView({
     super.key,
@@ -17,6 +20,7 @@ class LegalWebViewView extends StatefulWidget {
     this.url,
     this.htmlData,
     this.isPrivacyPolicy,
+    this.slug,
   });
 
   @override
@@ -25,14 +29,16 @@ class LegalWebViewView extends StatefulWidget {
 
 class _LegalWebViewViewState extends State<LegalWebViewView> {
   late final WebViewController _controller;
+  final PublicRepository _publicRepository = ApiPublicRepository();
   int _loadingProgress = 0;
   bool _isLoading = true;
   bool _hasError = false;
 
-  late final String _pageTitle;
+  late String _pageTitle;
   late final String? _pageUrl;
   late final String? _htmlContent;
   late final bool _isPrivacy;
+  late final String? _slug;
 
   @override
   void initState() {
@@ -43,6 +49,7 @@ class _LegalWebViewViewState extends State<LegalWebViewView> {
     _pageUrl = widget.url ?? args?['url'];
     _htmlContent = widget.htmlData ?? args?['htmlData'];
     _isPrivacy = widget.isPrivacyPolicy ?? (args?['isPrivacy'] ?? true);
+    _slug = widget.slug ?? args?['slug'];
 
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -85,17 +92,42 @@ class _LegalWebViewViewState extends State<LegalWebViewView> {
     _loadContent();
   }
 
-  void _loadContent() {
+  Future<void> _loadContent() async {
     final html = _htmlContent;
     final url = _pageUrl;
-    if (html != null && html.isNotEmpty) {
-      _loadHtmlData(html);
-    } else if (url != null && url.isNotEmpty) {
+
+    if (url != null && url.isNotEmpty) {
       try {
         _controller.loadRequest(Uri.parse(url));
+        return;
       } catch (_) {
-        _loadHtmlData(_getFallbackHtml());
+        // Fallback to HTML
       }
+    }
+
+    // Try fetching from public API
+    try {
+      final doc = _slug != null
+          ? await _publicRepository.getDocument(_slug)
+          : (_isPrivacy
+              ? await _publicRepository.getPrivacyPolicy()
+              : await _publicRepository.getTermsAndConditions());
+
+      if (doc != null && doc.contentHtml.isNotEmpty) {
+        if (mounted && doc.title.isNotEmpty && widget.title == null) {
+          setState(() {
+            _pageTitle = doc.title;
+          });
+        }
+        _loadHtmlData(doc.contentHtml);
+        return;
+      }
+    } catch (e) {
+      debugPrint("Error loading public document: $e");
+    }
+
+    if (html != null && html.isNotEmpty) {
+      _loadHtmlData(html);
     } else {
       _loadHtmlData(_getFallbackHtml());
     }
@@ -161,9 +193,11 @@ class _LegalWebViewViewState extends State<LegalWebViewView> {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: CC.background,
-      child: Scaffold(
+    return GetBuilder<ThemeService>(
+      builder: (_) {
+        return Material(
+          color: CC.background,
+          child: Scaffold(
         backgroundColor: CC.background,
         appBar: CW.commonAppbar(
           isNotHomepage: true,
@@ -241,6 +275,8 @@ class _LegalWebViewViewState extends State<LegalWebViewView> {
           ),
         ),
       ),
+    );
+      },
     );
   }
 

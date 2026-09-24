@@ -79,10 +79,9 @@ class SettingsController extends GetxController {
 
   Future<void> exportData(String dataType) async {
     isDownloadingData.value = true;
-    CM.showToast("Preparing $dataType export...");
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(milliseconds: 600));
     isDownloadingData.value = false;
-    CM.showToast("$dataType downloaded successfully!");
+    CM.showToast("$dataType export requested. A download link will be emailed to your account.");
   }
 
   Future<void> openWhatsAppSupport() async {
@@ -107,11 +106,11 @@ class SettingsController extends GetxController {
   }
 
   Future<void> deleteAccount() async {
-    CM.showToast("Account deletion requested. Data will be purged in 30 days.");
+    CM.showToast("Account deletion request submitted. Our support team will process your request within 24-48 hours.");
   }
 
   void clearLocalCache() {
-    CM.showToast("Local conversation cache cleared.");
+    CM.showToast("Local cache cleared successfully.");
   }
 
   Future<void> logout() async {

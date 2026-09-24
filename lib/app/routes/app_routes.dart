@@ -16,6 +16,7 @@ abstract class Routes {
   static const SAVED = _Paths.SAVED;
   static const SETTINGS = _Paths.SETTINGS;
   static const STUDIO = _Paths.STUDIO;
+  static const STUDIO_CONVERSATION = _Paths.STUDIO_CONVERSATION;
   static const CALENDAR = _Paths.CALENDAR;
   static const CONNECT_ACCOUNTS = _Paths.CONNECT_ACCOUNTS;
   static const COMPETITOR = _Paths.COMPETITOR;
@@ -41,6 +42,7 @@ abstract class _Paths {
   static const SAVED = '/saved';
   static const SETTINGS = '/settings';
   static const STUDIO = '/studio';
+  static const STUDIO_CONVERSATION = '/studio-conversation';
   static const CALENDAR = '/calendar';
   static const CONNECT_ACCOUNTS = '/connect-accounts';
   static const COMPETITOR = '/competitor';

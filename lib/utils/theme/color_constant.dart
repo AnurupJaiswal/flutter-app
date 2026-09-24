@@ -115,4 +115,9 @@ class CC {
 
   static Color get tealSubtle => isDark ? const Color(0x2600AFBE) : const Color(0x1A00808B);
   static Color get tealLight => isDark ? const Color(0xFF00383D) : const Color(0xFFE0F2F1);
+
+  // Shimmer & Skeleton Base / Highlight Colors
+  static Color get shimmerBase => isDark ? const Color(0xFF1E1E20) : const Color(0xFFECEFF1);
+  static Color get shimmerHighlight => isDark ? const Color(0xFF2C2C30) : const Color(0xFFF8FAFC);
 }
+

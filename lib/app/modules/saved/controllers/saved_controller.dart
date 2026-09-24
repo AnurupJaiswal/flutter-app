@@ -25,8 +25,26 @@ class SavedController extends GetxController {
   }
 
   Future<void> removeItem(String id) async {
-    await savedRepository.removeItem(id);
-    savedItems.removeWhere((e) => e.id == id);
+    final index = savedItems.indexWhere((e) => e.id == id);
+    if (index == -1) return;
+    final itemToRemove = savedItems[index];
+
+    // 1. Optimistic removal (instant user feedback)
+    savedItems.removeAt(index);
     CM.showToast("Item removed from bookmarks");
+
+    // 2. Perform background network sync
+    try {
+      await savedRepository.removeItem(id);
+    } catch (e) {
+      // 3. Rollback on failure
+      if (index <= savedItems.length) {
+        savedItems.insert(index, itemToRemove);
+      } else {
+        savedItems.add(itemToRemove);
+      }
+      CM.showToast("Could not remove item. Please try again.", isError: true);
+    }
   }
 }
+

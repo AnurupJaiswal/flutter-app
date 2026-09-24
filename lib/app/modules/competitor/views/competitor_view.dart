@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:lala_ai/utils/app_toast.dart';
-import 'package:lala_ai/app/modules/main_container/controllers/main_container_controller.dart';
-import 'package:lala_ai/app/navigation/app_navigation_service.dart';
+import 'package:lala_ai/app/modules/connect_accounts/views/connect_accounts_view.dart';
+import 'package:lala_ai/app/modules/home/controllers/home_controller.dart';
+import 'package:lala_ai/networking/api_service.dart';
 import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
 import 'package:lala_ai/utils/theme/theme_service.dart';
+import 'package:lala_ai/app/modules/competitor/controllers/competitor_controller.dart';
+import 'package:lala_ai/Models/compare_creator_model.dart';
+import 'package:lala_ai/utils/common_methods.dart';
 
 class CompetitorView extends StatefulWidget {
   final bool isEmbedded;
@@ -19,158 +22,209 @@ class CompetitorView extends StatefulWidget {
 
 class _CompetitorViewState extends State<CompetitorView> {
   final _searchController = TextEditingController();
-  bool _hasSearched = true;
+  final CompetitorController controller = Get.put(CompetitorController());
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _runComparison(int? accountId, String platformStr) {
+    if (accountId == null) {
+      CM.showToast('No connected account found. Please connect an account first.');
+      return;
+    }
+    final query = _searchController.text.trim();
+    if (query.isEmpty) return;
+    FocusScope.of(context).unfocus();
+
+    controller.compareWithCreator(
+      accountId: accountId,
+      competitorIdentifier: query,
+      platform: platformStr,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final homeController = Get.isRegistered<HomeController>() ? Get.find<HomeController>() : null;
+
     return GetBuilder<ThemeService>(
       builder: (_) {
         return Scaffold(
           backgroundColor: CC.background,
-          appBar: widget.isEmbedded 
-            ? null 
-            : CW.commonAppbar(
-                isNotHomepage: true,
-                wantBackIcon: true,
-                title: "Competitor Intelligence",
-              ),
+          appBar: widget.isEmbedded
+              ? null
+              : CW.commonAppbar(
+                  isNotHomepage: true,
+                  wantBackIcon: true,
+                  title: "Discover",
+                ),
           body: SafeArea(
             child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Search / Add Competitor Field
-                  Text("Analyze Competitor Channel", style: TS.caption(color: CC.textSecondary, fontWeight: FontWeight.w600)),
-                  6.height,
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: CW.commonSearchField(
-                          controller: _searchController,
-                          hintText: "Enter handle or URL (e.g. @tech_creator)",
-                          prefixIcon: Icon(Icons.link_rounded, size: 18, color: CC.grey),
+              child: Obx(() {
+                final List<ChannelOption> channels = homeController?.availableChannels ?? <ChannelOption>[];
+                final activeChannel = homeController?.selectedChannel.value ?? (channels.isNotEmpty ? channels.first : null);
+
+                final String platformStr = activeChannel?.platform ?? "YOUTUBE";
+                final bool isYouTube = platformStr.toUpperCase() == 'YOUTUBE';
+
+                final String creatorName = activeChannel?.name.isNotEmpty == true
+                    ? activeChannel!.name
+                    : (homeController?.creatorName.value.isNotEmpty == true
+                        ? homeController!.creatorName.value
+                        : ApiService.effectiveDisplayName);
+
+                final String userHandle = activeChannel != null
+                    ? (activeChannel.handle.startsWith('@') ? activeChannel.handle : "@${activeChannel.handle}")
+                    : "@your_account";
+
+                final String audienceCount = isYouTube
+                    ? "${homeController?.subscribersCount.value.isNotEmpty == true ? homeController!.subscribersCount.value : '42.3K'} subscribers"
+                    : "28.6K followers";
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── 1. SECTION TITLE & DESCRIPTION ─────────────────────────
+                    Text(
+                      "Compare With Another Creator",
+                      style: TS.sectionTitle(color: CC.textPrimary, fontSize: 18),
+                    ),
+                    4.height,
+                    Text(
+                      "Compare another creator with your connected account.",
+                      style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 12.5),
+                    ),
+                    20.height,
+
+                    // ── 2. YOUR ACCOUNT CARD ──────────────────────────────────
+                    Text(
+                      "Your Account",
+                      style: TS.bodySmall(color: CC.textPrimary, fontWeight: FontWeight.w700).copyWith(fontSize: 13),
+                    ),
+                    8.height,
+                    _buildConnectedAccountCard(
+                      context: context,
+                      creatorName: creatorName,
+                      userHandle: userHandle,
+                      platform: platformStr,
+                      audienceCount: audienceCount,
+                    ),
+                    8.height,
+                    // "Change Account >" Action
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: GestureDetector(
+                        onTap: () => _showChangeAccountBottomSheet(context, homeController, channels),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                "Change Account",
+                                style: TS.caption(color: CC.primary, fontWeight: FontWeight.w600).copyWith(fontSize: 12),
+                              ),
+                              2.width,
+                              Icon(Icons.chevron_right_rounded, size: 16, color: CC.primary),
+                            ],
+                          ),
                         ),
                       ),
-                      8.width,
-                      CW.commonBtn(
-                        title: "Analyze",
-                        width: 90,
-                        height: 40,
-                        onTap: () => setState(() => _hasSearched = true),
-                      ),
-                    ],
-                  ),
-                  16.height,
+                    ),
+                    20.height,
 
-                  if (_hasSearched) ...[
-                    // Competitor Snapshot Header Card
-                    CW.commonCard(
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: CC.primary.withValues(alpha: 0.12),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(Icons.person_outline_rounded, color: CC.textPrimary, size: 24),
-                          ),
-                          12.width,
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text("@tech_creator", style: TS.sectionTitle(color: CC.textPrimary)),
-                                Text("YouTube & Instagram Creator • Tech Niche", style: TS.caption(color: CC.textSecondary)),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: CC.primary.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text("Score: 91", style: TS.caption(color: CC.primary, fontWeight: FontWeight.w700)),
-                          ),
-                        ],
+                    // ── 3. COMPETITOR INPUT SECTION ───────────────────────────
+                    Text(
+                      "Competitor",
+                      style: TS.bodySmall(color: CC.textPrimary, fontWeight: FontWeight.w700).copyWith(fontSize: 13),
+                    ),
+                    8.height,
+                    TextFormField(
+                      controller: _searchController,
+                      style: TS.bodySmall(color: CC.textPrimary),
+                      cursorColor: CC.primary,
+                      decoration: InputDecoration(
+                        isDense: true,
+                        hintText: "Enter handle or channel URL",
+                        hintStyle: TS.bodySmall(color: CC.grey),
+                        filled: true,
+                        fillColor: CC.surface,
+                        prefixIcon: Icon(Icons.search_rounded, size: 20, color: CC.grey),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: CC.stroke, width: 1),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: CC.primary, width: 1.5),
+                        ),
                       ),
                     ),
-                    14.height,
+                    24.height,
 
-                    // Key Stats Row
-                    Row(
-                      children: [
-                        Expanded(child: _compStat("Followers", "450K", Icons.people_outline)),
-                        10.width,
-                        Expanded(child: _compStat("Engagement", "11.2%", Icons.thumb_up_outlined)),
-                        10.width,
-                        Expanded(child: _compStat("Post Frequency", "1.4/day", Icons.schedule_rounded)),
-                      ],
+                    // ── 4. COMPARE BUTTON ─────────────────────────────────────
+                    SizedBox(
+                      width: double.infinity,
+                      child: Obx(() => CW.commonBtn(
+                        title: controller.isLoading.value ? "Comparing..." : "Compare",
+                        height: 46,
+                        onTap: controller.isLoading.value ? null : () => _runComparison(activeChannel?.id, platformStr),
+                      )),
                     ),
-                    16.height,
+                    24.height,
 
-                    // You vs Them Comparison Card
-                    Text("You vs Them Comparison", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 14)),
-                    10.height,
-                    CW.commonCard(
-                      child: Column(
-                        children: [
-                          _compRow("Watch Time Retention", "68%", "74%", false),
-                          const Divider(height: 16, thickness: 0.7),
-                          _compRow("Hook Conversion (0-3s)", "82%", "78%", true),
-                          const Divider(height: 16, thickness: 0.7),
-                          _compRow("Upload Consistency", "4 posts/wk", "6 posts/wk", false),
-                        ],
-                      ),
-                    ),
-                    16.height,
-
-                    // 30-Day Beat Plan & Content DNA
-                    Text("30-Day Creator Beat Plan", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 14)),
-                    10.height,
-                    CW.commonCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Pixo Recommendation to Outperform @tech_creator:", style: TS.caption(color: CC.textPrimary, fontWeight: FontWeight.w600)),
-                          8.height,
-                          Text("1. Publish 2 short-form tutorials on 'AI Productivity Shortcuts' on Tuesday & Thursday at 6:00 PM.", style: TS.bodySmall(color: CC.textSecondary)),
-                          6.height,
-                          Text("2. Use visual pattern interrupts at the 0:03 mark to match their high retention rate.", style: TS.bodySmall(color: CC.textSecondary)),
-                          14.height,
-                          Row(
+                    // ── 5. COMPARISON OVERVIEW RESULT ─────────────────────────
+                    Obx(() {
+                      if (controller.isLoading.value) {
+                        return CW.skeletonCard(height: 220, margin: EdgeInsets.zero);
+                      }
+                      if (controller.errorMessage.isNotEmpty) {
+                        return Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+                          decoration: BoxDecoration(
+                            color: CC.surface,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: CC.stroke.withValues(alpha: 0.5)),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Expanded(
-                                child: CW.commonBtn(
-                                  title: "Push to To-Do",
-                                  height: 38,
-                                  isOutlined: true,
-                                  onTap: () {
-                                    AppToast.success("Beat plan recommendations added to Dashboard!");
-                                  },
-                                ),
+                              Icon(Icons.error_outline_rounded, color: CC.error, size: 40),
+                              16.height,
+                              Text(
+                                "Couldn't Fetch Data",
+                                style: TS.bodySmall(color: CC.textPrimary, fontWeight: FontWeight.w700).copyWith(fontSize: 15),
                               ),
-                              10.width,
-                              Expanded(
-                                child: CW.commonBtn(
-                                  title: "Use in Studio",
-                                  height: 38,
-                                  onTap: () => Get.find<MainContainerController>().changeTab(AppNavigationService.tabStudio),
-                                ),
+                              8.height,
+                              Text(
+                                controller.errorMessage.value,
+                                style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 13, height: 1.4),
+                                textAlign: TextAlign.center,
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                    ),
+                        );
+                      }
+                      if (controller.compareData.value != null) {
+                        return _buildComparisonOverviewCard(
+                          isYouTube: isYouTube,
+                          data: controller.compareData.value!,
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    }),
+
+                    100.height,
                   ],
-                  100.height,
-                ],
-              ),
+                );
+              }),
             ),
           ),
         );
@@ -178,38 +232,405 @@ class _CompetitorViewState extends State<CompetitorView> {
     );
   }
 
-  Widget _compStat(String label, String val, IconData icon) {
-    return CW.commonCard(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  // ── Connected Account Card (Matches Home Screen Connected Card Style) ─────
+  Widget _buildConnectedAccountCard({
+    required BuildContext context,
+    required String creatorName,
+    required String userHandle,
+    required String platform,
+    required String audienceCount,
+  }) {
+    final bool isYt = platform.toUpperCase() == 'YOUTUBE';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: CC.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+          width: 1,
+        ),
+      ),
+      child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: CC.primary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: CC.textPrimary, size: 16),
+          // Avatar Icon with Platform Indicator Badge
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: CC.searchBackground,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: CC.stroke.withValues(alpha: 0.4),
+                    width: 1,
+                  ),
+                ),
+                child: Center(
+                  child: Icon(Icons.person_rounded, color: CC.grey, size: 24),
+                ),
+              ),
+              Positioned(
+                right: -2,
+                bottom: -2,
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: CC.surface,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: CC.surface, width: 2),
+                  ),
+                  child: isYt ? CW.youtubeIcon(size: 13) : CW.instagramIcon(size: 13),
+                ),
+              ),
+            ],
           ),
-          8.height,
-          Text(val, style: TS.sectionTitle(color: CC.textPrimary, fontSize: 15)),
-          2.height,
-          Text(label, style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 10)),
+          14.width,
+
+          // Account & Platform Details
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  creatorName,
+                  style: TS.sectionTitle(color: CC.textPrimary, fontSize: 15),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                2.height,
+                Text(
+                  "$userHandle • $audienceCount",
+                  style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11.5),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+
+          // Green Connected Badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: Colors.green.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.green.withValues(alpha: 0.3), width: 0.8),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.check_rounded, color: Colors.green, size: 14),
+                4.width,
+                Text(
+                  "Connected",
+                  style: TS.caption(color: Colors.green, fontWeight: FontWeight.w700).copyWith(fontSize: 11),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _compRow(String metric, String you, String them, bool isYouAhead) {
+  // ── Change Account Bottom Sheet Modal ──────────────────────────────────────
+  void _showChangeAccountBottomSheet(
+    BuildContext context,
+    HomeController? homeController,
+    List<ChannelOption> availableChannels,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: CC.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: CC.stroke,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                16.height,
+                Text(
+                  "Select Connected Account",
+                  style: TS.sectionTitle(color: CC.textPrimary, fontSize: 18),
+                ),
+                4.height,
+                Text(
+                  "Choose which connected channel to use for comparison.",
+                  style: TS.caption(color: CC.textSecondary),
+                ),
+                16.height,
+
+                if (availableChannels.isNotEmpty) ...[
+                  ...availableChannels.map((ch) {
+                    final isSelected = homeController?.selectedChannel.value?.id.toString() == ch.id.toString();
+                    final isYt = ch.platform.toUpperCase() == 'YOUTUBE';
+                    final displayHandle = ch.handle.startsWith('@') ? ch.handle : "@${ch.handle}";
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      decoration: BoxDecoration(
+                        color: isSelected ? CC.primary.withValues(alpha: 0.08) : CC.searchBackground,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: isSelected ? CC.primary : CC.stroke.withValues(alpha: 0.4),
+                          width: isSelected ? 1.5 : 1,
+                        ),
+                      ),
+                      child: ListTile(
+                        leading: Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: isYt
+                                ? const Color(0xFFFF0000).withValues(alpha: 0.08)
+                                : const Color(0xFFE1306C).withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Center(
+                            child: isYt ? CW.youtubeIcon(size: 20) : CW.instagramIcon(size: 20),
+                          ),
+                        ),
+                        title: Text(
+                          ch.name.isNotEmpty ? ch.name : displayHandle,
+                          style: TS.bodySmall(
+                            color: CC.textPrimary,
+                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                          ),
+                        ),
+                        subtitle: Text("${ch.platform} • $displayHandle", style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11)),
+                        trailing: isSelected
+                            ? Icon(Icons.check_circle_rounded, color: CC.primary, size: 22)
+                            : null,
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          if (homeController != null) {
+                            homeController.selectChannel(ch);
+                          }
+                        },
+                      ),
+                    );
+                  }),
+                ] else ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Center(
+                      child: Text(
+                        "No connected accounts found.",
+                        style: TS.caption(color: CC.textSecondary),
+                      ),
+                    ),
+                  ),
+                ],
+
+                12.height,
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: CC.primary),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    icon: Icon(Icons.add_rounded, color: CC.primary, size: 18),
+                    label: Text("Manage Connected Accounts", style: TS.bodySmall(color: CC.primary, fontWeight: FontWeight.w600)),
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      Get.to(() => const ConnectAccountsView());
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ── 5. Comparison Overview Card (Clean Metric Table) ──────────────────────
+  Widget _buildComparisonOverviewCard({
+    required bool isYouTube,
+    required CompareCreatorModel data,
+  }) {
+    final audienceLabel = isYouTube ? "Subscribers" : "Followers";
+    final contentLabel = "Total Content";
+
+    final you = data.you;
+    final them = data.competitor;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: CC.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Card Title
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Comparison Overview",
+                style: TS.sectionTitle(color: CC.textPrimary, fontSize: 16),
+              ),
+              if (you.sampleSize != null && you.sampleWindowDays != null)
+                Tooltip(
+                  message: "Calculated based on the last ${you.sampleSize} posts over ${you.sampleWindowDays} days.",
+                  child: Icon(Icons.info_outline_rounded, size: 18, color: CC.textSecondary),
+                ),
+            ],
+          ),
+          18.height,
+
+          // Table Header:  You    Them
+          Row(
+            children: [
+              Expanded(
+                flex: 4,
+                child: const SizedBox.shrink(),
+              ),
+              Expanded(
+                flex: 3,
+                child: Text(
+                  "You",
+                  textAlign: TextAlign.center,
+                  style: TS.caption(color: CC.primary, fontWeight: FontWeight.w700).copyWith(fontSize: 13),
+                ),
+              ),
+              Expanded(
+                flex: 3,
+                child: Text(
+                  "Them",
+                  textAlign: TextAlign.center,
+                  style: TS.caption(color: CC.textSecondary, fontWeight: FontWeight.w700).copyWith(fontSize: 13),
+                ),
+              ),
+            ],
+          ),
+          10.height,
+          Divider(color: CC.stroke.withValues(alpha: 0.5), height: 1),
+          12.height,
+
+          // Table Row 1: Followers / Subscribers
+          _buildTableRow(audienceLabel, _formatMetric(you.subscribers, isCount: true), _formatMetric(them.subscribers, isCount: true), them.dataStatus),
+          12.height,
+          Divider(color: CC.stroke.withValues(alpha: 0.3), height: 1),
+          12.height,
+
+          // Table Row 2: Total Content
+          _buildTableRow(contentLabel, _formatMetric(you.totalContent, isCount: true), _formatMetric(them.totalContent, isCount: true), them.dataStatus),
+          12.height,
+          Divider(color: CC.stroke.withValues(alpha: 0.3), height: 1),
+          12.height,
+
+          // Table Row 3: Avg. Views
+          _buildTableRow("Avg. Views", _formatMetric(you.avgViews), _formatMetric(them.avgViews), them.dataStatus),
+          12.height,
+          Divider(color: CC.stroke.withValues(alpha: 0.3), height: 1),
+          12.height,
+
+          // Table Row 4: Avg. Likes
+          _buildTableRow("Avg. Likes", _formatMetric(you.avgLikes), _formatMetric(them.avgLikes), them.dataStatus),
+          12.height,
+          Divider(color: CC.stroke.withValues(alpha: 0.3), height: 1),
+          12.height,
+
+          // Table Row 5: Posting Frequency
+          _buildTableRow(
+              "Posting Frequency", 
+              "${_formatMetric(you.postingFrequencyPerWeek, isFrequency: true)}", 
+              "${_formatMetric(them.postingFrequencyPerWeek, isFrequency: true)}",
+              them.dataStatus),
+          
+          if (them.dataStatus == 'PARTIAL') ...[
+            16.height,
+            Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, size: 14, color: Colors.orange),
+                6.width,
+                Expanded(
+                  child: Text(
+                    "Some data is unavailable or hidden by the creator.",
+                    style: TS.caption(color: Colors.orange).copyWith(fontSize: 11),
+                  ),
+                ),
+              ],
+            ),
+          ]
+        ],
+      ),
+    );
+  }
+
+  String _formatMetric(dynamic value, {bool isCount = false, bool isFrequency = false}) {
+    if (value == null) return "N/A";
+    if (value is num) {
+      if (isFrequency) {
+        return "${value.formatDecimal}/week";
+      }
+      return value.formatK;
+    }
+    return value.toString();
+  }
+
+  Widget _buildTableRow(String label, String youValue, String themValue, String? themStatus) {
+    final bool isThemNA = themValue == "N/A";
+    
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(child: Text(metric, style: TS.caption(color: CC.textPrimary, fontWeight: FontWeight.w600))),
-        Text("You: $you", style: TS.caption(color: isYouAhead ? CC.success : CC.textSecondary, fontWeight: FontWeight.w600)),
-        12.width,
-        Flexible(
-          child: Text("Them: $them", style: TS.caption(color: CC.textSecondary), overflow: TextOverflow.ellipsis),
+        Expanded(
+          flex: 4,
+          child: Text(
+            label,
+            style: TS.bodySmall(color: CC.textPrimary, fontWeight: FontWeight.w600).copyWith(fontSize: 13),
+          ),
+        ),
+        Expanded(
+          flex: 3,
+          child: Text(
+            youValue,
+            textAlign: TextAlign.center,
+            style: TS.bodySmall(color: CC.textPrimary, fontWeight: FontWeight.w700).copyWith(fontSize: 13.5),
+          ),
+        ),
+        Expanded(
+          flex: 3,
+          child: Text(
+            themValue,
+            textAlign: TextAlign.center,
+            style: TS.bodySmall(
+              color: isThemNA ? CC.grey : CC.textSecondary, 
+              fontWeight: isThemNA ? FontWeight.w500 : FontWeight.w600,
+            ).copyWith(fontSize: 13.5),
+          ),
         ),
       ],
     );

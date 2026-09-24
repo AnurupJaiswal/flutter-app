@@ -33,7 +33,7 @@ class AppTheme {
           color: CC.lightPrimaryText,
           fontSize: 16,
           fontFamily: TS.fontFamily,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
         ),
         systemOverlayStyle: const SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
@@ -151,7 +151,7 @@ class AppTheme {
           color: CC.darkPrimaryText,
           fontSize: 16,
           fontFamily: TS.fontFamily,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
         ),
         systemOverlayStyle: const SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,

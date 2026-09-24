@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:lala_ai/core/widgets/skeleton/app_skeleton.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
@@ -704,4 +705,197 @@ class CW {
       fit: BoxFit.contain,
     );
   }
+
+  /// Memory-optimized Network Image loader that downsamples images to exact rendered physical dimensions
+  static Widget networkImage({
+    required String url,
+    required double width,
+    required double height,
+    BoxFit fit = BoxFit.cover,
+    BorderRadius? borderRadius,
+    Widget? placeholder,
+    Widget? errorWidget,
+    double? devicePixelRatio,
+  }) {
+    if (url.trim().isEmpty || !url.startsWith("http")) {
+      return errorWidget ??
+          Container(
+            width: width,
+            height: height,
+            decoration: BoxDecoration(
+              color: CC.surface,
+              borderRadius: borderRadius ?? BorderRadius.circular(8),
+            ),
+            child: Icon(Icons.broken_image_rounded, size: width * 0.4, color: CC.grey),
+          );
+    }
+
+    return Builder(
+      builder: (context) {
+        final dpr = devicePixelRatio ?? (MediaQuery.maybeDevicePixelRatioOf(context) ?? 2.0);
+        final int targetCacheWidth = (width * dpr).round().clamp(1, 2048);
+        final int targetCacheHeight = (height * dpr).round().clamp(1, 2048);
+
+        Widget imageWidget = Image.network(
+          url,
+          width: width,
+          height: height,
+          fit: fit,
+          cacheWidth: targetCacheWidth,
+          cacheHeight: targetCacheHeight,
+          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+            if (wasSynchronouslyLoaded || frame != null) {
+              return child;
+            }
+            return placeholder ??
+                skeletonBox(
+                  width: width,
+                  height: height,
+                  borderRadius: borderRadius ?? BorderRadius.circular(8),
+                );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return errorWidget ??
+                Container(
+                  width: width,
+                  height: height,
+                  decoration: BoxDecoration(
+                    color: CC.surface,
+                    borderRadius: borderRadius ?? BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.broken_image_rounded, size: width * 0.4, color: CC.grey),
+                );
+          },
+        );
+
+        if (borderRadius != null) {
+          return ClipRRect(
+            borderRadius: borderRadius,
+            child: imageWidget,
+          );
+        }
+        return imageWidget;
+      },
+    );
+  }
+
+  /// Lightweight Shimmer container using single controller and RepaintBoundary to avoid parent repaints
+  static Widget shimmer({
+    required Widget child,
+    Duration duration = const Duration(milliseconds: 1300),
+  }) {
+    return SkeletonShimmer(
+      duration: duration,
+      child: child,
+    );
+  }
+
+  /// Generic Skeleton Box placeholder
+  static Widget skeletonBox({
+    double? width,
+    double? height,
+    BorderRadius? borderRadius,
+    EdgeInsetsGeometry? margin,
+  }) {
+    return SkeletonBox(
+      width: width,
+      height: height,
+      borderRadius: borderRadius,
+      margin: margin,
+    );
+  }
+
+  /// Standard Skeleton Card matching Lala AI surface style
+  static Widget skeletonCard({
+    double height = 90,
+    double? width,
+    EdgeInsetsGeometry? margin,
+    EdgeInsetsGeometry? padding,
+  }) {
+    final effectivePadding = padding ??
+        (height < 75
+            ? const EdgeInsets.symmetric(horizontal: 14, vertical: 8)
+            : const EdgeInsets.all(16));
+    final avatarSize = height < 75 ? (height - 20).clamp(24.0, 44.0) : 44.0;
+
+    return SkeletonCard(
+      width: width ?? double.infinity,
+      height: height,
+      margin: margin ?? const EdgeInsets.only(bottom: 12),
+      padding: effectivePadding,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          skeletonBox(width: avatarSize, height: avatarSize, borderRadius: BorderRadius.circular(10)),
+          12.width,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                skeletonBox(
+                  width: double.infinity,
+                  height: height < 75 ? 12 : 14,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                (height < 75 ? 5 : 8).height,
+                skeletonBox(
+                  width: 120,
+                  height: height < 75 ? 9 : 10,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Skeleton List for instant, non-jank initial screen loading
+  static Widget skeletonList({
+    int itemCount = 4,
+    double itemHeight = 90,
+    EdgeInsetsGeometry? padding,
+  }) {
+    return SkeletonShimmer(
+      child: ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        padding: padding ?? const EdgeInsets.all(16),
+        itemCount: itemCount,
+        itemBuilder: (_, __) => skeletonCard(height: itemHeight),
+      ),
+    );
+  }
 }
+
+/// Generic Debouncer utility to avoid firing costly computations / network queries on every keystroke
+class Debouncer {
+  final Duration delay;
+  void Function()? _action;
+  bool _disposed = false;
+
+  Debouncer({this.delay = const Duration(milliseconds: 350)});
+
+  void run(void Function() action) {
+    _action = action;
+    Future.delayed(delay, () {
+      if (!_disposed && _action != null) {
+        _action!();
+        _action = null;
+      }
+    });
+  }
+
+  void cancel() {
+    _action = null;
+  }
+
+  void dispose() {
+    _disposed = true;
+    _action = null;
+  }
+}
+

@@ -1,6 +1,8 @@
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:lala_ai/app/navigation/app_navigation_service.dart';
 import 'package:lala_ai/app/modules/authentication/data/auth_repository.dart';
+import 'package:lala_ai/core/deep_link/deep_link_router.dart';
 
 class MainContainerController extends GetxController {
   final currentIndex = 0.obs;
@@ -14,6 +16,7 @@ class MainContainerController extends GetxController {
     } else {
       navigationService = Get.find<AppNavigationService>();
     }
+    navigationService.reinitializeKeys();
     
     // Silently validate session and fetch user data in the background
     if (Get.isRegistered<AuthRepository>()) {
@@ -21,6 +24,15 @@ class MainContainerController extends GetxController {
     } else {
       Get.put<AuthRepository>(ApiAuthRepository()).fetchAndSaveMe();
     }
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    // Signal to DeepLinkRouter that MainContainer widget tree and navigators are fully mounted
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      DeepLinkRouter.setAppReady(ready: true);
+    });
   }
 
   void changeTab(int index) {

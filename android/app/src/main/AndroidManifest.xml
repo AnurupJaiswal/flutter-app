@@ -1,51 +1,169 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.BLUETOOTH"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <!-- Camera & image picker permissions -->
-    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.CAMERA" />
     <!-- Android 13+ granular media permissions -->
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <!-- Android 9 and below fallback -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
-    <uses-feature android:name="android.hardware.camera" android:required="false"/>
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
 
     <application
-        android:label="Lala Ai"
         android:name="${applicationName}"
+        android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/ic_launcher"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:enableOnBackInvokedCallback="true">
+        android:label="Lala Ai"
+        android:roundIcon="@mipmap/ic_launcher_round">
         <activity
             android:name=".MainActivity"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:exported="true"
+            android:hardwareAccelerated="true"
             android:launchMode="singleTop"
             android:taskAffinity=""
             android:theme="@style/LaunchTheme"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
-            android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize">
             <!-- Specifies an Android theme to apply to this Activity as soon as
                  the Android process has started. This theme is visible to the user
                  while the Flutter UI initializes. After that, this theme continues
                  to determine the Window background behind the Flutter UI. -->
             <meta-data
-              android:name="io.flutter.embedding.android.NormalTheme"
-              android:resource="@style/NormalTheme"
-              />
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resource="@style/NormalTheme" />
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            
-            <!-- Deep linking intent filter for custom scheme "lala://" -->
+
+            <!-- Android App Links: Canonical HTTPS Deep Links (Specific Path Prefixes Only) -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="lala" android:host="auth" android:pathPrefix="/reset-password" />
+
+                <data
+                    android:host="lala-ai-green.vercel.app"
+                    android:pathPrefix="/open-app"
+                    android:scheme="https" />
+                <data
+                    android:host="lala-ai-green.vercel.app"
+                    android:pathPrefix="/open"
+                    android:scheme="https" />
+                <data
+                    android:host="lala-ai-green.vercel.app"
+                    android:pathPrefix="/app"
+                    android:scheme="https" />
+                <data
+                    android:host="lala-ai-green.vercel.app"
+                    android:pathPrefix="/subscription"
+                    android:scheme="https" />
+                <data
+                    android:host="lala-ai-green.vercel.app"
+                    android:pathPrefix="/oauth"
+                    android:scheme="https" />
+                <data
+                    android:host="lala-ai-green.vercel.app"
+                    android:pathPrefix="/invite"
+                    android:scheme="https" />
+            </intent-filter>
+
+            <!-- Cloudflare Dev Tunnel Deep Linking: https://notifications-independently-marie-determined.trycloudflare.com/ -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="notifications-independently-marie-determined.trycloudflare.com"
+                    android:pathPrefix="/open-app"
+                    android:scheme="https" />
+
+                <data
+                    android:host="notifications-independently-marie-determined.trycloudflare.com"
+                    android:pathPrefix="/open"
+                    android:scheme="https" />
+
+                <data
+                    android:host="notifications-independently-marie-determined.trycloudflare.com"
+                    android:pathPrefix="/app"
+                    android:scheme="https" />
+
+                <data
+                    android:host="notifications-independently-marie-determined.trycloudflare.com"
+                    android:pathPrefix="/subscription"
+                    android:scheme="https" />
+
+                <data
+                    android:host="notifications-independently-marie-determined.trycloudflare.com"
+                    android:pathPrefix="/oauth"
+                    android:scheme="https" />
+
+                <data
+                    android:host="notifications-independently-marie-determined.trycloudflare.com"
+                    android:pathPrefix="/invite"
+                    android:scheme="https" />
+            </intent-filter>
+
+            <!-- Production / Target Domain: lalaai.in -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="lalaai.in"
+                    android:pathPrefix="/open-app"
+                    android:scheme="https" />
+
+                <data
+                    android:host="lalaai.in"
+                    android:pathPrefix="/open"
+                    android:scheme="https" />
+
+                <data
+                    android:host="lalaai.in"
+                    android:pathPrefix="/app"
+                    android:scheme="https" />
+
+                <data
+                    android:host="lalaai.in"
+                    android:pathPrefix="/subscription"
+                    android:scheme="https" />
+
+                <data
+                    android:host="lalaai.in"
+                    android:pathPrefix="/oauth"
+                    android:scheme="https" />
+
+                <data
+                    android:host="lalaai.in"
+                    android:pathPrefix="/invite"
+                    android:scheme="https" />
+            </intent-filter>
+
+            <!-- Custom URL Scheme: lala:// (Legacy fallback) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="lala" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
@@ -61,8 +179,8 @@
          In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
     <queries>
         <intent>
-            <action android:name="android.intent.action.PROCESS_TEXT"/>
-            <data android:mimeType="text/plain"/>
+            <action android:name="android.intent.action.PROCESS_TEXT" />
+            <data android:mimeType="text/plain" />
         </intent>
         <intent>
             <action android:name="android.intent.action.VIEW" />

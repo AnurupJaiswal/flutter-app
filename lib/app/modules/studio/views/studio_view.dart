@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:lala_ai/utils/app_toast.dart';
-import 'package:lala_ai/app/modules/profile/views/profile_view.dart';
-import 'package:lala_ai/app/modules/main_container/controllers/main_container_controller.dart';
 import 'package:lala_ai/app/modules/studio/controllers/studio_controller.dart';
-import 'package:lala_ai/app/navigation/app_navigation_service.dart';
+import 'package:lala_ai/app/modules/studio/widgets/studio_drawer_sidebar.dart';
+import 'package:lala_ai/app/modules/studio/widgets/studio_message_bubble_widget.dart';
+import 'package:lala_ai/app/modules/studio/widgets/studio_message_composer.dart';
 import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
@@ -17,393 +15,255 @@ class StudioView extends GetView<StudioController> {
 
   @override
   Widget build(BuildContext context) {
-    if (!Get.isRegistered<StudioController>()) {
-      Get.put(StudioController());
-    }
-
     return GetBuilder<ThemeService>(
-      builder: (themeService) {
-        return Scaffold(
+      builder: (_) {
+        final isDesktop = MediaQuery.of(context).size.width >= 800;
+
+        Widget mainContent = Scaffold(
           backgroundColor: CC.background,
+          drawer: isDesktop ? null : const StudioDrawerSidebar(),
           appBar: CW.commonAppbar(
-            isNotHomepage: false,
             wantBackIcon: false,
-            title: "AI Content Studio",
+            leadingWidget: isDesktop
+                ? null
+                : Builder(
+                    builder: (scaffoldContext) => IconButton(
+                      icon: Icon(Icons.menu_rounded, color: CC.textSecondary, size: 20),
+                      splashRadius: 18,
+                      tooltip: "Open History",
+                      onPressed: () => Scaffold.of(scaffoldContext).openDrawer(),
+                    ),
+                  ),
+            titleWidget: const SizedBox.shrink(),
             actions: [
               IconButton(
-                icon: Icon(Icons.person_outline_rounded, color: CC.textPrimary, size: 22),
-                splashRadius: 20,
-                onPressed: () => Get.to(() => const ProfileView()),
+                icon: Icon(Icons.add_comment_outlined, color: CC.textPrimary, size: 18),
+                splashRadius: 18,
+                tooltip: "New Chat",
+                onPressed: controller.startNewChat,
               ),
             ],
           ),
           body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Generator Mode Switcher
-                  Obx(() => Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: CC.isDark ? CC.darkBg2 : CC.surface,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: CC.isDark ? CC.black.withValues(alpha: 0.4) : CC.black.withValues(alpha: 0.08),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(child: _modeTab("Script Generator", 0)),
-                        Expanded(child: _modeTab("Hooks & Keywords", 1)),
-                      ],
-                    ),
-                  )),
-                  16.height,
+            child: Column(
+              children: [
+                Expanded(
+                  child: Obx(() {
+                    final list = controller.messages;
+                    final isThinking = controller.isAiThinking.value;
 
-                  // Dynamic Tab View
-                  Obx(() {
-                    if (controller.activeTab.value == 0) {
-                      return _buildScriptGenerator();
-                    } else {
-                      return _buildHooksGenerator();
+                    // 1. Single Screen Empty/Starter State
+                    if (list.isEmpty && !isThinking) {
+                      return Center(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 580),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      width: 32,
+                                      height: 32,
+                                      decoration: BoxDecoration(
+                                        color: CC.primary.withValues(alpha: 0.12),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Icon(
+                                        Icons.auto_awesome_rounded,
+                                        color: CC.textPrimary,
+                                        size: 18,
+                                      ),
+                                    ),
+                                    10.width,
+                                    Text(
+                                      "AI Studio",
+                                      style: TS.screenTitle(fontSize: 16),
+                                    ),
+                                  ],
+                                ),
+
+                                18.height,
+
+                                Text(
+                                  "How can I help?",
+                                  style: TS.displayLarge(fontSize: 22),
+                                ),
+
+                                6.height,
+
+                                Text(
+                                  "Generate scripts, viral hooks, SEO titles, thumbnail advice, or audience growth strategies.",
+                                  style: TS.subHeading(color: CC.textSecondary),
+                                ),
+
+                                28.height,
+
+                                Text(
+                                  "Suggested prompts",
+                                  style: TS.caption(color: CC.grey, fontWeight: FontWeight.w700),
+                                ),
+
+                                10.height,
+
+                                _buildPromptItem(
+                                  "Generate 5 scroll-stopping Reels/Shorts hooks",
+                                  "Generate 5 high-converting, curiosity-driven hooks for a 30-second Short about productivity tools.",
+                                ),
+                                _buildPromptItem(
+                                  "Write a 60-second video script with CTA",
+                                  "Write a complete 60-second YouTube Short script for '5 AI hacks every creator needs' with a 3-second hook.",
+                                ),
+                                _buildPromptItem(
+                                  "Optimize YouTube video title & SEO description",
+                                  "Give me 3 high-CTR YouTube titles and a keyword-rich description for a channel growth video.",
+                                ),
+                                _buildPromptItem(
+                                  "Fix viewer drop-off & boost channel retention",
+                                  "How do I fix viewer drop-off at the 45-second mark and increase overall channel retention past 75%?",
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
                     }
+
+                    // 2. Active Message List Stream
+                    return ListView.builder(
+                      controller: controller.chatScrollController,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      itemCount: list.length + (isThinking ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index == list.length && isThinking) {
+                          return _buildThinkingIndicator();
+                        }
+
+                        final msg = list[index];
+                        return StudioMessageBubbleWidget(
+                          message: msg,
+                          onRegenerate: (index == list.length - 1 && msg.isAssistant)
+                              ? controller.regenerateLastMessage
+                              : null,
+                          onLike: (liked) => controller.toggleLikeMessage(msg, liked),
+                          onSuggestedPromptTap: (prompt) => controller.sendMessage(prompt),
+                        );
+                      },
+                    );
                   }),
-                ],
-              ),
+                ),
+
+                // Unified Message Composer
+                Obx(() => StudioMessageComposer(
+                      controller: controller.messageInputController,
+                      focusNode: controller.messageFocusNode,
+                      isLoading: controller.isAiThinking.value,
+                      onSend: () => controller.sendMessage(),
+                      onStop: controller.stopGenerating,
+                    )),
+              ],
             ),
           ),
         );
+
+        if (isDesktop) {
+          return Scaffold(
+            backgroundColor: CC.background,
+            body: Row(
+              children: [
+                const SizedBox(
+                  width: 260,
+                  child: StudioDrawerSidebar(),
+                ),
+                VerticalDivider(color: CC.stroke, width: 0.7, thickness: 0.7),
+                Expanded(child: mainContent),
+              ],
+            ),
+          );
+        }
+
+        return mainContent;
       },
     );
   }
 
-  Widget _modeTab(String title, int index) {
-    final isSelected = controller.activeTab.value == index;
-    return GestureDetector(
-      onTap: () => controller.activeTab.value = index,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(vertical: 9),
-        decoration: BoxDecoration(
-          color: isSelected ? CC.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          title,
-          textAlign: TextAlign.center,
-          style: TS.caption(
-            color: isSelected ? CC.whiteText : CC.textSecondary,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+  Widget _buildThinkingIndicator() {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 760),
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              CW.aiAvatar(size: 26, isAssistant: true),
+              12.width,
+              SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(CC.primary),
+                ),
+              ),
+              8.width,
+              Text(
+                "Thinking...",
+                style: TS.caption(color: CC.textSecondary),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  // ===========================================================================
-  // SCRIPT GENERATOR
-  // ===========================================================================
-  Widget _buildScriptGenerator() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Form Inputs Card
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: CC.surface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
-                blurRadius: 14,
-                offset: const Offset(0, 6),
-              ),
-            ],
+  Widget _buildPromptItem(String label, String fullPrompt) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: CC.surface,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: CC.isDark ? CC.black.withValues(alpha: 0.4) : CC.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Topic / Concept", style: TS.caption(color: CC.textSecondary, fontWeight: FontWeight.w600)),
-              6.height,
-              TextFormField(
-                style: TS.bodySmall(color: CC.textPrimary),
-                decoration: InputDecoration(
-                  hintText: "e.g., How to automate YouTube thumbnails using AI",
-                  filled: true,
-                  fillColor: CC.inputBackground,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: CC.stroke.withValues(alpha: 0.5), width: 0.7),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => controller.sendMessage(fullPrompt),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: CC.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.arrow_forward_rounded, size: 14, color: CC.textPrimary),
+                ),
+                12.width,
+                Expanded(
+                  child: Text(
+                    label,
+                    style: TS.bodyMedium(color: CC.textPrimary, fontWeight: FontWeight.w600),
                   ),
                 ),
-              ),
-              12.height,
-              Row(
-                children: [
-                  Expanded(
-                    child: _dropdownSelector("Platform", ["YouTube Shorts", "Instagram Reel", "YouTube Video"]),
-                  ),
-                  10.width,
-                  Expanded(
-                    child: _dropdownSelector("Tone", ["Energetic", "Informative", "Viral Storytelling"]),
-                  ),
-                ],
-              ),
-              14.height,
-              Obx(() => CW.commonBtn(
-                title: "Generate AI Script",
-                isLoading: controller.isGeneratingScript.value,
-                onTap: controller.generateScript,
-              )),
-            ],
-          ),
-        ),
-        16.height,
-
-        // Expandable Result Card
-        Text("Generated Result", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 14)),
-        10.height,
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: CC.surface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
-                blurRadius: 14,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Obx(() => Text(
-                      controller.generatedScriptTitle.value,
-                      style: TS.sectionTitle(color: CC.textPrimary, fontSize: 15),
-                    )),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.copy_rounded, size: 18, color: CC.primary),
-                    tooltip: "Copy Script",
-                    onPressed: () {
-                      Clipboard.setData(ClipboardData(text: "${controller.generatedScriptTitle}\n\n${controller.generatedScriptHook}\n\n${controller.generatedScriptBody}\n\n${controller.generatedScriptCTA}"));
-                      AppToast.success("Script copied to clipboard!");
-                    },
-                  ),
-                ],
-              ),
-              const Divider(height: 16, thickness: 0.7),
-              _scriptSection("HOOK (0-3s)", controller.generatedScriptHook.value, CC.primary),
-              10.height,
-              _scriptSection("BODY", controller.generatedScriptBody.value, CC.textPrimary),
-              10.height,
-              _scriptSection("CALL TO ACTION (CTA)", controller.generatedScriptCTA.value, CC.success),
-              14.height,
-              Row(
-                children: [
-                  Expanded(
-                    child: CW.commonBtn(
-                      title: "Push to Calendar",
-                      isOutlined: true,
-                      onTap: () => Get.find<MainContainerController>().changeTab(AppNavigationService.tabCalendar),
-                    ),
-                  ),
-                  10.width,
-                  IconButton(
-                    icon: Icon(Icons.refresh_rounded, color: CC.primary, size: 20),
-                    tooltip: "Micro-Regenerate",
-                    onPressed: controller.generateScript,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _dropdownSelector(String label, List<String> options) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: TS.caption(color: CC.textSecondary, fontWeight: FontWeight.w600)),
-        4.height,
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          decoration: BoxDecoration(
-            color: CC.inputBackground,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: options.first,
-              isExpanded: true,
-              style: TS.caption(color: CC.textPrimary, fontWeight: FontWeight.w600),
-              items: options.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-              onChanged: (val) {},
+              ],
             ),
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _scriptSection(String header, String content, Color headerColor) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(header, style: TS.caption(color: headerColor, fontWeight: FontWeight.w700)),
-        4.height,
-        Text(content, style: TS.bodySmall(color: CC.textSecondary)),
-      ],
-    );
-  }
-
-  // ===========================================================================
-  // HOOKS & KEYWORDS GENERATOR
-  // ===========================================================================
-  Widget _buildHooksGenerator() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: CC.surface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
-                blurRadius: 14,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Niche / Core Topic", style: TS.caption(color: CC.textSecondary, fontWeight: FontWeight.w600)),
-              6.height,
-              TextFormField(
-                style: TS.bodySmall(color: CC.textPrimary),
-                decoration: InputDecoration(
-                  hintText: "e.g., YouTube monetization tips for small creators",
-                  filled: true,
-                  fillColor: CC.inputBackground,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: CC.stroke.withValues(alpha: 0.5), width: 0.7),
-                  ),
-                ),
-              ),
-              12.height,
-              Obx(() => CW.commonBtn(
-                title: "Generate Viral Hooks & Keywords",
-                isLoading: controller.isGeneratingHooks.value,
-                onTap: controller.generateHooks,
-              )),
-            ],
-          ),
-        ),
-        16.height,
-
-        Text("High-Converting Hooks", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 14)),
-        10.height,
-        Obx(() => Column(
-          children: controller.generatedHooks.map((hook) {
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: CC.surface,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
-                    blurRadius: 14,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: CC.primary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(Icons.auto_awesome_rounded, color: CC.textPrimary, size: 18),
-                  ),
-                  12.width,
-                  Expanded(child: Text(hook, style: TS.bodySmall(color: CC.textPrimary))),
-                  IconButton(
-                    icon: Icon(Icons.copy_rounded, size: 18, color: CC.textSecondary),
-                    onPressed: () {
-                      Clipboard.setData(ClipboardData(text: hook));
-                      AppToast.success("Hook copied!");
-                    },
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
-        )),
-        14.height,
-
-        Text("Recommended Keywords & Hashtags", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 14)),
-        10.height,
-        Obx(() => Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: controller.generatedKeywords.map((kw) {
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: CC.primary.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(kw, style: TS.caption(color: CC.primary, fontWeight: FontWeight.w600)),
-            );
-          }).toList(),
-        )),
-      ],
+      ),
     );
   }
 }

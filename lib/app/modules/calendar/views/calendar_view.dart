@@ -6,6 +6,7 @@ import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
+
 import 'package:lala_ai/utils/theme/theme_service.dart';
 
 class CalendarView extends GetView<CalendarController> {
@@ -18,251 +19,254 @@ class CalendarView extends GetView<CalendarController> {
     }
 
     return GetBuilder<ThemeService>(
-      builder: (themeService) {
+      builder: (_) {
         return Scaffold(
-          backgroundColor: CC.background,
-          appBar: CW.commonAppbar(
-            isNotHomepage: false,
-            wantBackIcon: false,
-            title: "Content Calendar",
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: GestureDetector(
-                  onTap: () => _showCreateDraftSheet(context),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: CC.tealSubtle,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                      Icons.edit_calendar_rounded,
-                      color: CC.textPrimary,
-                      size: 18,
-                    ),
-                  ),
+      backgroundColor: CC.background,
+      appBar: CW.commonAppbar(
+        isNotHomepage: false,
+        wantBackIcon: false,
+        title: "Content Calendar",
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: GestureDetector(
+              onTap: () => _showCreateDraftSheet(context),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: CC.tealSubtle,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.edit_calendar_rounded,
+                  color: CC.textPrimary,
+                  size: 18,
                 ),
               ),
-              IconButton(
-                icon: Icon(Icons.person_outline_rounded, color: CC.textPrimary, size: 22),
-                splashRadius: 20,
-                onPressed: () => Get.to(() => const ProfileView()),
-              ),
-            ],
+            ),
           ),
-          body: SafeArea(
-            child: Stack(
-              children: [
-                SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          IconButton(
+            icon: Icon(Icons.person_outline_rounded, color: CC.textPrimary, size: 22),
+            splashRadius: 20,
+            onPressed: () => Get.to(() => const ProfileView()),
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ── Subtitle Description ───────────────────────────────
+                  Text(
+                    "Plan, manage and grow your content",
+                    style: TS.bodySmall(
+                      color: CC.textSecondary,
+                    ).copyWith(fontSize: 13),
+                  ),
+                  16.height,
+
+                  // ── Month & Weekly Date Selector Strip ──────────────────
+                  _buildMonthAndWeeklyStrip(context),
+                  20.height,
+
+                  // ── Filter Category Pills ───────────────────────────────
+                  _buildFilterPills(),
+                  20.height,
+
+                  // ── Posts Section for Selected Date ─────────────────────
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // ── Subtitle Description ───────────────────────────────
-                      Text(
-                        "Plan, manage and grow your content",
-                        style: TS.bodySmall(
-                          color: CC.textSecondary,
-                        ).copyWith(fontSize: 13),
-                      ),
-                      16.height,
-
-                      // ── Month & Weekly Date Selector Strip ──────────────────
-                      _buildMonthAndWeeklyStrip(context),
-                      20.height,
-
-                      // ── Filter Category Pills ───────────────────────────────
-                      _buildFilterPills(),
-                      20.height,
-
-                      // ── Posts Section for Selected Date ─────────────────────
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Obx(() => Text(
-                                "Posts for ${controller.selectedDateFormatted}",
-                                style: TS.sectionTitle(
-                                  color: CC.textPrimary,
-                                  fontSize: 16,
-                                ),
-                              )),
-                          Obx(() => Text(
-                                "${controller.filteredTodayPosts.length} post",
-                                style: TS.caption(
-                                  color: CC.primary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              )),
-                        ],
-                      ),
-                      10.height,
-                      Obx(() {
-                        final list = controller.filteredTodayPosts;
-                        if (list.isEmpty) {
-                          return _buildEmptySection("No scheduled posts for ${controller.selectedDateFormatted}");
-                        }
-                        return Column(
-                          children: list
-                              .asMap()
-                              .entries
-                              .map((entry) => _buildPostCard(
-                                    context: context,
-                                    post: entry.value,
-                                    index: entry.key,
-                                    isToday: true,
-                                  ))
-                              .toList(),
-                        );
-                      }),
-                      20.height,
-
-                      // ── Upcoming & Drafts Section ───────────────────────────
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Upcoming & Drafts",
+                      Obx(() => Text(
+                            "Posts for ${controller.selectedDateFormatted}",
                             style: TS.sectionTitle(
                               color: CC.textPrimary,
                               fontSize: 16,
                             ),
-                          ),
-                          Obx(() => Text(
-                                "${controller.filteredUpcomingPosts.length} posts",
-                                style: TS.caption(
-                                  color: CC.primary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              )),
-                        ],
-                      ),
-                      10.height,
-                      Obx(() {
-                        final list = controller.filteredUpcomingPosts;
-                        if (list.isEmpty) {
-                          return _buildEmptySection("No upcoming posts for this filter");
-                        }
-                        return Column(
-                          children: list
-                              .asMap()
-                              .entries
-                              .map((entry) => Padding(
-                                    padding: const EdgeInsets.only(bottom: 12),
-                                    child: _buildPostCard(
-                                      context: context,
-                                      post: entry.value,
-                                      index: entry.key,
-                                      isToday: false,
-                                    ),
-                                  ))
-                              .toList(),
-                        );
-                      }),
-                      100.height, // Spacing for floating action button
+                          )),
+                      Obx(() => Text(
+                            "${controller.filteredTodayPosts.length} post",
+                            style: TS.caption(
+                              color: CC.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          )),
                     ],
                   ),
-                ),
+                  10.height,
+                  Obx(() {
+                    final list = controller.filteredTodayPosts;
+                    if (list.isEmpty) {
+                      return _buildEmptySection("No scheduled posts for ${controller.selectedDateFormatted}");
+                    }
+                    return Column(
+                      children: list
+                          .asMap()
+                          .entries
+                          .map((entry) => _buildPostCard(
+                                context: context,
+                                post: entry.value,
+                                index: entry.key,
+                                isToday: true,
+                              ))
+                          .toList(),
+                    );
+                  }),
+                  20.height,
 
-                // ── Floating Action Button (New Post) ──────────────────────────
-                Positioned(
-                  right: 16,
-                  bottom: 24,
-                  child: GestureDetector(
-                    onTap: () => _showCreateDraftSheet(context),
-                    child: Container(
-                      width: 58,
-                      height: 58,
-                      decoration: BoxDecoration(
-                        color: CC.primary,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: CC.isDark
-                                ? CC.black.withValues(alpha: 0.45)
-                                : CC.black.withValues(alpha: 0.12),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.add_rounded,
-                          color: CC.whiteText,
-                          size: 30,
+                  // ── Upcoming & Drafts Section ───────────────────────────
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Upcoming & Drafts",
+                        style: TS.sectionTitle(
+                          color: CC.textPrimary,
+                          fontSize: 16,
                         ),
                       ),
+                      Obx(() => Text(
+                            "${controller.filteredUpcomingPosts.length} posts",
+                            style: TS.caption(
+                              color: CC.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          )),
+                    ],
+                  ),
+                  10.height,
+                  Obx(() {
+                    final list = controller.filteredUpcomingPosts;
+                    if (list.isEmpty) {
+                      return _buildEmptySection("No upcoming posts for this filter");
+                    }
+                    return Column(
+                      children: list
+                          .asMap()
+                          .entries
+                          .map((entry) => Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: _buildPostCard(
+                                  context: context,
+                                  post: entry.value,
+                                  index: entry.key,
+                                  isToday: false,
+                                ),
+                              ))
+                          .toList(),
+                    );
+                  }),
+                  100.height, // Spacing for floating action button
+                ],
+              ),
+            ),
+
+            // ── Floating Action Button (New Post) ──────────────────────────
+            Positioned(
+              right: 16,
+              bottom: 24,
+              child: GestureDetector(
+                onTap: () => _showCreateDraftSheet(context),
+                child: Container(
+                  width: 58,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    color: CC.primary,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: CC.isDark
+                            ? CC.black.withValues(alpha: 0.45)
+                            : CC.black.withValues(alpha: 0.12),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.add_rounded,
+                      color: CC.whiteText,
+                      size: 30,
                     ),
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-        );
+          ],
+        ),
+      ),
+    );
       },
     );
   }
 
+
   /// Month Header & Day Selector (Clean non-overlapping layout with smooth date scrolling)
   Widget _buildMonthAndWeeklyStrip(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: CC.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: CC.isDark
-                ? CC.black.withValues(alpha: 0.3)
-                : CC.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+    return RepaintBoundary(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: CC.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+            width: 1,
           ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Month navigation title
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  icon: Icon(Icons.chevron_left_rounded,
-                      color: CC.textPrimary, size: 22),
-                  onPressed: () => controller.previousMonth(),
-                  splashRadius: 18,
-                  tooltip: "Previous Month",
-                ),
-                Obx(() => Text(
-                      controller.currentMonthName,
-                      style: TS.sectionTitle(
-                        color: CC.textPrimary,
-                        fontSize: 16,
-                      ),
-                    )),
-                IconButton(
-                  icon: Icon(Icons.chevron_right_rounded,
-                      color: CC.textPrimary, size: 22),
-                  onPressed: () => controller.nextMonth(),
-                  splashRadius: 18,
-                  tooltip: "Next Month",
-                ),
-              ],
+          boxShadow: [
+            BoxShadow(
+              color: CC.isDark
+                  ? CC.black.withValues(alpha: 0.3)
+                  : CC.black.withValues(alpha: 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-          ),
-          8.height,
+          ],
+        ),
+        child: Column(
+          children: [
+            // Month navigation title
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.chevron_left_rounded,
+                        color: CC.textPrimary, size: 22),
+                    onPressed: () => controller.previousMonth(),
+                    splashRadius: 18,
+                    tooltip: "Previous Month",
+                  ),
+                  Obx(() => Text(
+                        controller.currentMonthName,
+                        style: TS.sectionTitle(
+                          color: CC.textPrimary,
+                          fontSize: 16,
+                        ),
+                      )),
+                  IconButton(
+                    icon: Icon(Icons.chevron_right_rounded,
+                        color: CC.textPrimary, size: 22),
+                    onPressed: () => controller.nextMonth(),
+                    splashRadius: 18,
+                    tooltip: "Next Month",
+                  ),
+                ],
+              ),
+            ),
+            8.height,
 
-          // Days Container
-          _buildMonthStripView(),
-        ],
+            // Days Container
+            _buildMonthStripView(),
+          ],
+        ),
       ),
     );
   }
@@ -372,6 +376,8 @@ class CalendarView extends GetView<CalendarController> {
       );
     });
   }
+
+
 
 
 

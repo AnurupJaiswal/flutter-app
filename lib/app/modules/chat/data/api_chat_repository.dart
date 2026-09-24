@@ -5,13 +5,51 @@ import 'package:lala_ai/networking/api_service.dart';
 
 /// Production API Implementation connecting to live backend endpoints
 class ApiChatRepository implements ChatRepository {
+  Map<String, dynamic>? _extractMap(dynamic data) {
+    if (data == null) return null;
+    if (data is Map<String, dynamic>) {
+      if (data['data'] is Map<String, dynamic>) {
+        return data['data'] as Map<String, dynamic>;
+      }
+      if (data['chat'] is Map<String, dynamic>) {
+        return data['chat'] as Map<String, dynamic>;
+      }
+      if (data['message'] is Map<String, dynamic>) {
+        return data['message'] as Map<String, dynamic>;
+      }
+      return data;
+    } else if (data is Map) {
+      final typed = Map<String, dynamic>.from(data);
+      if (typed['data'] is Map) return Map<String, dynamic>.from(typed['data'] as Map);
+      if (typed['chat'] is Map) return Map<String, dynamic>.from(typed['chat'] as Map);
+      if (typed['message'] is Map) return Map<String, dynamic>.from(typed['message'] as Map);
+      return typed;
+    }
+    return null;
+  }
+
   @override
   Future<List<ChatSessionModel>> getChats() async {
     final response = await ApiService.get(ApiEndpoints.chats);
-    if (response.isSuccess && response.data is List) {
-      return (response.data as List)
-          .map((item) => ChatSessionModel.fromJson(item as Map<String, dynamic>))
-          .toList();
+    if (response.isSuccess && response.data != null) {
+      dynamic listData;
+      if (response.data is List) {
+        listData = response.data;
+      } else if (response.data is Map) {
+        listData = response.data['data'] ?? response.data['chats'] ?? response.data['sessions'];
+      }
+
+      if (listData is List) {
+        final List<ChatSessionModel> results = [];
+        for (final item in listData) {
+          if (item is Map) {
+            try {
+              results.add(ChatSessionModel.fromJson(Map<String, dynamic>.from(item)));
+            } catch (_) {}
+          }
+        }
+        return results;
+      }
     }
     return [];
   }
@@ -20,7 +58,10 @@ class ApiChatRepository implements ChatRepository {
   Future<ChatSessionModel?> getChat(String chatId) async {
     final response = await ApiService.get(ApiEndpoints.chatDetails(chatId));
     if (response.isSuccess && response.data != null) {
-      return ChatSessionModel.fromJson(response.data as Map<String, dynamic>);
+      final map = _extractMap(response.data);
+      if (map != null) {
+        return ChatSessionModel.fromJson(map);
+      }
     }
     return null;
   }
@@ -38,10 +79,13 @@ class ApiChatRepository implements ChatRepository {
     );
 
     if (response.isSuccess && response.data != null) {
-      return ChatSessionModel.fromJson(response.data as Map<String, dynamic>);
+      final map = _extractMap(response.data);
+      if (map != null) {
+        return ChatSessionModel.fromJson(map);
+      }
     }
 
-    // Fallback if backend offline
+    // Fallback if backend response is format-incompatible
     return ChatSessionModel(
       id: "chat_${DateTime.now().millisecondsSinceEpoch}",
       title: title ?? "New Chat",
@@ -62,7 +106,10 @@ class ApiChatRepository implements ChatRepository {
     );
 
     if (response.isSuccess && response.data != null) {
-      return ChatMessageModel.fromJson(response.data as Map<String, dynamic>);
+      final map = _extractMap(response.data);
+      if (map != null) {
+        return ChatMessageModel.fromJson(map);
+      }
     }
 
     throw Exception(response.message.isNotEmpty ? response.message : "Failed to receive AI response");
@@ -83,3 +130,4 @@ class ApiChatRepository implements ChatRepository {
     return response.isSuccess;
   }
 }
+

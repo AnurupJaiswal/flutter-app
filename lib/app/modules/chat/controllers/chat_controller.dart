@@ -42,14 +42,20 @@ class ChatController extends GetxController {
   }
 
   Future<void> loadChats() async {
+    if (isClosed) return;
     isChatsLoading.value = true;
     try {
       final list = await repository.getChats();
+      if (isClosed) return;
       chats.assignAll(list);
     } catch (e) {
-      CM.showToast("Failed to load chat history", isError: true);
+      if (!isClosed) {
+        CM.showToast("Failed to load chat history", isError: true);
+      }
     } finally {
-      isChatsLoading.value = false;
+      if (!isClosed) {
+        isChatsLoading.value = false;
+      }
     }
   }
 
@@ -113,12 +119,21 @@ class ChatController extends GetxController {
 
     // 1. If no active chat session, create one reactively (switches view in-place)
     if (activeChat.value == null) {
-      final newChat = await repository.createChat(initialMessage: text);
-      activeChat.value = newChat;
-      chats.insert(0, newChat);
+      try {
+        final newChat = await repository.createChat(initialMessage: text);
+        if (isClosed) return;
+        activeChat.value = newChat;
+        chats.insert(0, newChat);
+      } catch (_) {
+        if (isClosed) return;
+      }
     }
 
-    final currentChatId = activeChat.value!.id;
+    final currentChatId = activeChat.value?.id;
+    if (currentChatId == null || currentChatId.isEmpty) {
+      if (!isClosed) isAiThinking.value = false;
+      return;
+    }
 
     // 2. Add User Message locally
     final userMsg = ChatMessageModel(
@@ -130,6 +145,7 @@ class ChatController extends GetxController {
       status: MessageStatus.sent,
     );
 
+    if (isClosed) return;
     messages.add(userMsg);
     _scrollToBottom();
 
@@ -142,11 +158,13 @@ class ChatController extends GetxController {
         message: text,
       );
 
+      if (isClosed) return;
       if (!_isGeneratingCancelled) {
         messages.add(aiResponse);
         _scrollToBottom();
       }
     } catch (e) {
+      if (isClosed) return;
       if (!_isGeneratingCancelled) {
         messages.add(
           ChatMessageModel(
@@ -160,19 +178,23 @@ class ChatController extends GetxController {
         );
       }
     } finally {
-      isAiThinking.value = false;
-      await loadChats();
+      if (!isClosed) {
+        isAiThinking.value = false;
+        await loadChats();
+      }
     }
   }
 
   void stopGenerating() {
     _isGeneratingCancelled = true;
-    isAiThinking.value = false;
-    CM.showToast("Generation stopped.");
+    if (!isClosed) {
+      isAiThinking.value = false;
+      CM.showToast("Generation stopped.");
+    }
   }
 
   Future<void> regenerateLastMessage() async {
-    if (messages.isEmpty || isAiThinking.value) return;
+    if (isClosed || messages.isEmpty || isAiThinking.value) return;
 
     final lastUserMsg = messages.where((m) => m.isUser).lastOrNull;
     if (lastUserMsg == null) return;
@@ -185,6 +207,7 @@ class ChatController extends GetxController {
   }
 
   void toggleLikeMessage(ChatMessageModel message, bool isLiked) {
+    if (isClosed) return;
     final index = messages.indexWhere((m) => m.id == message.id);
     if (index != -1) {
       final current = messages[index];
@@ -200,11 +223,12 @@ class ChatController extends GetxController {
   }
 
   Future<void> renameSession(ChatSessionModel session, String newTitle) async {
-    if (newTitle.trim().isEmpty) return;
+    if (newTitle.trim().isEmpty || isClosed) return;
     final success = await repository.renameChat(
       chatId: session.id,
       newTitle: newTitle.trim(),
     );
+    if (isClosed) return;
     if (success) {
       if (activeChat.value?.id == session.id) {
         activeChat.value = activeChat.value!.copyWith(title: newTitle.trim());
@@ -215,7 +239,9 @@ class ChatController extends GetxController {
   }
 
   Future<void> deleteSession(ChatSessionModel session) async {
+    if (isClosed) return;
     final success = await repository.deleteChat(session.id);
+    if (isClosed) return;
     if (success) {
       chats.removeWhere((c) => c.id == session.id);
       if (activeChat.value?.id == session.id) {
@@ -227,7 +253,7 @@ class ChatController extends GetxController {
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (chatScrollController.hasClients) {
+      if (!isClosed && chatScrollController.hasClients) {
         chatScrollController.animateTo(
           chatScrollController.position.maxScrollExtent + 80,
           duration: const Duration(milliseconds: 300),

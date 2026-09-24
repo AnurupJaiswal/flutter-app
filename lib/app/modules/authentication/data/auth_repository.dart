@@ -51,9 +51,6 @@ abstract class AuthRepository {
     required String newPassword,
   });
 
-  Future<ApiResponse<dynamic>> createHandoff();
-
-  Future<ApiResponse<AuthResponseModel>> exchangeHandoff(String code);
 
   Future<ApiResponse<CreatorProfileModel>> getCreatorProfile();
 
@@ -266,28 +263,6 @@ class ApiAuthRepository implements AuthRepository {
     return response;
   }
 
-  @override
-  Future<ApiResponse<dynamic>> createHandoff() async {
-    final response = await ApiService.post(ApiEndpoints.mobileCreateHandoff);
-    return response;
-  }
-
-  @override
-  Future<ApiResponse<AuthResponseModel>> exchangeHandoff(String code) async {
-    final response = await ApiService.post(
-      ApiEndpoints.mobileExchangeHandoff,
-      body: {'code': code.trim()},
-    );
-
-    if (response.isSuccess && response.data != null) {
-      final authResponse = AuthResponseModel.fromJson(response.data);
-      if (authResponse.user != null) {
-        await _persistSession(authResponse);
-      }
-      return ApiResponse.success(data: authResponse, message: response.message);
-    }
-    return ApiResponse.error(message: response.message, statusCode: response.statusCode);
-  }
 
   @override
   Future<ApiResponse<CreatorProfileModel>> getCreatorProfile() async {

@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lala_ai/app/modules/authentication/data/auth_repository.dart';
 import 'package:lala_ai/utils/app_toast.dart';
-import 'package:lala_ai/app/modules/authentication/views/reset_password_view.dart';
-import 'package:lala_ai/networking/api_response.dart';
+import 'package:lala_ai/utils/constants.dart';
 
 class ForgotPasswordController extends GetxController {
   final AuthRepository _authRepository = Get.isRegistered<AuthRepository>()
@@ -86,12 +85,8 @@ class ForgotPasswordController extends GetxController {
       AppToast.error("Reset token is missing. Please enter the token or restart the process from the email link.");
       return;
     }
-    if (newPass.isEmpty) {
-      newPasswordError.value = "Please enter a new password.";
-      return;
-    }
-    if (newPass.length < 8) {
-      newPasswordError.value = "Password must be at least 8 characters."; // Updated to 8 based on API spec
+    if (newPass.length < AppConstants.minPasswordLength) {
+      newPasswordError.value = "Password must be at least ${AppConstants.minPasswordLength} characters.";
       return;
     }
     if (confirmPass.isEmpty) {

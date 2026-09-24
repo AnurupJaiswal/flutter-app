@@ -5,6 +5,7 @@ import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
+
 import 'package:lala_ai/utils/theme/theme_service.dart';
 
 class ForgotPasswordView extends StatelessWidget {
@@ -15,7 +16,9 @@ class ForgotPasswordView extends StatelessWidget {
     // Put controller in memory so it survives across the 3 screens
     final controller = Get.put(ForgotPasswordController());
 
-    return Scaffold(
+    return GetBuilder<ThemeService>(
+      builder: (_) {
+        return Scaffold(
           backgroundColor: CC.background,
           appBar: CW.commonAppbar(
             title: "Forgot Password",
@@ -113,5 +116,7 @@ class ForgotPasswordView extends StatelessWidget {
             ),
           ),
         );
+      },
+    );
   }
 }
