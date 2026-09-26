@@ -6,6 +6,7 @@ import 'package:lala_ai/app/data/repositories/trend_repository.dart';
 import 'package:lala_ai/app/modules/analytics/controllers/analytics_controller.dart';
 import 'package:lala_ai/app/modules/authentication/data/auth_repository.dart';
 import 'package:lala_ai/app/modules/chat/controllers/chat_controller.dart';
+import 'package:lala_ai/app/modules/chat/data/api_chat_repository.dart';
 import 'package:lala_ai/app/modules/chat/data/chat_repository.dart';
 import 'package:lala_ai/app/modules/discover/controllers/discover_controller.dart';
 import 'package:lala_ai/app/modules/home/controllers/home_controller.dart';
@@ -14,6 +15,7 @@ import 'package:lala_ai/app/modules/saved/controllers/saved_controller.dart';
 import 'package:lala_ai/app/modules/settings/controllers/settings_controller.dart';
 import 'package:lala_ai/app/modules/trending/controllers/trending_controller.dart';
 import 'package:lala_ai/app/modules/studio/controllers/studio_controller.dart';
+import 'package:lala_ai/app/modules/studio/data/api_studio_chat_repository.dart';
 import 'package:lala_ai/app/modules/studio/data/studio_chat_repository.dart';
 
 class MainContainerBinding extends Bindings {
@@ -28,7 +30,7 @@ class MainContainerBinding extends Bindings {
     Get.lazyPut<SavedRepository>(() => MockSavedRepository());
 
     if (!Get.isRegistered<ChatRepository>()) {
-      Get.lazyPut<ChatRepository>(() => MockChatRepository());
+      Get.lazyPut<ChatRepository>(() => ApiChatRepository());
     }
 
     // Controllers
@@ -44,7 +46,7 @@ class MainContainerBinding extends Bindings {
 
     // Studio — registered here because StudioView lives in IndexedStack (not a route push)
     if (!Get.isRegistered<StudioChatRepository>()) {
-      Get.lazyPut<StudioChatRepository>(() => MockStudioChatRepository());
+      Get.lazyPut<StudioChatRepository>(() => ApiStudioChatRepository());
     }
     if (!Get.isRegistered<StudioController>()) {
       Get.lazyPut<StudioController>(() => StudioController(repository: Get.find<StudioChatRepository>()));

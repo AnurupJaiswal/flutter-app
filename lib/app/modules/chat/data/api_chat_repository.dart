@@ -85,14 +85,7 @@ class ApiChatRepository implements ChatRepository {
       }
     }
 
-    // Fallback if backend response is format-incompatible
-    return ChatSessionModel(
-      id: "chat_${DateTime.now().millisecondsSinceEpoch}",
-      title: title ?? "New Chat",
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      messages: [],
-    );
+    throw Exception(response.message.isNotEmpty ? response.message : "Failed to create chat session on server");
   }
 
   @override

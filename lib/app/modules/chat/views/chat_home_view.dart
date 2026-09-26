@@ -95,34 +95,8 @@ class ChatHomeView extends GetView<ChatController> {
                             6.height,
 
                             Text(
-                              "Ask for viral video hooks, script ideas, SEO titles, thumbnail advice, or audience growth strategies.",
+                              "Send a message to start a conversation with Lala AI.",
                               style: TS.subHeading(color: CC.textSecondary),
-                            ),
-
-                            28.height,
-
-                            Text(
-                              "Suggested prompts",
-                              style: TS.caption(color: CC.grey, fontWeight: FontWeight.w700),
-                            ),
-
-                            10.height,
-
-                            _buildPromptItem(
-                              "Generate 5 scroll-stopping Reels/Shorts hooks",
-                              "Generate 5 high-converting, curiosity-driven hooks for a 30-second Short about productivity tools.",
-                            ),
-                            _buildPromptItem(
-                              "Write a 60-second video script with CTA",
-                              "Write a complete 60-second YouTube Short script for '5 AI hacks every creator needs' with a 3-second hook.",
-                            ),
-                            _buildPromptItem(
-                              "Optimize YouTube video title & SEO description",
-                              "Give me 3 high-CTR YouTube titles and a keyword-rich description for a channel growth video.",
-                            ),
-                            _buildPromptItem(
-                              "Fix viewer drop-off & boost channel retention",
-                              "How do I fix viewer drop-off at the 45-second mark and increase overall channel retention past 75%?",
                             ),
                           ],
                         ),
@@ -214,53 +188,6 @@ class ChatHomeView extends GetView<ChatController> {
                 style: TS.caption(color: CC.textSecondary),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPromptItem(String label, String fullPrompt) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: CC.surface,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: CC.isDark ? CC.black.withValues(alpha: 0.4) : CC.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(14),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: () => controller.sendMessage(fullPrompt),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: CC.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(Icons.arrow_forward_rounded, size: 14, color: CC.textPrimary),
-                ),
-                12.width,
-                Expanded(
-                  child: Text(
-                    label,
-                    style: TS.bodyMedium(color: CC.textPrimary, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ],
-            ),
           ),
         ),
       ),

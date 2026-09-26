@@ -295,45 +295,24 @@ class HomeView extends GetView<HomeController> {
                         child: ListTile(
                           dense: true,
                           contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-                          leading: Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              Container(
-                                width: 38,
-                                height: 38,
-                                decoration: BoxDecoration(
-                                  color: isYt
-                                      ? const Color(0xFFFF0000).withValues(alpha: 0.08)
-                                      : const Color(0xFFE1306C).withValues(alpha: 0.08),
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                    color: isYt
-                                        ? const Color(0xFFFF0000).withValues(alpha: 0.2)
-                                        : const Color(0xFFE1306C).withValues(alpha: 0.2),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Center(
-                                  child: isYt ? CW.youtubeIcon(size: 22) : CW.instagramIcon(size: 22),
-                                ),
+                          leading: Container(
+                            width: 38,
+                            height: 38,
+                            decoration: BoxDecoration(
+                              color: isYt
+                                  ? const Color(0xFFFF0000).withValues(alpha: 0.08)
+                                  : const Color(0xFFE1306C).withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: isYt
+                                    ? const Color(0xFFFF0000).withValues(alpha: 0.2)
+                                    : const Color(0xFFE1306C).withValues(alpha: 0.2),
+                                width: 1,
                               ),
-                              Positioned(
-                                right: -2,
-                                bottom: -2,
-                                child: Container(
-                                  width: 10,
-                                  height: 10,
-                                  decoration: BoxDecoration(
-                                    color: statusColor,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: CC.surface,
-                                      width: 1.5,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
+                            child: Center(
+                              child: isYt ? CW.youtubeIcon(size: 22) : CW.instagramIcon(size: 22),
+                            ),
                           ),
                           title: Row(
                             children: [
@@ -457,7 +436,20 @@ class HomeView extends GetView<HomeController> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("Channel Health Audit", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 16)),
+            Builder(
+              builder: (context) => GestureDetector(
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AnalyticsView())),
+                behavior: HitTestBehavior.opaque,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text("Channel Health Audit", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 16)),
+                    4.width,
+                    Icon(Icons.chevron_right_rounded, size: 18, color: CC.textSecondary),
+                  ],
+                ),
+              ),
+            ),
             Obx(() => GestureDetector(
               onTap: controller.isAuditing.value ? null : () => controller.runChannelAudit(),
               child: Container(
@@ -492,17 +484,20 @@ class HomeView extends GetView<HomeController> {
         12.height,
         Builder(
           builder: (context) {
-            return Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: CC.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
-                  width: 1,
+            return GestureDetector(
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AnalyticsView())),
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: CC.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+                    width: 1,
+                  ),
                 ),
-              ),
-              child: Obx(() {
+                child: Obx(() {
                 if (controller.isAuditing.value && !controller.hasAuditData.value) {
                   return SkeletonShimmer(
                     child: Column(
@@ -689,9 +684,9 @@ class HomeView extends GetView<HomeController> {
                   ],
                 );
               }),
-            );
-          }
-        ),
+            ),
+          );
+        }),
       ],
     );
   }

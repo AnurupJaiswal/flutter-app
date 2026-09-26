@@ -113,6 +113,8 @@ class _CompetitorViewState extends State<CompetitorView> {
                       userHandle: userHandle,
                       platform: platformStr,
                       audienceCount: audienceCount,
+                      statusColor: activeChannel?.statusColor,
+                      statusText: activeChannel?.statusDisplay,
                     ),
                     8.height,
                     // "Change Account >" Action
@@ -239,8 +241,12 @@ class _CompetitorViewState extends State<CompetitorView> {
     required String userHandle,
     required String platform,
     required String audienceCount,
+    Color? statusColor,
+    String? statusText,
   }) {
     final bool isYt = platform.toUpperCase() == 'YOUTUBE';
+    final Color effectiveStatusColor = statusColor ?? const Color(0xFF22C55E);
+    final String effectiveStatusText = statusText ?? "Connected";
 
     return Container(
       width: double.infinity,
@@ -313,22 +319,29 @@ class _CompetitorViewState extends State<CompetitorView> {
             ),
           ),
 
-          // Green Connected Badge
+          // Dynamic Status Badge
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.green.withValues(alpha: 0.14),
+              color: effectiveStatusColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.green.withValues(alpha: 0.3), width: 0.8),
+              border: Border.all(color: effectiveStatusColor.withValues(alpha: 0.3), width: 0.8),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.check_rounded, color: Colors.green, size: 14),
-                4.width,
+                Container(
+                  width: 5.5,
+                  height: 5.5,
+                  decoration: BoxDecoration(
+                    color: effectiveStatusColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                5.width,
                 Text(
-                  "Connected",
-                  style: TS.caption(color: Colors.green, fontWeight: FontWeight.w700).copyWith(fontSize: 11),
+                  effectiveStatusText,
+                  style: TS.caption(color: effectiveStatusColor, fontWeight: FontWeight.w700).copyWith(fontSize: 11),
                 ),
               ],
             ),
@@ -402,45 +415,24 @@ class _CompetitorViewState extends State<CompetitorView> {
                       child: ListTile(
                         dense: true,
                         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-                        leading: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            Container(
-                              width: 38,
-                              height: 38,
-                              decoration: BoxDecoration(
-                                color: isYt
-                                    ? const Color(0xFFFF0000).withValues(alpha: 0.08)
-                                    : const Color(0xFFE1306C).withValues(alpha: 0.08),
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: isYt
-                                      ? const Color(0xFFFF0000).withValues(alpha: 0.2)
-                                      : const Color(0xFFE1306C).withValues(alpha: 0.2),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Center(
-                                child: isYt ? CW.youtubeIcon(size: 20) : CW.instagramIcon(size: 20),
-                              ),
+                        leading: Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: isYt
+                                ? const Color(0xFFFF0000).withValues(alpha: 0.08)
+                                : const Color(0xFFE1306C).withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: isYt
+                                  ? const Color(0xFFFF0000).withValues(alpha: 0.2)
+                                  : const Color(0xFFE1306C).withValues(alpha: 0.2),
+                              width: 1,
                             ),
-                            Positioned(
-                              right: -2,
-                              bottom: -2,
-                              child: Container(
-                                width: 10,
-                                height: 10,
-                                decoration: BoxDecoration(
-                                  color: statusColor,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: CC.surface,
-                                    width: 1.5,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                          ),
+                          child: Center(
+                            child: isYt ? CW.youtubeIcon(size: 20) : CW.instagramIcon(size: 20),
+                          ),
                         ),
                         title: Row(
                           children: [
