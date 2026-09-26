@@ -27,24 +27,6 @@ class CalendarView extends GetView<CalendarController> {
         wantBackIcon: false,
         title: "Content Calendar",
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: GestureDetector(
-              onTap: () => _showCreateDraftSheet(context),
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: CC.tealSubtle,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.edit_calendar_rounded,
-                  color: CC.textPrimary,
-                  size: 18,
-                ),
-              ),
-            ),
-          ),
           IconButton(
             icon: Icon(Icons.person_outline_rounded, color: CC.textPrimary, size: 22),
             splashRadius: 20,
@@ -701,6 +683,9 @@ class CalendarView extends GetView<CalendarController> {
 
   void _showCreateDraftSheet(BuildContext context) {
     final titleCtrl = TextEditingController();
+    final dateCtrl = TextEditingController(text: "Sep 12, 2026");
+    final timeCtrl = TextEditingController(text: "6:15 PM");
+
     CW.showCustomBottomSheet(
       context: context,
       title: "Create Post Draft",
@@ -716,13 +701,13 @@ class CalendarView extends GetView<CalendarController> {
           children: [
             Expanded(
                 child: CW.commonTextFormField(
-                    controller: TextEditingController(text: "Sep 12, 2026"),
+                    controller: dateCtrl,
                     hintText: "Date",
                     labelText: "Date")),
             10.width,
             Expanded(
                 child: CW.commonTextFormField(
-                    controller: TextEditingController(text: "6:15 PM"),
+                    controller: timeCtrl,
                     hintText: "Time",
                     labelText: "Time")),
           ],
@@ -759,6 +744,10 @@ class CalendarView extends GetView<CalendarController> {
           },
         ),
       ],
-    ).then((_) => titleCtrl.dispose());
+    ).then((_) {
+      titleCtrl.dispose();
+      dateCtrl.dispose();
+      timeCtrl.dispose();
+    });
   }
 }

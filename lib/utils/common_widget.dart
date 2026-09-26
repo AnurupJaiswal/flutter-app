@@ -309,6 +309,7 @@ class CW {
   }
 
   /// Refined Common Text Form Field
+  /// Refined Common Text Form Field
   static Widget commonTextFormField({
     required TextEditingController controller,
     required String hintText,
@@ -342,33 +343,37 @@ class CW {
           focusNode: focusNode,
           autofocus: autoFocus,
           onChanged: onChanged,
-          style: TS.body(color: CC.textPrimary),
+          style: TS.bodySmall(color: CC.textPrimary),
           cursorColor: CC.primary,
           decoration: InputDecoration(
             isDense: true,
             hintText: hintText,
-            hintStyle: TS.body(color: CC.grey),
+            hintStyle: TS.bodySmall(color: CC.grey),
             filled: true,
-            fillColor: CC.inputBackground,
+            fillColor: CC.surface,
             prefixIcon: prefixIcon != null
-                ? Icon(prefixIcon, size: 18, color: CC.grey)
+                ? Icon(prefixIcon, size: 20, color: CC.grey)
                 : null,
             suffixIcon: suffixIcon,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: CC.stroke, width: 1),
+            ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: CC.stroke, width: 0.7),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: CC.stroke, width: 1),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: CC.borderFocused, width: 1.5),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: CC.primary, width: 1.5),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: CC.error, width: 0.7),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: CC.error, width: 1),
             ),
             focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: CC.error, width: 1.5),
             ),
             errorStyle: TS.caption(color: CC.errorText),
@@ -388,9 +393,11 @@ class CW {
     ValueChanged<String>? onSubmitted,
     Widget? prefixIcon,
     Widget? suffixIcon,
+    FocusNode? focusNode,
   }) {
     return TextFormField(
       controller: controller,
+      focusNode: focusNode,
       onChanged: onChanged,
       onFieldSubmitted: onSubmitted,
       style: TS.bodySmall(color: CC.textPrimary),
@@ -400,18 +407,22 @@ class CW {
         hintText: hintText,
         hintStyle: TS.bodySmall(color: CC.grey),
         filled: true,
-        fillColor: CC.searchBackground,
+        fillColor: CC.surface,
         prefixIcon: prefixIcon ??
-            Icon(Icons.search_rounded, size: 16, color: CC.grey),
+            Icon(Icons.search_rounded, size: 20, color: CC.grey),
         suffixIcon: suffixIcon,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: CC.stroke, width: 1),
+        ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: CC.stroke, width: 0.7),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: CC.stroke, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: CC.borderFocused, width: 1.2),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: CC.primary, width: 1.5),
         ),
       ),
     );

@@ -17,11 +17,22 @@ class SavedController extends GetxController {
     loadSavedItems();
   }
 
-  Future<void> loadSavedItems() async {
-    isLoading.value = true;
-    final list = await savedRepository.getSavedItems();
-    savedItems.assignAll(list);
-    isLoading.value = false;
+  final isRefreshing = false.obs;
+
+  Future<void> loadSavedItems({bool isRefresh = false}) async {
+    if (isRefresh) {
+      isRefreshing.value = true;
+    } else if (savedItems.isEmpty) {
+      isLoading.value = true;
+    }
+
+    try {
+      final list = await savedRepository.getSavedItems();
+      savedItems.assignAll(list);
+    } finally {
+      isLoading.value = false;
+      isRefreshing.value = false;
+    }
   }
 
   Future<void> removeItem(String id) async {

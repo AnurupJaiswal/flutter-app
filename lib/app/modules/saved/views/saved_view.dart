@@ -30,11 +30,11 @@ class SavedView extends GetView<SavedController> {
           ),
           body: SafeArea(
             child: RefreshIndicator(
-              onRefresh: controller.loadSavedItems,
+              onRefresh: () => controller.loadSavedItems(isRefresh: true),
               color: CC.primary,
               backgroundColor: CC.surface,
               child: Obx(() {
-                if (controller.isLoading.value) {
+                if (controller.isLoading.value && controller.savedItems.isEmpty) {
                   return CW.skeletonList(itemCount: 3, itemHeight: 80);
                 }
 

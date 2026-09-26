@@ -18,6 +18,7 @@ class AppTheme {
         primary: CC.lightPrimary,
         secondary: CC.lightSecondary,
         surface: CC.lightSurface,
+        surfaceTint: Colors.transparent, // Prevents Material 3 pink/purple surface tint
         error: CC.lightError,
         onPrimary: CC.whiteText,
         onSecondary: CC.whiteText,
@@ -25,6 +26,7 @@ class AppTheme {
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: CC.lightSurface,
+        surfaceTintColor: Colors.transparent,
         elevation: 3,
         shadowColor: Colors.black.withValues(alpha: 0.12),
         centerTitle: true,
@@ -49,6 +51,7 @@ class AppTheme {
       ),
       cardTheme: CardThemeData(
         color: CC.lightSurface,
+        surfaceTintColor: Colors.transparent,
         elevation: 4,
         shadowColor: Colors.black.withValues(alpha: 0.12),
         shape: RoundedRectangleBorder(
@@ -58,6 +61,7 @@ class AppTheme {
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: CC.lightSurface,
+        surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: const BorderSide(color: CC.lightStroke, width: 0.8),
@@ -79,22 +83,33 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: CC.lightSurface,
+        focusColor: Colors.transparent,
+        hoverColor: Colors.transparent,
         hintStyle: const TextStyle(color: CC.lightMutedText),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: CC.lightStroke),
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: CC.lightStroke, width: 0.8),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: CC.lightStroke),
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: CC.lightStroke, width: 0.8),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: CC.lightPrimary, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: CC.lightError, width: 0.8),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: CC.lightError, width: 1.5),
         ),
       ),
       chipTheme: ChipThemeData(
         backgroundColor: CC.lightSurface,
+        surfaceTintColor: Colors.transparent,
         side: const BorderSide(color: CC.lightStroke),
         labelStyle: const TextStyle(color: CC.lightPrimaryText),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -115,7 +130,7 @@ class AppTheme {
       ),
       textSelectionTheme: TextSelectionThemeData(
         cursorColor: CC.lightPrimary,
-        selectionColor: CC.lightPrimary.withAlpha(26), // 0x1A
+        selectionColor: CC.lightPrimary.withValues(alpha: 0.22),
         selectionHandleColor: CC.lightPrimary,
       ),
       textTheme: TTS.textStyle(fontFamily: fontFamily, brightness: Brightness.light),
@@ -136,6 +151,7 @@ class AppTheme {
         primary: CC.darkPrimary,
         secondary: CC.darkSecondary,
         surface: CC.darkBg2,
+        surfaceTint: Colors.transparent, // Prevents Material 3 pink/purple surface tint
         error: CC.darkError,
         onPrimary: CC.whiteText,
         onSecondary: CC.whiteText,
@@ -143,6 +159,7 @@ class AppTheme {
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: CC.darkBg2,
+        surfaceTintColor: Colors.transparent,
         elevation: 4,
         shadowColor: Colors.black.withValues(alpha: 0.6),
         centerTitle: true,
@@ -167,6 +184,7 @@ class AppTheme {
       ),
       cardTheme: CardThemeData(
         color: CC.darkComment,
+        surfaceTintColor: Colors.transparent,
         elevation: 4,
         shadowColor: Colors.black.withValues(alpha: 0.5),
         shape: RoundedRectangleBorder(
@@ -176,6 +194,7 @@ class AppTheme {
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: CC.darkComment,
+        surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: const BorderSide(color: CC.darkStroke, width: 0.8),
@@ -197,22 +216,33 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: CC.darkComment,
+        focusColor: Colors.transparent,
+        hoverColor: Colors.transparent,
         hintStyle: const TextStyle(color: CC.darkMutedText),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: CC.darkStroke),
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: CC.darkStroke, width: 0.8),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: CC.darkStroke),
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: CC.darkStroke, width: 0.8),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: CC.darkPrimary, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: CC.darkError, width: 0.8),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: CC.darkError, width: 1.5),
         ),
       ),
       chipTheme: ChipThemeData(
         backgroundColor: CC.darkComment,
+        surfaceTintColor: Colors.transparent,
         side: const BorderSide(color: CC.darkStroke),
         labelStyle: const TextStyle(color: CC.darkPrimaryText),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -233,7 +263,7 @@ class AppTheme {
       ),
       textSelectionTheme: TextSelectionThemeData(
         cursorColor: CC.darkPrimary,
-        selectionColor: CC.darkPrimary.withAlpha(51), // 0x33
+        selectionColor: CC.darkPrimary.withValues(alpha: 0.25),
         selectionHandleColor: CC.darkPrimary,
       ),
       textTheme: TTS.textStyle(fontFamily: fontFamily, brightness: Brightness.dark),

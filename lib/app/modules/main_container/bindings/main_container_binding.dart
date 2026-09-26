@@ -34,15 +34,15 @@ class MainContainerBinding extends Bindings {
     }
 
     // Controllers
-    Get.lazyPut<HomeController>(() => HomeController(trendRepository: Get.find()));
-    Get.lazyPut<TrendingController>(() => TrendingController(trendRepository: Get.find()));
-    Get.lazyPut<AnalyticsController>(() => AnalyticsController());
+    Get.lazyPut<HomeController>(() => HomeController(trendRepository: Get.find()), fenix: true);
+    Get.lazyPut<TrendingController>(() => TrendingController(trendRepository: Get.find()), fenix: true);
+    Get.lazyPut<AnalyticsController>(() => AnalyticsController(), fenix: true);
     Get.lazyPut<DiscoverController>(() => DiscoverController(
           discoverRepository: Get.find(),
           savedRepository: Get.find(),
-        ));
-    Get.lazyPut<SavedController>(() => SavedController(savedRepository: Get.find()));
-    Get.lazyPut<ChatController>(() => ChatController(repository: Get.find()));
+        ), fenix: true);
+    Get.lazyPut<SavedController>(() => SavedController(savedRepository: Get.find()), fenix: true);
+    Get.lazyPut<ChatController>(() => ChatController(repository: Get.find()), fenix: true);
 
     // Studio — registered here because StudioView lives in IndexedStack (not a route push)
     if (!Get.isRegistered<StudioChatRepository>()) {

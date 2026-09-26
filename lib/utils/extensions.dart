@@ -150,14 +150,12 @@ extension NumExtension on num {
 
   // Formatting
   String get formatK {
-    if (this == null) return "0";
     if (this >= 1000000) return "${(this / 1000000).toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '')}M";
     if (this >= 1000) return "${(this / 1000).toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '')}K";
     return toString();
   }
 
   String get formatDecimal {
-    if (this == null) return "0";
     return toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '');
   }
 }

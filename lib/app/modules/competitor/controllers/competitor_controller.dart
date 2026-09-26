@@ -33,7 +33,9 @@ class CompetitorController extends GetxController {
     if (response.success && response.data != null) {
       compareData.value = response.data as CompareCreatorModel;
     } else {
-      errorMessage.value = response.message ?? 'Failed to compare creator. They may be private or unavailable.';
+      errorMessage.value = response.message.isNotEmpty
+          ? response.message
+          : 'Failed to compare creator. They may be private or unavailable.';
     }
   }
 }

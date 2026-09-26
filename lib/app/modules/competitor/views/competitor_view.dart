@@ -146,27 +146,10 @@ class _CompetitorViewState extends State<CompetitorView> {
                       style: TS.bodySmall(color: CC.textPrimary, fontWeight: FontWeight.w700).copyWith(fontSize: 13),
                     ),
                     8.height,
-                    TextFormField(
+                    CW.commonSearchField(
                       controller: _searchController,
-                      style: TS.bodySmall(color: CC.textPrimary),
-                      cursorColor: CC.primary,
-                      decoration: InputDecoration(
-                        isDense: true,
-                        hintText: "Enter handle or channel URL",
-                        hintStyle: TS.bodySmall(color: CC.grey),
-                        filled: true,
-                        fillColor: CC.surface,
-                        prefixIcon: Icon(Icons.search_rounded, size: 20, color: CC.grey),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: CC.stroke, width: 1),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: CC.primary, width: 1.5),
-                        ),
-                      ),
+                      hintText: "Enter handle or channel URL",
+                      onSubmitted: (_) => _runComparison(activeChannel?.id, platformStr),
                     ),
                     24.height,
 
