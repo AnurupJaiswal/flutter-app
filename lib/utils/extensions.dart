@@ -152,7 +152,8 @@ extension NumExtension on num {
   String get formatK {
     if (this >= 1000000) return "${(this / 1000000).toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '')}M";
     if (this >= 1000) return "${(this / 1000).toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '')}K";
-    return toString();
+    if (this is int || this == toInt()) return toInt().toString();
+    return formatDecimal;
   }
 
   String get formatDecimal {

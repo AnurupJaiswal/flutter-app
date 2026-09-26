@@ -10,6 +10,7 @@ import 'package:lala_ai/utils/theme/text_style.dart';
 import 'package:lala_ai/utils/theme/theme_service.dart';
 import 'package:lala_ai/app/modules/competitor/controllers/competitor_controller.dart';
 import 'package:lala_ai/Models/compare_creator_model.dart';
+import 'package:lala_ai/core/widgets/skeleton/app_skeleton.dart';
 import 'package:lala_ai/utils/common_methods.dart';
 
 class CompetitorView extends StatefulWidget {
@@ -35,8 +36,14 @@ class _CompetitorViewState extends State<CompetitorView> {
       CM.showToast('No connected account found. Please connect an account first.');
       return;
     }
-    final query = _searchController.text.trim();
+    var query = _searchController.text.trim();
     if (query.isEmpty) return;
+
+    // Clean tracking query parameters (?si=..., ?feature=...) and trailing slashes
+    if (query.contains('?')) {
+      query = query.split('?').first;
+    }
+    query = query.replaceAll(RegExp(r'/+$'), '');
     FocusScope.of(context).unfocus();
 
     controller.compareWithCreator(
@@ -167,7 +174,7 @@ class _CompetitorViewState extends State<CompetitorView> {
                     // ── 5. COMPARISON OVERVIEW RESULT ─────────────────────────
                     Obx(() {
                       if (controller.isLoading.value) {
-                        return CW.skeletonCard(height: 220, margin: EdgeInsets.zero);
+                        return _buildCompareSkeletonCard();
                       }
                       if (controller.errorMessage.isNotEmpty) {
                         return Container(
@@ -530,6 +537,14 @@ class _CompetitorViewState extends State<CompetitorView> {
     final you = data.you;
     final them = data.competitor;
 
+    final homeController = Get.isRegistered<HomeController>() ? Get.find<HomeController>() : null;
+
+    final youSubscribersFormatted = you.subscribers != null
+        ? _formatMetric(you.subscribers, isCount: true)
+        : (homeController?.subscribersCount.value.isNotEmpty == true
+            ? homeController!.subscribersCount.value
+            : "N/A");
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -591,7 +606,7 @@ class _CompetitorViewState extends State<CompetitorView> {
           12.height,
 
           // Table Row 1: Followers / Subscribers
-          _buildTableRow(audienceLabel, _formatMetric(you.subscribers, isCount: true), _formatMetric(them.subscribers, isCount: true), them.dataStatus),
+          _buildTableRow(audienceLabel, youSubscribersFormatted, _formatMetric(them.subscribers, isCount: true), them.dataStatus),
           12.height,
           Divider(color: CC.stroke.withValues(alpha: 0.3), height: 1),
           12.height,
@@ -621,21 +636,53 @@ class _CompetitorViewState extends State<CompetitorView> {
               _formatMetric(them.postingFrequencyPerWeek, isFrequency: true),
               them.dataStatus),
           
-          if (them.dataStatus == 'PARTIAL') ...[
+          if (them.dataStatus == 'UNAVAILABLE') ...[
             16.height,
-            Row(
-              children: [
-                Icon(Icons.warning_amber_rounded, size: 14, color: Colors.orange),
-                6.width,
-                Expanded(
-                  child: Text(
-                    "Some data is unavailable or hidden by the creator.",
-                    style: TS.caption(color: Colors.orange).copyWith(fontSize: 11),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.amber.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.amber.withValues(alpha: 0.3), width: 0.8),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.info_outline_rounded, size: 16, color: Colors.amber),
+                  8.width,
+                  Expanded(
+                    child: Text(
+                      "Competitor metrics are unavailable or private. Make sure the channel is public and contains recent uploaded videos.",
+                      style: TS.caption(color: CC.textPrimary).copyWith(fontSize: 11.5, height: 1.35),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ]
+          ] else if (them.dataStatus == 'PARTIAL') ...[
+            16.height,
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.amber.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.amber.withValues(alpha: 0.3), width: 0.8),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.warning_amber_rounded, size: 16, color: Colors.amber),
+                  8.width,
+                  Expanded(
+                    child: Text(
+                      "Some competitor metrics are hidden or private on this creator's channel.",
+                      style: TS.caption(color: CC.textPrimary).copyWith(fontSize: 11.5, height: 1.35),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -647,7 +694,16 @@ class _CompetitorViewState extends State<CompetitorView> {
       if (isFrequency) {
         return "${value.formatDecimal}/week";
       }
-      return value.formatK;
+      if (isCount) {
+        if (value >= 1000) return value.formatK;
+        return value.toInt().toString();
+      }
+      if (value >= 1000) return value.formatK;
+      return value.formatDecimal;
+    }
+    final parsed = num.tryParse(value.toString());
+    if (parsed != null) {
+      return _formatMetric(parsed, isCount: isCount, isFrequency: isFrequency);
     }
     return value.toString();
   }
@@ -684,6 +740,92 @@ class _CompetitorViewState extends State<CompetitorView> {
           ),
         ),
       ],
+    );
+  }
+
+  // ── Comparison Loading Skeleton Placeholder ────────────────────────────────
+  Widget _buildCompareSkeletonCard() {
+    return SkeletonShimmer(
+      child: SkeletonCard(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Card Title & Info Icon
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: const [
+                SkeletonBox(width: 170, height: 16, borderRadius: BorderRadius.all(Radius.circular(6))),
+                SkeletonCircle(size: 18),
+              ],
+            ),
+            18.height,
+
+            // Table Header: You / Them
+            Row(
+              children: const [
+                Expanded(flex: 4, child: SizedBox.shrink()),
+                Expanded(
+                  flex: 3,
+                  child: Center(
+                    child: SkeletonBox(width: 40, height: 14, borderRadius: BorderRadius.all(Radius.circular(4))),
+                  ),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: Center(
+                    child: SkeletonBox(width: 45, height: 14, borderRadius: BorderRadius.all(Radius.circular(4))),
+                  ),
+                ),
+              ],
+            ),
+            10.height,
+            Divider(color: CC.stroke.withValues(alpha: 0.5), height: 1),
+            14.height,
+
+            // Metric Rows
+            for (int i = 0; i < 5; i++) ...[
+              Row(
+                children: [
+                  Expanded(
+                    flex: 4,
+                    child: SkeletonBox(
+                      width: [110.0, 90.0, 80.0, 80.0, 120.0][i],
+                      height: 12,
+                      borderRadius: const BorderRadius.all(Radius.circular(4)),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 3,
+                    child: Center(
+                      child: SkeletonBox(
+                        width: [45.0, 35.0, 48.0, 42.0, 50.0][i],
+                        height: 12,
+                        borderRadius: const BorderRadius.all(Radius.circular(4)),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 3,
+                    child: Center(
+                      child: SkeletonBox(
+                        width: [48.0, 40.0, 52.0, 38.0, 46.0][i],
+                        height: 12,
+                        borderRadius: const BorderRadius.all(Radius.circular(4)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if (i < 4) ...[
+                12.height,
+                Divider(color: CC.stroke.withValues(alpha: 0.3), height: 1),
+                12.height,
+              ],
+            ],
+          ],
+        ),
+      ),
     );
   }
 }
