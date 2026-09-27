@@ -1,18 +1,53 @@
 import 'package:flutter/foundation.dart';
+import 'package:lala_ai/app/data/models/category_model.dart';
 import 'package:lala_ai/app/data/models/trend_model.dart';
 import 'package:lala_ai/networking/api_endpoints.dart';
 import 'package:lala_ai/networking/api_service.dart';
 
 abstract class TrendRepository {
-  Future<List<TrendModel>> getTrendingTopics({String? category});
+  Future<List<TrendModel>> getTrendingTopics({
+    String? category,
+    String? platform,
+    String? search,
+    int? page,
+    int? limit,
+  });
   Future<TrendDetailModel?> getTrendDetails(String trendId);
+  Future<List<CategoryItemModel>> getMyCategories();
 }
 
 class ApiTrendRepository implements TrendRepository {
   @override
-  Future<List<TrendModel>> getTrendingTopics({String? category}) async {
+  Future<List<TrendModel>> getTrendingTopics({
+    String? category,
+    String? platform,
+    String? search,
+    int? page,
+    int? limit,
+  }) async {
     try {
-      final response = await ApiService.get(ApiEndpoints.trends);
+      String url = ApiEndpoints.trends;
+      final queryParams = <String>[];
+      if (platform != null && platform.isNotEmpty && platform.toUpperCase() != 'ALL') {
+        queryParams.add("platform=${Uri.encodeComponent(platform.toUpperCase())}");
+      }
+      if (category != null && category.isNotEmpty) {
+        queryParams.add("category=${Uri.encodeComponent(category.toUpperCase())}");
+      }
+      if (search != null && search.trim().isNotEmpty) {
+        queryParams.add("search=${Uri.encodeComponent(search.trim())}");
+      }
+      if (page != null) {
+        queryParams.add("page=$page");
+      }
+      if (limit != null) {
+        queryParams.add("limit=$limit");
+      }
+      if (queryParams.isNotEmpty) {
+        url += "?${queryParams.join('&')}";
+      }
+
+      final response = await ApiService.get(url);
 
       if (response.isSuccess && response.data != null) {
         dynamic rawList = response.data;
@@ -33,10 +68,7 @@ class ApiTrendRepository implements TrendRepository {
               );
             }
           }
-
-          if (category != null && category.isNotEmpty && category.toLowerCase() != "all") {
-            return trends.where((t) => t.category.toLowerCase() == category.toLowerCase()).toList();
-          }
+          // Directly return server response without local filtering
           return trends;
         }
       }
@@ -64,5 +96,27 @@ class ApiTrendRepository implements TrendRepository {
     }
 
     return null;
+  }
+
+  @override
+  Future<List<CategoryItemModel>> getMyCategories() async {
+    try {
+      final response = await ApiService.get(ApiEndpoints.myCategories);
+      if (response.isSuccess && response.data != null) {
+        dynamic raw = response.data;
+        if (raw is Map) {
+          raw = raw['data'] ?? raw['categories'] ?? raw['items'];
+        }
+        if (raw is List) {
+          return raw
+              .whereType<Map>()
+              .map((item) => CategoryItemModel.fromJson(Map<String, dynamic>.from(item)))
+              .toList();
+        }
+      }
+    } catch (e) {
+      debugPrint("ApiTrendRepository getMyCategories error: $e");
+    }
+    return [];
   }
 }

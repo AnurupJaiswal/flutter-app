@@ -19,39 +19,18 @@ class LoginView extends GetView<AuthController> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 1. Brand Logo & Wordmark
-          Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: CC.tealSubtle,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: CC.primary.withValues(alpha: 0.3), width: 0.7),
+          // 1. Brand Wordmark
+          RichText(
+            text: TextSpan(
+              text: 'Lala ',
+              style: TS.sectionTitle(color: CC.textPrimary, fontSize: 22, fontWeight: FontWeight.w700),
+              children: [
+                TextSpan(
+                  text: 'Ai',
+                  style: TS.sectionTitle(color: CC.primary, fontSize: 22, fontWeight: FontWeight.w700),
                 ),
-                child: Center(
-                  child: Icon(
-                    Icons.auto_awesome_rounded,
-                    color: CC.primary,
-                    size: 20,
-                  ),
-                ),
-              ),
-              12.width,
-              RichText(
-                text: TextSpan(
-                  text: 'Lala ',
-                  style: TS.sectionTitle(color: CC.textPrimary, fontSize: 20, fontWeight: FontWeight.w700),
-                  children: [
-                    TextSpan(
-                      text: 'Ai',
-                      style: TS.sectionTitle(color: CC.primary, fontSize: 20, fontWeight: FontWeight.w700),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
 
           24.height,

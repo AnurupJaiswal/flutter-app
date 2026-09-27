@@ -72,7 +72,7 @@ class ChatHomeView extends GetView<ChatController> {
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Icon(
-                                    Icons.auto_awesome_rounded,
+                                    Icons.chat_bubble_outline_rounded,
                                     color: CC.textPrimary,
                                     size: 18,
                                   ),

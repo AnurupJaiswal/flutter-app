@@ -98,26 +98,6 @@ class WelcomeView extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: CC.primary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: CC.primary.withValues(alpha: 0.25),
-                width: 1,
-              ),
-            ),
-            child: Center(
-              child: Icon(
-                Icons.auto_awesome_rounded,
-                color: CC.primary,
-                size: 20,
-              ),
-            ),
-          ),
-          12.width,
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -191,7 +171,7 @@ class WelcomeView extends StatelessWidget {
       mainAxisSpacing: 12,
       childAspectRatio: 2.3, // wider, horizontal layout
       children: [
-        _compactFeatureCard('AI Scripts', 'Ideas to videos', Icons.auto_awesome_rounded),
+        _compactFeatureCard('AI Scripts', 'Ideas to videos', Icons.movie_creation_outlined),
         _compactFeatureCard('Trend Radar', 'What\'s trending', Icons.trending_up_rounded),
         _compactFeatureCard('Analytics', 'Track & grow', Icons.bar_chart_rounded),
         _compactFeatureCard('Calendar', 'Plan with ease', Icons.calendar_today_rounded),

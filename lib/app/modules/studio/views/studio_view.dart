@@ -72,7 +72,7 @@ class StudioView extends GetView<StudioController> {
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Icon(
-                                        Icons.auto_awesome_rounded,
+                                        Icons.movie_creation_outlined,
                                         color: CC.textPrimary,
                                         size: 18,
                                       ),

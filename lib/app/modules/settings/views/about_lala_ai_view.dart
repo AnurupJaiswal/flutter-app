@@ -61,27 +61,7 @@ https://apps.apple.com/app/lala-ai/id123456789
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   12.height,
-                  // ── App Brand Hero Header ────────────────────────────────
-                  Container(
-                    width: 84,
-                    height: 84,
-                    decoration: BoxDecoration(
-                      color: CC.primary.withValues(alpha: 0.12),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: CC.primary.withValues(alpha: 0.25),
-                        width: 2,
-                      ),
-                    ),
-                    child: Center(
-                      child: Icon(
-                        Icons.auto_awesome_rounded,
-                        color: CC.textPrimary,
-                        size: 42,
-                      ),
-                    ),
-                  ),
-                  16.height,
+
                   Text(
                     "Lala AI",
                     style: TS.displayLarge(
@@ -266,7 +246,7 @@ https://apps.apple.com/app/lala-ai/id123456789
                   12.height,
                   _buildFeatureCard(
                     context,
-                    icon: Icons.auto_awesome_outlined,
+                    icon: Icons.movie_creation_outlined,
                     title: "AI Script & Hook Studio",
                     description: "Generate structured video scripts, hooks, and captions in seconds.",
                   ),

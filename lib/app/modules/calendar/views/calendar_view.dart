@@ -563,7 +563,7 @@ class CalendarView extends GetView<CalendarController> {
               Icon(
                 aiIconType == "chart"
                     ? Icons.bar_chart_rounded
-                    : Icons.auto_awesome_rounded,
+                    : Icons.schedule_rounded,
                 size: 14,
                 color: CC.primary,
               ),
@@ -715,7 +715,7 @@ class CalendarView extends GetView<CalendarController> {
         10.height,
         Row(
           children: [
-            Icon(Icons.auto_awesome_rounded, size: 14, color: CC.primary),
+            Icon(Icons.lightbulb_outline_rounded, size: 14, color: CC.primary),
             6.width,
             Text("Pixo AI Suggestion: 6:15 PM (Best Retention)",
                 style: TS.caption(

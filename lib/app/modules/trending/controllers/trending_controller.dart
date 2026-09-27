@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:lala_ai/app/data/models/category_model.dart';
 import 'package:lala_ai/app/data/models/trend_model.dart';
 import 'package:lala_ai/app/data/repositories/trend_repository.dart';
 
@@ -12,99 +14,150 @@ class TrendingController extends GetxController {
   final selectedPlatform = "All".obs;
   final selectedCategory = "All".obs;
 
+  final platforms = const ["All", "YouTube", "Instagram"];
+
+  final userCategories = <CategoryItemModel>[].obs;
+  final isCategoriesLoading = false.obs;
+
   final trends = <TrendModel>[].obs;
   final isLoading = false.obs;
+  final isRefreshing = false.obs;
   final lastUpdated = "Just now".obs;
 
   late TextEditingController searchController;
   final searchQuery = ''.obs;
+  Timer? _searchDebounce;
 
   @override
   void onInit() {
     super.onInit();
     searchController = TextEditingController();
+    loadMyCategories();
     loadTrends();
   }
 
   @override
   void onClose() {
+    _searchDebounce?.cancel();
     searchController.dispose();
     super.onClose();
   }
 
-  List<String> get availableCategories {
-    final set = <String>{"All"};
-    for (final t in trends) {
-      if (t.category.trim().isNotEmpty) {
-        set.add(t.category.trim());
+  /// Dynamically resolve category displayName from userCategories API payload
+  String getCategoryDisplayName(String codeOrName) {
+    if (codeOrName.isEmpty || codeOrName.toUpperCase() == 'ALL') return 'All';
+    for (final cat in userCategories) {
+      if (cat.code.toLowerCase() == codeOrName.toLowerCase() ||
+          cat.name.toLowerCase() == codeOrName.toLowerCase()) {
+        return cat.name;
       }
     }
-    return set.toList();
+    return codeOrName;
   }
 
-  List<TrendModel> get filteredTrends {
-    final query = searchQuery.value.trim().toLowerCase();
-    final cat = selectedCategory.value.trim().toLowerCase();
-    final plat = selectedPlatform.value.trim().toLowerCase();
+  /// List of category filter options: "All" followed by the user's subscribed categories
+  List<String> get availableCategories {
+    final list = <String>["All"];
+    for (final cat in userCategories) {
+      final name = cat.name.isNotEmpty ? cat.name : cat.code;
+      if (name.isNotEmpty && !list.any((e) => e.toLowerCase() == name.toLowerCase())) {
+        list.add(name);
+      }
+    }
+    return list;
+  }
 
-    return trends.where((t) {
-      if (cat != "all" && t.category.toLowerCase() != cat) return false;
-      if (plat != "all" && t.platform.toLowerCase() != plat) return false;
+  /// Backend filtered trends feed
+  List<TrendModel> get filteredTrends => trends;
 
-      if (query.isEmpty) return true;
-
-      final titleMatch = t.title.toLowerCase().contains(query);
-      final categoryMatch = t.category.toLowerCase().contains(query);
-      final summaryMatch = t.summary.toLowerCase().contains(query);
-      final sourceMatch = t.source.toLowerCase().contains(query);
-      final lifecycleMatch = t.lifecycleStage.toLowerCase().contains(query);
-      return titleMatch || categoryMatch || summaryMatch || sourceMatch || lifecycleMatch;
-    }).toList();
+  /// Fetch user's subscribed categories from API
+  Future<void> loadMyCategories() async {
+    try {
+      isCategoriesLoading.value = true;
+      final result = await trendRepository.getMyCategories();
+      userCategories.assignAll(result);
+    } catch (_) {
+      // Gracefully maintain current categories
+    } finally {
+      isCategoriesLoading.value = false;
+    }
   }
 
   void onSearchChanged(String value) {
     searchQuery.value = value;
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 400), () {
+      loadTrends();
+    });
   }
 
   void clearSearch() {
     searchController.clear();
     searchQuery.value = '';
+    _searchDebounce?.cancel();
+    loadTrends();
   }
 
   void setCategory(String category) {
-    selectedCategory.value = category;
+    if (selectedCategory.value.toLowerCase() != category.toLowerCase()) {
+      selectedCategory.value = category;
+      loadTrends();
+    }
   }
 
   void setPlatform(String platform) {
-    selectedPlatform.value = platform;
+    if (selectedPlatform.value.toLowerCase() != platform.toLowerCase()) {
+      selectedPlatform.value = platform;
+      loadTrends();
+    }
   }
 
-  final isRefreshing = false.obs;
+  /// Map display category name to category code if available
+  String _resolveCategoryCode(String categoryName) {
+    if (categoryName.toLowerCase() == "all") return "ALL";
+    for (final cat in userCategories) {
+      if (cat.name.toLowerCase() == categoryName.toLowerCase() ||
+          cat.code.toLowerCase() == categoryName.toLowerCase()) {
+        return cat.code.isNotEmpty ? cat.code : cat.name;
+      }
+    }
+    return categoryName;
+  }
 
   Future<void> loadTrends({bool isRefresh = false}) async {
     if (isRefresh) {
       isRefreshing.value = true;
       HapticFeedback.lightImpact();
-    } else if (trends.isEmpty) {
+      // On full pull-to-refresh, also refresh user's categories in the background
+      loadMyCategories();
+    } else {
       isLoading.value = true;
     }
 
     try {
       final startTime = DateTime.now();
-      final result = await trendRepository.getTrendingTopics();
 
-      // Smooth pacing so pull-to-refresh spinner animates fluidly without abrupt snaps
+      final categoryParam = _resolveCategoryCode(selectedCategory.value);
+      final platformParam = selectedPlatform.value;
+
+      final result = await trendRepository.getTrendingTopics(
+        platform: platformParam,
+        category: categoryParam,
+        search: searchQuery.value,
+      );
+
+      // Smooth pacing so animations feel fluid without jarring snaps
       if (isRefresh) {
         final elapsed = DateTime.now().difference(startTime).inMilliseconds;
-        if (elapsed < 500) {
-          await Future.delayed(Duration(milliseconds: 500 - elapsed));
+        if (elapsed < 400) {
+          await Future.delayed(Duration(milliseconds: 400 - elapsed));
         }
       }
 
       trends.assignAll(result);
       lastUpdated.value = "Just now";
     } catch (_) {
-      // Gracefully preserve existing trend items on network failure
+      // Preserve existing state on network error
     } finally {
       isLoading.value = false;
       isRefreshing.value = false;

@@ -25,30 +25,14 @@ class HomeView extends GetView<HomeController> {
         appBar: CW.commonAppbar(
           isNotHomepage: false,
           wantBackIcon: false,
-          titleWidget: Row(
+          titleWidget: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: CC.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Center(
-                  child: Icon(Icons.auto_awesome_rounded, color: CC.primary, size: 20),
-                ),
-              ),
-              10.width,
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text("Lala Ai", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 16, fontWeight: FontWeight.w700)),
-                  Text(
-                    "Create. Grow. Smarter.",
-                    style: TS.caption(color: CC.textSecondary, fontSize: 11),
-                  ),
-                ],
+              Text("Lala Ai", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 17, fontWeight: FontWeight.w800)),
+              Text(
+                "Create. Grow. Smarter.",
+                style: TS.caption(color: CC.textSecondary, fontSize: 11),
               ),
             ],
           ),
@@ -665,16 +649,11 @@ class HomeView extends GetView<HomeController> {
                                 color: CC.primary.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.auto_awesome_rounded, size: 14, color: CC.primary),
-                                  6.width,
-                                  Text(
-                                    "Ask Pixo",
-                                    style: TS.caption(color: CC.primary, fontWeight: FontWeight.w700),
-                                  ),
-                                ],
+                              child: Center(
+                                child: Text(
+                                  "Ask Pixo",
+                                  style: TS.caption(color: CC.primary, fontWeight: FontWeight.w700),
+                                ),
                               ),
                             ),
                           ),
