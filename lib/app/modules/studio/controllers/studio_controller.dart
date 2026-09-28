@@ -126,14 +126,20 @@ class StudioController extends GetxController {
         chats.insert(0, newChat);
       } catch (_) {
         if (isClosed) return;
+        // Resilient fallback session so content is never lost
+        final fallbackChat = ChatSessionModel(
+          id: "studio_session_${DateTime.now().millisecondsSinceEpoch}",
+          title: text.length > 28 ? "${text.substring(0, 28)}..." : text,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          messages: [],
+        );
+        activeChat.value = fallbackChat;
+        chats.insert(0, fallbackChat);
       }
     }
 
-    final currentChatId = activeChat.value?.id;
-    if (currentChatId == null || currentChatId.isEmpty) {
-      if (!isClosed) isAiThinking.value = false;
-      return;
-    }
+    final currentChatId = activeChat.value?.id ?? "studio_session_${DateTime.now().millisecondsSinceEpoch}";
 
     // 2. Add User Message locally
     final userMsg = ChatMessageModel(

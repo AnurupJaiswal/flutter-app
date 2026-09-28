@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:lala_ai/app/modules/profile/views/profile_view.dart';
 import 'package:lala_ai/app/data/models/trend_model.dart';
 import 'package:lala_ai/app/modules/main_container/controllers/main_container_controller.dart';
+import 'package:lala_ai/app/modules/studio/controllers/studio_controller.dart';
 import 'package:lala_ai/app/modules/trending/controllers/trending_controller.dart';
 import 'package:lala_ai/app/navigation/app_navigation_service.dart';
 import 'package:lala_ai/core/widgets/skeleton/app_skeleton.dart';
@@ -350,7 +351,7 @@ class TrendingView extends GetView<TrendingController> {
     );
   }
 
-  // ── Modern Trend Card ──────────────────────────────────────────────────────
+  // ── Modern Redesigned Trend Card ─────────────────────────────────────────
   Widget _trendCard({Key? key, required BuildContext context, required int rank, required TrendModel trend}) {
     final bool isTop3 = rank <= 3;
     final stage = trend.lifecycleStage.toUpperCase();
@@ -363,30 +364,25 @@ class TrendingView extends GetView<TrendingController> {
       stageIcon = Icons.eco_rounded;
       stageText = "EMERGING";
     } else if (stage == 'PEAKING') {
-      stageColor = const Color(0xFFF59E0B); // Flame / Amber
+      stageColor = const Color(0xFFF59E0B); // Amber Flame
       stageIcon = Icons.local_fire_department_rounded;
       stageText = "PEAKING";
     } else {
       // Default: RISING
-      stageColor = const Color(0xFF2563EB); // Royal Blue
+      stageColor = const Color(0xFF3B82F6); // Vibrant Blue
       stageIcon = Icons.trending_up_rounded;
       stageText = "RISING";
     }
 
     final platformName = trend.platform.toUpperCase();
-    Color platformColor;
     String displayPlatform;
     if (platformName.contains('YOUTUBE')) {
-      platformColor = const Color(0xFFFF0000);
       displayPlatform = "YouTube";
     } else if (platformName.contains('REDDIT')) {
-      platformColor = const Color(0xFFFF4500);
       displayPlatform = "Reddit";
     } else if (platformName.contains('INSTAGRAM')) {
-      platformColor = const Color(0xFFE1306C);
       displayPlatform = "Instagram";
     } else {
-      platformColor = CC.primary;
       displayPlatform = formatPlatformName(trend.platform);
     }
 
@@ -415,107 +411,76 @@ class TrendingView extends GetView<TrendingController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── 1. Top Badges & Lifecycle Status ──
+          // ── 1. Top Meta Info (Direct, No Pills) ──
+          // ── 1. Top Meta Info (Direct, 100% Overflow-Safe) ──
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 14, 14, 0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Left: Rank & Platform
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Rank Badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: isTop3
-                            ? CC.primary.withValues(alpha: 0.12)
-                            : CC.stroke.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(6),
+                // Left: Rank, Platform & Category (Constrained in Expanded)
+                Expanded(
+                  child: Row(
+                    children: [
+                      // Rank
+                      Text(
+                        "#$rank",
+                        style: TS.sectionTitle(
+                          color: isTop3 ? CC.primary : CC.textSecondary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (rank == 1) ...[
-                            Icon(Icons.workspace_premium_rounded, size: 12, color: CC.primary),
-                            3.width,
-                          ],
-                          Text(
-                            "#$rank",
-                            style: TS.caption(
-                              color: isTop3 ? CC.primary : CC.textSecondary,
-                              fontWeight: FontWeight.w800,
-                            ).copyWith(fontSize: 10.5),
-                          ),
-                        ],
-                      ),
-                    ),
-                    6.width,
-                    // Platform Badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: platformColor.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildPlatformIcon(trend.platform, size: 12),
-                          4.width,
-                          Text(
-                            displayPlatform,
-                            style: TS.caption(
-                              color: CC.textPrimary,
-                              fontWeight: FontWeight.w600,
-                            ).copyWith(fontSize: 10.5),
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (categoryDisplay.isNotEmpty) ...[
                       6.width,
-                      // Category Tag
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: CC.isDark
-                              ? CC.whiteText.withValues(alpha: 0.06)
-                              : CC.black.withValues(alpha: 0.04),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          categoryDisplay,
-                          style: TS.caption(
-                            color: CC.textSecondary,
-                            fontWeight: FontWeight.w600,
-                          ).copyWith(fontSize: 10.5),
-                        ),
+                      // Platform Icon + Name
+                      _buildPlatformIcon(trend.platform, size: 14),
+                      4.width,
+                      Text(
+                        displayPlatform,
+                        style: TS.bodySmall(
+                          color: CC.textPrimary,
+                          fontWeight: FontWeight.w700,
+                        ).copyWith(fontSize: 12),
                       ),
+                      if (categoryDisplay.isNotEmpty) ...[
+                        6.width,
+                        Text(
+                          "•",
+                          style: TextStyle(
+                            color: CC.textSecondary.withValues(alpha: 0.5),
+                            fontSize: 12,
+                          ),
+                        ),
+                        6.width,
+                        Flexible(
+                          child: Text(
+                            categoryDisplay,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TS.caption(
+                              color: CC.textSecondary,
+                              fontWeight: FontWeight.w500,
+                            ).copyWith(fontSize: 12),
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
-                ),
-
-                // Right: Lifecycle Pill
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: stageColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: stageColor.withValues(alpha: 0.25), width: 0.8),
                   ),
+                ),
+                8.width,
+                // Right: Stage indicator (FittedBox to scale down safely on compact screens)
+                FittedBox(
+                  fit: BoxFit.scaleDown,
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(stageIcon, size: 11, color: stageColor),
-                      3.width,
+                      Icon(stageIcon, size: 12.5, color: stageColor),
+                      4.width,
                       Text(
                         stageText,
                         style: TS.caption(
                           color: stageColor,
                           fontWeight: FontWeight.w800,
-                        ).copyWith(fontSize: 9.5, letterSpacing: 0.3),
+                        ).copyWith(fontSize: 10.5, letterSpacing: 0.3),
                       ),
                     ],
                   ),
@@ -523,9 +488,10 @@ class TrendingView extends GetView<TrendingController> {
               ],
             ),
           ),
-          12.height,
 
-          // ── 2. Topic Title & AI Summary ──
+          10.height,
+
+          // ── 2. Topic Title & Summary ──
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14),
             child: Column(
@@ -535,7 +501,7 @@ class TrendingView extends GetView<TrendingController> {
                   trend.name,
                   style: TS.sectionTitle(
                     color: CC.textPrimary,
-                    fontSize: 16,
+                    fontSize: 16.5,
                   ).copyWith(
                     height: 1.3,
                     fontWeight: FontWeight.w700,
@@ -546,128 +512,144 @@ class TrendingView extends GetView<TrendingController> {
                   6.height,
                   Text(
                     trend.summary,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                     style: TS.bodySmall(
                       color: CC.textSecondary,
-                    ).copyWith(fontSize: 12.5, height: 1.4),
+                    ).copyWith(fontSize: 12.5, height: 1.45),
                   ),
                 ],
               ],
             ),
           ),
-          12.height,
 
-          // ── 3. Metrics HUD Strip ──
+          14.height,
+
+          // ── 3. Metrics HUD KPI Row (Direct, No Outer Inner Box) ──
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: CC.isDark ? CC.searchBackground : const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: CC.stroke.withValues(alpha: CC.isDark ? 0.3 : 0.45),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                children: [
-                  // 1. Score
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Trend Score",
-                          style: TS.caption(
-                            color: CC.textSecondary,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 11,
-                          ),
+            child: Row(
+              children: [
+                // 1. Trend Score
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Trend Score",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TS.caption(
+                          color: CC.textSecondary,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 10.5,
                         ),
-                        2.height,
-                        Row(
+                      ),
+                      3.height,
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Row(
                           children: [
                             Icon(Icons.bolt_rounded, size: 14, color: CC.primary),
-                            3.width,
+                            2.width,
                             Text(
                               trend.score.toStringAsFixed(1),
                               style: TS.sectionTitle(
                                 color: CC.primary,
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
                           ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  // Divider
-                  Container(
-                    height: 22,
-                    width: 1,
-                    color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.5),
-                  ),
-                  12.width,
-                  // 2. Growth
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Growth",
-                          style: TS.caption(
-                            color: CC.textSecondary,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 11,
-                          ),
+                ),
+
+                // Divider
+                Container(
+                  height: 24,
+                  width: 1,
+                  color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.5),
+                ),
+                12.width,
+
+                // 2. Growth
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Growth Rate",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TS.caption(
+                          color: CC.textSecondary,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 10.5,
                         ),
-                        2.height,
-                        Row(
+                      ),
+                      3.height,
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Row(
                           children: [
                             Icon(
-                              trend.growthScore >= 0 ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+                              trend.growthScore >= 0
+                                  ? Icons.trending_up_rounded
+                                  : Icons.trending_down_rounded,
                               size: 14,
-                              color: trend.growthScore >= 0 ? const Color(0xFF10B981) : CC.error,
+                              color: trend.growthScore >= 0
+                                  ? const Color(0xFF10B981)
+                                  : CC.error,
                             ),
-                            3.width,
+                            2.width,
                             Text(
                               "${trend.growthScore > 0 ? '+' : ''}${trend.growthScore.toStringAsFixed(1)}%",
                               style: TS.sectionTitle(
-                                color: trend.growthScore >= 0 ? const Color(0xFF10B981) : CC.error,
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w700,
+                                color: trend.growthScore >= 0
+                                    ? const Color(0xFF10B981)
+                                    : CC.error,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
                           ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  // Divider
-                  Container(
-                    height: 22,
-                    width: 1,
-                    color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.5),
-                  ),
-                  12.width,
-                  // 3. Velocity
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Velocity",
-                          style: TS.caption(
-                            color: CC.textSecondary,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 11,
-                          ),
+                ),
+
+                // Divider
+                Container(
+                  height: 24,
+                  width: 1,
+                  color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.5),
+                ),
+                12.width,
+
+                // 3. Velocity
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Velocity",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TS.caption(
+                          color: CC.textSecondary,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 10.5,
                         ),
-                        2.height,
-                        Row(
+                      ),
+                      3.height,
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Row(
                           children: [
                             Icon(Icons.speed_rounded, size: 14, color: CC.textSecondary),
                             3.width,
@@ -675,22 +657,23 @@ class TrendingView extends GetView<TrendingController> {
                               trend.velocityScore.toStringAsFixed(1),
                               style: TS.sectionTitle(
                                 color: CC.textPrimary,
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
                           ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-          12.height,
 
-          // ── 4. Action Buttons Footer ──
+          13.height,
+
+          // ── 5. Action Buttons Footer ──
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
             child: Row(
@@ -698,24 +681,32 @@ class TrendingView extends GetView<TrendingController> {
                 Expanded(
                   child: SizedBox(
                     height: 42,
-                    child: ElevatedButton(
-                      onPressed: () => Get.find<MainContainerController>()
-                          .changeTab(AppNavigationService.tabStudio),
+                    child: ElevatedButton.icon(
+                      onPressed: () => _createInStudio(
+                        trend: trend,
+                        displayPlatform: displayPlatform,
+                        categoryDisplay: categoryDisplay,
+                        stageText: stageText,
+                      ),
+                      icon: const Icon(Icons.auto_awesome_rounded, size: 16),
+                      label: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          "Create in Studio",
+                          style: TS.bodySmall(
+                            color: CC.whiteText,
+                            fontWeight: FontWeight.w700,
+                          ).copyWith(fontSize: 13),
+                        ),
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: CC.primary,
                         foregroundColor: CC.whiteText,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(11),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                      ),
-                      child: Text(
-                        "Create in Studio",
-                        style: TS.bodySmall(
-                          color: CC.whiteText,
-                          fontWeight: FontWeight.w700,
-                        ).copyWith(fontSize: 13),
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
                       ),
                     ),
                   ),
@@ -737,6 +728,43 @@ class TrendingView extends GetView<TrendingController> {
         ],
       ),
     );
+  }
+
+  void _createInStudio({
+    required TrendModel trend,
+    required String displayPlatform,
+    required String categoryDisplay,
+    required String stageText,
+  }) {
+    HapticFeedback.selectionClick();
+
+    // 1. Switch to Studio Tab
+    Get.find<MainContainerController>().changeTab(AppNavigationService.tabStudio);
+
+    // 2. Formulate comprehensive creation prompt for AI Studio
+    final prompt = "Create a viral video script and content plan for the trending topic: \"${trend.name}\" on $displayPlatform.\n\n"
+        "Key Context:\n"
+        "- Topic: ${trend.name}\n"
+        "- Platform: $displayPlatform\n"
+        "${categoryDisplay.isNotEmpty ? '- Category: $categoryDisplay\n' : ''}"
+        "- Stage: $stageText\n"
+        "- Trend Score: ${trend.score.toStringAsFixed(1)} (Growth: ${trend.growthScore > 0 ? '+' : ''}${trend.growthScore.toStringAsFixed(1)}%, Velocity: ${trend.velocityScore.toStringAsFixed(1)})\n"
+        "${trend.summary.isNotEmpty ? '- Summary: ${trend.summary}\n' : ''}\n"
+        "Please generate:\n"
+        "1. 3 High-retention hooks\n"
+        "2. Video script outline with scene/visual directions\n"
+        "3. High-CTR SEO title ideas & trending hashtags\n"
+        "4. Strong Call to Action (CTA)";
+
+    // 3. Initiate new chat and send prompt in Studio
+    try {
+      final studioCtrl = Get.find<StudioController>();
+      studioCtrl.startNewChat();
+      studioCtrl.messageInputController.text = prompt;
+      studioCtrl.sendMessage(prompt);
+    } catch (e) {
+      debugPrint("Error sending trend to Studio: $e");
+    }
   }
 
   Widget _actionSquareBtn({
