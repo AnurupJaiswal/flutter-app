@@ -1,5 +1,5 @@
 class AppConstants {
-  static const int minPasswordLength = 6;
+  static const int minPasswordLength = 8;
   static const double padding = 16.0;
   static const double borderRadius = 12.0;
   static const double cardBorderRadius = 16.0;

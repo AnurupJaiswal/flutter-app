@@ -31,7 +31,7 @@ class StudioDrawerSidebar extends GetView<StudioController> {
                       color: CC.primary.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(Icons.auto_awesome_rounded, color: CC.primary, size: 16),
+                    child: Icon(Icons.movie_creation_outlined, color: CC.primary, size: 16),
                   ),
                   10.width,
                   Text("AI Studio", style: TS.sectionTitle(fontSize: 15)),

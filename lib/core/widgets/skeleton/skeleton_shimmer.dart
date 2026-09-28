@@ -2,12 +2,75 @@ import 'package:flutter/material.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 
 /// ─────────────────────────────────────────────────────────────────────────────
-/// SkeletonShimmer — High-performance, centralized animated gradient shader.
-///
-/// Features:
-/// - Isolated via [RepaintBoundary] to prevent parent layer repaints.
-/// - Respects accessibility settings: disables shimmer if [MediaQuery.disableAnimations] is true.
-/// - Dynamic Light/Dark mode colors driven by [CC.shimmerBase] and [CC.shimmerHighlight].
+/// ShimmerScope — Inherited widget providing synchronized shimmer animation
+/// and colors to all descendant skeleton elements.
+/// ─────────────────────────────────────────────────────────────────────────────
+class ShimmerScope extends InheritedWidget {
+  final Animation<double> animation;
+  final Color baseColor;
+  final Color highlightColor;
+
+  const ShimmerScope({
+    super.key,
+    required this.animation,
+    required this.baseColor,
+    required this.highlightColor,
+    required super.child,
+  });
+
+  static ShimmerScope? of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<ShimmerScope>();
+  }
+
+  @override
+  bool updateShouldNotify(ShimmerScope oldWidget) {
+    return animation != oldWidget.animation ||
+        baseColor != oldWidget.baseColor ||
+        highlightColor != oldWidget.highlightColor;
+  }
+}
+
+/// ─────────────────────────────────────────────────────────────────────────────
+/// SlidingGradientTransform — Shifts the linear gradient smoothly across bounds.
+/// ─────────────────────────────────────────────────────────────────────────────
+class SlidingGradientTransform extends GradientTransform {
+  final double slidePercent;
+
+  const SlidingGradientTransform({
+    required this.slidePercent,
+  });
+
+  @override
+  Matrix4? transform(Rect bounds, {TextDirection? textDirection}) {
+    return Matrix4.translationValues(bounds.width * (slidePercent * 2 - 1), 0.0, 0.0);
+  }
+}
+
+LinearGradient buildShimmerGradient({
+  required double slidePercent,
+  required Color baseColor,
+  required Color highlightColor,
+}) {
+  return LinearGradient(
+    begin: const Alignment(-1.0, -0.3),
+    end: const Alignment(1.0, 0.3),
+    colors: [
+      baseColor,
+      highlightColor,
+      baseColor,
+    ],
+    stops: const [
+      0.1,
+      0.5,
+      0.9,
+    ],
+    tileMode: TileMode.clamp,
+    transform: SlidingGradientTransform(slidePercent: slidePercent),
+  );
+}
+
+/// ─────────────────────────────────────────────────────────────────────────────
+/// SkeletonShimmer — Centralized animated shimmer controller.
 /// ─────────────────────────────────────────────────────────────────────────────
 class SkeletonShimmer extends StatefulWidget {
   final Widget child;
@@ -18,7 +81,7 @@ class SkeletonShimmer extends StatefulWidget {
   const SkeletonShimmer({
     super.key,
     required this.child,
-    this.duration = const Duration(milliseconds: 1300),
+    this.duration = const Duration(milliseconds: 1500),
     this.baseColor,
     this.highlightColor,
   });
@@ -48,7 +111,6 @@ class _SkeletonShimmerState extends State<SkeletonShimmer>
 
   @override
   Widget build(BuildContext context) {
-    // Accessibility: If user has reduced motion enabled, display static skeleton
     final disableAnimations = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     if (disableAnimations) {
       return widget.child;
@@ -58,32 +120,13 @@ class _SkeletonShimmerState extends State<SkeletonShimmer>
     final highlight = widget.highlightColor ?? CC.shimmerHighlight;
 
     return RepaintBoundary(
-      child: AnimatedBuilder(
+      child: ShimmerScope(
         animation: _controller,
-        builder: (context, child) {
-          return ShaderMask(
-            blendMode: BlendMode.srcATop,
-            shaderCallback: (bounds) {
-              return LinearGradient(
-                begin: const Alignment(-1.0, -0.3),
-                end: const Alignment(1.0, 0.3),
-                stops: [
-                  (_controller.value - 0.3).clamp(0.0, 1.0),
-                  _controller.value.clamp(0.0, 1.0),
-                  (_controller.value + 0.3).clamp(0.0, 1.0),
-                ],
-                colors: [
-                  base,
-                  highlight,
-                  base,
-                ],
-              ).createShader(bounds);
-            },
-            child: child,
-          );
-        },
+        baseColor: base,
+        highlightColor: highlight,
         child: widget.child,
       ),
     );
   }
 }
+

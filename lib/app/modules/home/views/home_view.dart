@@ -11,6 +11,7 @@ import 'package:lala_ai/app/modules/connect_accounts/views/connect_accounts_view
 import 'package:lala_ai/app/modules/connect_accounts/widgets/connect_account_hero_widget.dart';
 import 'package:lala_ai/app/modules/profile/views/profile_view.dart';
 import 'package:lala_ai/app/routes/app_routes.dart';
+import 'package:lala_ai/core/widgets/skeleton/app_skeleton.dart';
 import 'package:lala_ai/networking/api_service.dart';
 
 class HomeView extends GetView<HomeController> {
@@ -24,30 +25,14 @@ class HomeView extends GetView<HomeController> {
         appBar: CW.commonAppbar(
           isNotHomepage: false,
           wantBackIcon: false,
-          titleWidget: Row(
+          titleWidget: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: CC.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Center(
-                  child: Icon(Icons.auto_awesome_rounded, color: CC.primary, size: 20),
-                ),
-              ),
-              10.width,
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text("Lala Ai", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 16, fontWeight: FontWeight.w700)),
-                  Text(
-                    "Create. Grow. Smarter.",
-                    style: TS.caption(color: CC.textSecondary, fontSize: 11),
-                  ),
-                ],
+              Text("Lala Ai", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 17, fontWeight: FontWeight.w800)),
+              Text(
+                "Create. Grow. Smarter.",
+                style: TS.caption(color: CC.textSecondary, fontSize: 11),
               ),
             ],
           ),
@@ -179,6 +164,7 @@ class HomeView extends GetView<HomeController> {
     final handle = current?.handle ?? (platform == 'YOUTUBE' ? 'YouTube Channel' : 'Instagram Profile');
     final formattedHandle = handle.startsWith('@') ? handle : "@$handle";
     final isYt = platform == 'YOUTUBE';
+    final statusColor = current?.statusColor ?? const Color(0xFF22C55E);
 
     return GestureDetector(
       onTap: () => _showChannelSelectorBottomSheet(context),
@@ -202,7 +188,7 @@ class HomeView extends GetView<HomeController> {
             isYt ? CW.youtubeIcon(size: 16) : CW.instagramIcon(size: 16),
             8.width,
             ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 180),
+              constraints: const BoxConstraints(maxWidth: 160),
               child: Text(
                 formattedHandle,
                 maxLines: 1,
@@ -211,6 +197,15 @@ class HomeView extends GetView<HomeController> {
               ),
             ),
             6.width,
+            Container(
+              width: 7,
+              height: 7,
+              decoration: BoxDecoration(
+                color: statusColor,
+                shape: BoxShape.circle,
+              ),
+            ),
+            4.width,
             Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: CC.textSecondary),
           ],
         ),
@@ -268,6 +263,8 @@ class HomeView extends GetView<HomeController> {
                       final isSelected = controller.selectedChannel.value?.id.toString() == ch.id.toString();
                       final isYt = ch.platform == 'YOUTUBE';
                       final displayHandle = ch.handle.startsWith('@') ? ch.handle : "@${ch.handle}";
+                      final statusColor = ch.statusColor;
+                      final statusText = ch.statusDisplay;
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 8),
@@ -281,6 +278,7 @@ class HomeView extends GetView<HomeController> {
                         ),
                         child: ListTile(
                           dense: true,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
                           leading: Container(
                             width: 38,
                             height: 38,
@@ -300,16 +298,61 @@ class HomeView extends GetView<HomeController> {
                               child: isYt ? CW.youtubeIcon(size: 22) : CW.instagramIcon(size: 22),
                             ),
                           ),
-                          title: Text(
-                            ch.name.isNotEmpty ? ch.name : displayHandle,
-                            style: TS.bodySmall(
-                              color: CC.textPrimary,
-                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                            ),
+                          title: Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  ch.name.isNotEmpty ? ch.name : displayHandle,
+                                  style: TS.bodySmall(
+                                    color: CC.textPrimary,
+                                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              8.width,
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: statusColor.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: statusColor.withValues(alpha: 0.3),
+                                    width: 0.8,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 5,
+                                      height: 5,
+                                      decoration: BoxDecoration(
+                                        color: statusColor,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    4.width,
+                                    Text(
+                                      statusText,
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: statusColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                          subtitle: Text(
-                            displayHandle,
-                            style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                              displayHandle,
+                              style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11),
+                            ),
                           ),
                           trailing: isSelected
                               ? Container(
@@ -377,7 +420,20 @@ class HomeView extends GetView<HomeController> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("Channel Health Audit", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 16)),
+            Builder(
+              builder: (context) => GestureDetector(
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AnalyticsView())),
+                behavior: HitTestBehavior.opaque,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text("Channel Health Audit", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 16)),
+                    4.width,
+                    Icon(Icons.chevron_right_rounded, size: 18, color: CC.textSecondary),
+                  ],
+                ),
+              ),
+            ),
             Obx(() => GestureDetector(
               onTap: controller.isAuditing.value ? null : () => controller.runChannelAudit(),
               child: Container(
@@ -412,17 +468,59 @@ class HomeView extends GetView<HomeController> {
         12.height,
         Builder(
           builder: (context) {
-            return Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: CC.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
-                  width: 1,
+            return GestureDetector(
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AnalyticsView())),
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: CC.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+                    width: 1,
+                  ),
                 ),
-              ),
-              child: Obx(() {
+                child: Obx(() {
+                if (controller.isAuditing.value && !controller.hasAuditData.value) {
+                  return SkeletonShimmer(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const SkeletonCircle(size: 72),
+                            18.width,
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SkeletonBox(width: 160, height: 16),
+                                  8.height,
+                                  const SkeletonBox(width: double.infinity, height: 11),
+                                  6.height,
+                                  const SkeletonBox(width: 140, height: 11),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        16.height,
+                        Row(
+                          children: [
+                            Expanded(child: const SkeletonBox(height: 38, borderRadius: BorderRadius.all(Radius.circular(8)))),
+                            6.width,
+                            Expanded(child: const SkeletonBox(height: 38, borderRadius: BorderRadius.all(Radius.circular(8)))),
+                            6.width,
+                            Expanded(child: const SkeletonBox(height: 38, borderRadius: BorderRadius.all(Radius.circular(8)))),
+                            6.width,
+                            Expanded(child: const SkeletonBox(height: 38, borderRadius: BorderRadius.all(Radius.circular(8)))),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                }
                 final hasAudit = controller.hasAuditData.value;
                 final score = controller.healthScore.value;
 
@@ -551,16 +649,11 @@ class HomeView extends GetView<HomeController> {
                                 color: CC.primary.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.auto_awesome_rounded, size: 14, color: CC.primary),
-                                  6.width,
-                                  Text(
-                                    "Ask Pixo",
-                                    style: TS.caption(color: CC.primary, fontWeight: FontWeight.w700),
-                                  ),
-                                ],
+                              child: Center(
+                                child: Text(
+                                  "Ask Pixo",
+                                  style: TS.caption(color: CC.primary, fontWeight: FontWeight.w700),
+                                ),
                               ),
                             ),
                           ),
@@ -570,9 +663,9 @@ class HomeView extends GetView<HomeController> {
                   ],
                 );
               }),
-            );
-          }
-        ),
+            ),
+          );
+        }),
       ],
     );
   }
@@ -1168,22 +1261,7 @@ class HomeView extends GetView<HomeController> {
   }
 
   Widget _buildInitialShimmerLoading() {
-    return SingleChildScrollView(
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CW.skeletonCard(height: 50, margin: EdgeInsets.zero),
-          24.height,
-          CW.skeletonCard(height: 140, margin: EdgeInsets.zero),
-          24.height,
-          CW.skeletonCard(height: 180, margin: EdgeInsets.zero),
-          24.height,
-          CW.skeletonCard(height: 120, margin: EdgeInsets.zero),
-        ],
-      ),
-    );
+    return const DashboardSkeleton();
   }
 
   Widget _buildInitialEmptyState() {

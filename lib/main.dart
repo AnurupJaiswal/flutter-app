@@ -12,6 +12,17 @@ import 'package:lala_ai/utils/theme/theme_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Production Crash Prevention: Gracefully handle any unexpected render errors
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+  };
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return const Material(
+      color: Colors.transparent,
+      child: SizedBox.shrink(),
+    );
+  };
+
   // Low-end / Cross-device memory management: restrict imageCache to prevent OOM
   PaintingBinding.instance.imageCache.maximumSize = 100;
   PaintingBinding.instance.imageCache.maximumSizeBytes = 40 * 1024 * 1024; // 40MB max cache buffer

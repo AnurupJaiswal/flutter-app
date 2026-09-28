@@ -16,86 +16,46 @@ class CategoryInsightsSkeleton extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── 1. Category Switcher Chips ──────────────────────────────────
-          SizedBox(
-            height: 38,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: 5,
-              separatorBuilder: (_, __) => 8.width,
-              itemBuilder: (_, index) => SkeletonBox(
-                width: index == 0 ? 80 : 65,
-                height: 36,
-                borderRadius: const BorderRadius.all(Radius.circular(20)),
-              ),
-            ),
-          ),
-          16.height,
-
-          // ── 2. Trending Now Chips ───────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SkeletonBox(width: 120, height: 13),
-                10.height,
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: const [
-                    SkeletonBox(width: 130, height: 30, borderRadius: BorderRadius.all(Radius.circular(15))),
-                    SkeletonBox(width: 100, height: 30, borderRadius: BorderRadius.all(Radius.circular(15))),
-                    SkeletonBox(width: 140, height: 30, borderRadius: BorderRadius.all(Radius.circular(15))),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          20.height,
-
-          // ── 3. Shared Insights Cards ────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SkeletonBox(width: 140, height: 13),
-                12.height,
-                for (int i = 0; i < 3; i++) ...[
-                  _sharedInsightCardSkeleton(),
-                  if (i < 2) 12.height,
-                ],
-              ],
-            ),
-          ),
+          for (int i = 0; i < 6; i++) ...[
+            _categoryCardSkeleton(),
+            if (i < 5) 10.height,
+          ],
         ],
       ),
     );
   }
 
-  Widget _sharedInsightCardSkeleton() {
+  Widget _categoryCardSkeleton() {
     return SkeletonCard(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      borderRadius: const BorderRadius.all(Radius.circular(16)),
+      child: Row(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              SkeletonBox(width: 80, height: 20, borderRadius: BorderRadius.all(Radius.circular(6))),
-              SkeletonBox(width: 40, height: 12),
-            ],
+          const SkeletonBox(
+            width: 44,
+            height: 44,
+            borderRadius: BorderRadius.all(Radius.circular(22)),
           ),
-          10.height,
-          const SkeletonBox(width: 180, height: 15),
-          8.height,
-          const SkeletonBox(width: double.infinity, height: 11),
-          4.height,
-          const SkeletonBox(width: 220, height: 11),
+          14.width,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SkeletonBox(width: 160, height: 15),
+                8.height,
+                const SkeletonBox(width: double.infinity, height: 11),
+              ],
+            ),
+          ),
+          12.width,
+          const SkeletonBox(
+            width: 24,
+            height: 24,
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+          ),
         ],
       ),
     );
   }
 }
+

@@ -175,4 +175,8 @@ class ApiEndpoints {
   static const String publicPrivacy = '/api/v1/public/documents/privacy';
   static const String publicTerms = '/api/v1/public/documents/terms';
   static const String publicFaqs = '/api/v1/public/faqs';
+
+  // --- Trends Feed Endpoints ---
+  static const String trends = '/api/v1/trends';
+  static String trendDetails(dynamic id) => '/api/v1/trends/$id';
 }

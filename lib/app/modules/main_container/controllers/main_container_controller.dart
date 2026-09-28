@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:lala_ai/app/navigation/app_navigation_service.dart';
 import 'package:lala_ai/app/modules/authentication/data/auth_repository.dart';
 import 'package:lala_ai/core/deep_link/deep_link_router.dart';
+import 'package:lala_ai/app/modules/trending/controllers/trending_controller.dart';
 
 class MainContainerController extends GetxController {
   final currentIndex = 0.obs;
@@ -41,6 +42,9 @@ class MainContainerController extends GetxController {
       navigationService.popToTabRoot(index);
     } else {
       currentIndex.value = index;
+      if (index == AppNavigationService.tabTrends && Get.isRegistered<TrendingController>()) {
+        Get.find<TrendingController>().loadTrends();
+      }
     }
   }
 

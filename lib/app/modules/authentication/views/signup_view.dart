@@ -17,47 +17,26 @@ class SignupView extends GetView<AuthController> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Brand Badge & Wordmark
-          Row(
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: CC.isDark ? const Color(0xFF00383D) : CC.tealSubtle,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: CC.primary.withValues(alpha: 0.3), width: 0.7),
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.auto_awesome_rounded,
-                    color: CC.primary,
-                    size: 20,
-                  ),
-                ),
+          // Brand Wordmark
+          RichText(
+            text: TextSpan(
+              text: 'Lala ',
+              style: TS.sectionTitle(
+                color: CC.textPrimary,
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
               ),
-              12.width,
-              RichText(
-                text: TextSpan(
-                  text: 'Lala ',
+              children: [
+                TextSpan(
+                  text: 'Ai',
                   style: TS.sectionTitle(
-                    color: CC.textPrimary,
-                    fontSize: 22,
+                    color: CC.primary,
+                    fontSize: 24,
                     fontWeight: FontWeight.w700,
                   ),
-                  children: [
-                    TextSpan(
-                      text: 'Ai',
-                      style: TS.sectionTitle(
-                        color: CC.primary,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
 
           32.height,

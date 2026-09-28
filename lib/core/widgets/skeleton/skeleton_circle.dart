@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lala_ai/core/widgets/skeleton/skeleton_shimmer.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 
 /// ─────────────────────────────────────────────────────────────────────────────
@@ -20,15 +21,41 @@ class SkeletonCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      margin: margin,
-      decoration: BoxDecoration(
-        color: color ?? CC.shimmerBase,
-        shape: BoxShape.circle,
-        border: border,
-      ),
+    final scope = ShimmerScope.of(context);
+    final base = color ?? scope?.baseColor ?? CC.shimmerBase;
+    final highlight = scope?.highlightColor ?? CC.shimmerHighlight;
+
+    if (scope == null) {
+      return Container(
+        width: size,
+        height: size,
+        margin: margin,
+        decoration: BoxDecoration(
+          color: base,
+          shape: BoxShape.circle,
+          border: border,
+        ),
+      );
+    }
+
+    return AnimatedBuilder(
+      animation: scope.animation,
+      builder: (context, _) {
+        return Container(
+          width: size,
+          height: size,
+          margin: margin,
+          decoration: BoxDecoration(
+            gradient: buildShimmerGradient(
+              slidePercent: scope.animation.value,
+              baseColor: base,
+              highlightColor: highlight,
+            ),
+            shape: BoxShape.circle,
+            border: border,
+          ),
+        );
+      },
     );
   }
 }

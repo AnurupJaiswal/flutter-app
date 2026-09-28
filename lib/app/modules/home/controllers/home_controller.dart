@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lala_ai/app/data/repositories/trend_repository.dart';
@@ -25,11 +24,28 @@ class ChannelOption {
     this.status = 'ACTIVE',
   });
 
-  bool get isActive => status.toUpperCase() == 'ACTIVE';
-  bool get isDisconnected => status.toUpperCase() == 'DISCONNECTED';
+  bool get isActive =>
+      status.toUpperCase() == 'ACTIVE' ||
+      status.toUpperCase() == 'CONNECTED';
+  bool get isDisconnected =>
+      status.toUpperCase() == 'DISCONNECTED' ||
+      status.toUpperCase() == 'INACTIVE';
   bool get isReauthRequired =>
       status.toUpperCase() == 'REAUTH_REQUIRED' ||
-      status.toUpperCase() == 'EXPIRED';
+      status.toUpperCase() == 'EXPIRED' ||
+      status.toUpperCase() == 'AUTH_EXPIRED';
+
+  String get statusDisplay {
+    if (isDisconnected) return 'Disconnected';
+    if (isReauthRequired) return 'Reconnect';
+    return 'Connected';
+  }
+
+  Color get statusColor {
+    if (isDisconnected) return const Color(0xFFEF4444);
+    if (isReauthRequired) return const Color(0xFFF59E0B);
+    return const Color(0xFF22C55E);
+  }
 }
 
 class HomeController extends GetxController {

@@ -46,12 +46,12 @@ class PixoOverlayWidget extends StatelessWidget {
               ],
               border: Border.all(color: CC.stroke, width: 0.5),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.auto_awesome_rounded, color: CC.primary, size: 22),
-              ],
-            ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.chat_bubble_outline_rounded, color: CC.primary, size: 20),
+                ],
+              ),
           )),
         ),
       ),

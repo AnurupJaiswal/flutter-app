@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:lala_ai/app/modules/calendar/views/calendar_view.dart';
 import 'package:lala_ai/app/modules/home/views/home_view.dart';
 import 'package:lala_ai/app/modules/main_container/controllers/main_container_controller.dart';
-import 'package:lala_ai/app/modules/main_container/widgets/pixo_overlay_widget.dart';
 import 'package:lala_ai/app/modules/discover/views/discover_view.dart';
 import 'package:lala_ai/app/modules/studio/views/studio_view.dart';
 import 'package:lala_ai/app/modules/trending/views/trending_view.dart';
@@ -30,24 +29,16 @@ class MainContainerView extends GetView<MainContainerController> {
         },
         child: Scaffold(
           backgroundColor: CC.background,
-          body: Stack(
+          body: Obx(() => IndexedStack(
+            index: controller.currentIndex.value,
             children: [
-              // Primary Independent Tab Navigators inside IndexedStack
-              Obx(() => IndexedStack(
-                index: controller.currentIndex.value,
-                children: [
-                  _buildTabNavigator(AppNavigationService.tabDashboard, const HomeView()),
-                  _buildTabNavigator(AppNavigationService.tabStudio, const StudioView()),
-                  _buildTabNavigator(AppNavigationService.tabTrends, const TrendingView()),
-                  _buildTabNavigator(AppNavigationService.tabCalendar, const CalendarView()),
-                  _buildTabNavigator(AppNavigationService.tabDiscover, const DiscoverView()),
-                ],
-              )),
-
-              // Global Draggable Pixo Assistant Overlay Widget
-              const PixoOverlayWidget(),
+              _buildTabNavigator(AppNavigationService.tabDashboard, const HomeView()),
+              _buildTabNavigator(AppNavigationService.tabStudio, const StudioView()),
+              _buildTabNavigator(AppNavigationService.tabTrends, const TrendingView()),
+              _buildTabNavigator(AppNavigationService.tabCalendar, const CalendarView()),
+              _buildTabNavigator(AppNavigationService.tabDiscover, const DiscoverView()),
             ],
-          ),
+          )),
           bottomNavigationBar: Obx(() => Container(
             decoration: BoxDecoration(
               color: CC.surface,

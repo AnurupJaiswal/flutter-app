@@ -86,14 +86,7 @@ class ApiStudioChatRepository implements StudioChatRepository {
       }
     }
 
-    // Fallback if backend response is format-incompatible
-    return ChatSessionModel(
-      id: "studio_chat_${DateTime.now().millisecondsSinceEpoch}",
-      title: title ?? "New Studio Chat",
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      messages: [],
-    );
+    throw Exception(response.message.isNotEmpty ? response.message : "Failed to create studio chat session on server");
   }
 
   @override
