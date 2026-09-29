@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart';
+import 'package:lala_ai/app/modules/studio/widgets/pixo_command_menu.dart';
 import 'package:lala_ai/utils/app_toast.dart';
 import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
@@ -32,6 +33,18 @@ class _StudioMessageComposerState extends State<StudioMessageComposer> {
   late final FocusNode _effectiveFocusNode;
   bool _hasText = false;
 
+  // ── Pixo command/entity detection ──────────────────────────────────────
+  bool _showCommandMenu = false;
+  String _commandFilter = '';
+  bool _showEntityTypeahead = false;
+  String _entityQuery = '';
+
+  // Mock entity suggestions — in production, hit a creator-search endpoint.
+  static const _kMockEntities = [
+    'mkbhd', 'mrwhosetheboss', 'linustechtips', 'veritasium',
+    'pewdiepie', 'mrbeast', 'kurzgesagt',
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -42,9 +55,30 @@ class _StudioMessageComposerState extends State<StudioMessageComposer> {
   }
 
   void _onTextChanged() {
-    final hasContent = widget.controller.text.trim().isNotEmpty;
-    if (hasContent != _hasText) {
-      setState(() => _hasText = hasContent);
+    final text = widget.controller.text;
+    final hasContent = text.trim().isNotEmpty;
+    if (hasContent != _hasText) setState(() => _hasText = hasContent);
+
+    // Detect `/` at start or after a space → show command menu
+    final slashMatch = RegExp(r'(^|\s)(/)([\w]*)$').firstMatch(text);
+    final showCmd = slashMatch != null;
+    final cmdFilter = showCmd ? (slashMatch.group(3) ?? '') : '';
+
+    // Detect `@word` → show entity typeahead
+    final atMatch = RegExp(r'@([\w]*)$').firstMatch(text);
+    final showAt = atMatch != null;
+    final atQuery = showAt ? (atMatch.group(1) ?? '') : '';
+
+    if (showCmd != _showCommandMenu ||
+        cmdFilter != _commandFilter ||
+        showAt != _showEntityTypeahead ||
+        atQuery != _entityQuery) {
+      setState(() {
+        _showCommandMenu = showCmd;
+        _commandFilter = cmdFilter;
+        _showEntityTypeahead = showAt;
+        _entityQuery = atQuery;
+      });
     }
   }
 
@@ -81,9 +115,69 @@ class _StudioMessageComposerState extends State<StudioMessageComposer> {
     );
   }
 
+  List<String> get _filteredEntities {
+    if (_entityQuery.isEmpty) return _kMockEntities.take(5).toList();
+    return _kMockEntities
+        .where((e) => e.toLowerCase().startsWith(_entityQuery.toLowerCase()))
+        .take(5)
+        .toList();
+  }
+
+  void _insertCommand(String slash) {
+    final text = widget.controller.text;
+    // Strip trailing slash-fragment and append the selected command.
+    final cleaned = text.replaceAll(RegExp(r'\s*/[\w]*$'), '').trim();
+    final newText = cleaned.isEmpty ? slash : '$cleaned $slash';
+    widget.controller.text = newText;
+    widget.controller.selection = TextSelection.fromPosition(
+        TextPosition(offset: newText.length));
+    _onTextChanged();
+  }
+
+  void _insertEntity(String handle) {
+    final text = widget.controller.text;
+    // Replace partial '@word' with '@handle '
+    final newText = text.replaceAll(RegExp(r'@[\w]*$'), '@$handle ');
+    widget.controller.text = newText;
+    widget.controller.selection = TextSelection.fromPosition(
+        TextPosition(offset: widget.controller.text.length));
+    _onTextChanged();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // ── Pixo command overlay (appears above composer) ──────────────
+        if (_showCommandMenu)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 760),
+              child: PixoCommandMenuSheet(
+                filter: _commandFilter,
+                onCommandSelected: _insertCommand,
+              ),
+            ),
+          ),
+
+        // ── Entity typeahead (appears above composer) ─────────────────
+        if (_showEntityTypeahead)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 760),
+              child: PixoEntityTypeahead(
+                query: _entityQuery,
+                suggestions: _filteredEntities,
+                onSelected: _insertEntity,
+              ),
+            ),
+          ),
+
+        // ── Composer container ────────────────────────────────────────
+        Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
       decoration: BoxDecoration(
         color: CC.background,
@@ -238,7 +332,9 @@ class _StudioMessageComposerState extends State<StudioMessageComposer> {
           ),
         ),
       ),
-    );
+        ), // ← closes composer Container
+      ], // ← closes Column children
+    ); // ← closes Column
   }
 }
 

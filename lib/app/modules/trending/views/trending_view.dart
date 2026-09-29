@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lala_ai/utils/app_toast.dart';
 import 'package:get/get.dart';
+import 'package:lala_ai/app/modules/discover/controllers/discover_controller.dart';
 import 'package:lala_ai/app/modules/profile/views/profile_view.dart';
 import 'package:lala_ai/app/data/models/trend_model.dart';
 import 'package:lala_ai/app/modules/main_container/controllers/main_container_controller.dart';
@@ -124,11 +125,15 @@ class TrendingView extends GetView<TrendingController> {
                 slivers: [
                   // ── 1. Search Bar & Filters ──────────────────────────────
                   SliverToBoxAdapter(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        10.height,
-                        // Search Bar
+                    child: Obx(() {
+                      if (controller.userCategories.isEmpty && !controller.isCategoriesLoading.value) {
+                        return const SizedBox.shrink();
+                      }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          10.height,
+                          // Search Bar
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Obx(
@@ -257,11 +262,32 @@ class TrendingView extends GetView<TrendingController> {
                           );
                         }),
                       ],
-                    ),
-                  ),
+                    );
+                  }),
+                ),
 
-                  // ── 2. Content: Loading Skeleton / Centered Empty State / Cards List ──
+                  // ── 2. Content: Loading Skeleton / No-Category Guard / Empty State / Cards List ──
                   Obx(() {
+                    // ── Category loading guard ──────────────────────────────
+                    if (controller.isCategoriesLoading.value && controller.userCategories.isEmpty) {
+                      return const SliverPadding(
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        sliver: SliverToBoxAdapter(
+                          child: TrendSkeleton(itemCount: 4),
+                        ),
+                      );
+                    }
+
+                    // ── Minimum-one-category guard ──────────────────────────
+                    // If no categories have been selected by the user, we can't
+                    // curate a meaningful feed. Prompt them to pick at least one.
+                    if (controller.userCategories.isEmpty) {
+                      return SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: _buildNoCategoriesState(context),
+                      );
+                    }
+
                     if (controller.isLoading.value && controller.trends.isEmpty) {
                       return const SliverPadding(
                         padding: EdgeInsets.symmetric(horizontal: 16),
@@ -850,6 +876,91 @@ class TrendingView extends GetView<TrendingController> {
               textAlign: TextAlign.center,
             ),
             30.height,
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── No-Categories State: at least one category required ─────────────────────
+  Widget _buildNoCategoriesState(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ── Category icon bubble ──
+            Container(
+              width: 88,
+              height: 88,
+              decoration: BoxDecoration(
+                color: CC.primary.withValues(alpha: CC.isDark ? 0.15 : 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.category_rounded,
+                  size: 40,
+                  color: CC.primary,
+                ),
+              ),
+            ),
+            24.height,
+
+            // ── Title ──
+            Text(
+              "Pick your niches first",
+              style: TS.sectionTitle(
+                color: CC.textPrimary,
+                fontSize: 19,
+                fontWeight: FontWeight.w700,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            10.height,
+
+            // ── Description ──
+            Text(
+              "Select at least one content category to start\nseeing curated trending topics for your niche.",
+              style: TS.bodySmall(
+                color: CC.textSecondary,
+              ).copyWith(fontSize: 13.5, height: 1.5),
+              textAlign: TextAlign.center,
+            ),
+            28.height,
+
+            // ── Primary CTA ──
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  // Switch to the Discover tab (index 4) and open the CATEGORIES sub-tab
+                  final mainCtrl = Get.find<MainContainerController>();
+                  mainCtrl.changeTab(AppNavigationService.tabDiscover);
+                  // Set the DiscoverController's active tab to 1 (CATEGORIES)
+                  if (Get.isRegistered<DiscoverController>()) {
+                    Get.find<DiscoverController>().activeTab.value = 1;
+                  }
+                },
+                icon: const Icon(Icons.tune_rounded, size: 18),
+                label: const Text("Manage Categories"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: CC.primary,
+                  foregroundColor: CC.whiteText,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  textStyle: TS.bodySmall(
+                    fontWeight: FontWeight.w700,
+                  ).copyWith(fontSize: 14),
+                ),
+              ),
+            ),
           ],
         ),
       ),

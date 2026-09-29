@@ -103,6 +103,10 @@ class _ConnectAccountsViewState extends State<ConnectAccountsView>
           _homeController.availableChannels.clear();
         }
 
+        // 3. Notify the global guard in MainContainerView reactively.
+        // connectedChannels.refresh() triggers Obx listeners that depend on hasActiveConnection.
+        _homeController.connectedChannels.refresh();
+
         if (showFeedback) {
           AppToast.success("Connection status refreshed!");
         }

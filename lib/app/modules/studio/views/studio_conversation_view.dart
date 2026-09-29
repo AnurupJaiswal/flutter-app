@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lala_ai/app/modules/studio/controllers/studio_controller.dart';
+import 'package:lala_ai/app/modules/studio/widgets/pixo_message_bubble_widget.dart';
 import 'package:lala_ai/app/modules/studio/widgets/studio_drawer_sidebar.dart';
-import 'package:lala_ai/app/modules/studio/widgets/studio_message_bubble_widget.dart';
 import 'package:lala_ai/app/modules/studio/widgets/studio_message_composer.dart';
 import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
@@ -65,8 +65,8 @@ class StudioConversationView extends GetView<StudioController> {
               children: [
                 Expanded(
                   child: Obx(() {
-                    final list = controller.messages;
-                    final isThinking = controller.isAiThinking.value;
+                    final list = controller.pixoMessages;
+                    final isThinking = controller.isAiThinkingValue;
 
                     if (list.isEmpty && !isThinking) {
                       return Center(
@@ -80,21 +80,16 @@ class StudioConversationView extends GetView<StudioController> {
                     return ListView.builder(
                       controller: controller.chatScrollController,
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                      itemCount: list.length + (isThinking ? 1 : 0),
+                      itemCount: list.length,
                       itemBuilder: (context, index) {
-                        if (index == list.length && isThinking) {
-                          return _buildThinkingIndicator();
-                        }
-
                         final msg = list[index];
-                        return StudioMessageBubbleWidget(
-                          key: ValueKey(msg.id),
+                        return PixoMessageBubbleWidget(
+                          key: ValueKey(msg.localId),
                           message: msg,
-                          onRegenerate: (index == list.length - 1 && msg.isAssistant)
+                          onRegenerate: (index == list.length - 1 && msg.isAssistant && !isThinking)
                               ? controller.regenerateLastMessage
                               : null,
                           onLike: (liked) => controller.toggleLikeMessage(msg, liked),
-                          onSuggestedPromptTap: (prompt) => controller.sendMessage(prompt),
                         );
                       },
                     );
@@ -105,7 +100,7 @@ class StudioConversationView extends GetView<StudioController> {
                 Obx(() => StudioMessageComposer(
                       controller: controller.messageInputController,
                       focusNode: controller.messageFocusNode,
-                      isLoading: controller.isAiThinking.value,
+                      isLoading: controller.isAiThinkingValue,
                       onSend: () => controller.sendMessage(),
                       onStop: controller.stopGenerating,
                     )),

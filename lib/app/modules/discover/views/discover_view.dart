@@ -28,7 +28,12 @@ class _DiscoverViewState extends State<DiscoverView> {
   }
 
   void _onTabChanged(int index) {
-    if (_currentTab == index) return;
+    int actualTab = Get.isRegistered<DiscoverController>()
+        ? Get.find<DiscoverController>().activeTab.value.clamp(0, 1)
+        : _currentTab;
+
+    if (actualTab == index) return;
+
     setState(() => _currentTab = index);
     if (Get.isRegistered<DiscoverController>()) {
       Get.find<DiscoverController>().activeTab.value = index;
@@ -81,13 +86,20 @@ class _DiscoverViewState extends State<DiscoverView> {
 
                 // ── Preserved Screen View via IndexedStack ───────────────────
                 Expanded(
-                  child: IndexedStack(
-                    index: _currentTab,
-                    children: const [
-                      CompetitorView(isEmbedded: true),
-                      CategoryInsightsView(isEmbedded: true),
-                    ],
-                  ),
+                  child: Obx(() {
+                    // React to external tab changes (e.g. from TrendingView's
+                    // "Manage Categories" CTA) without needing setState.
+                    final tabIndex = Get.isRegistered<DiscoverController>()
+                        ? Get.find<DiscoverController>().activeTab.value.clamp(0, 1)
+                        : _currentTab;
+                    return IndexedStack(
+                      index: tabIndex,
+                      children: const [
+                        CompetitorView(isEmbedded: true),
+                        CategoryInsightsView(isEmbedded: true),
+                      ],
+                    );
+                  }),
                 ),
               ],
             ),
@@ -98,7 +110,11 @@ class _DiscoverViewState extends State<DiscoverView> {
   }
 
   Widget _buildSegmentButton(String title, int index) {
-    final bool isSelected = _currentTab == index;
+    return Obx(() {
+      final activeIndex = Get.isRegistered<DiscoverController>()
+          ? Get.find<DiscoverController>().activeTab.value.clamp(0, 1)
+          : _currentTab;
+      final bool isSelected = activeIndex == index;
 
     return GestureDetector(
       onTap: () => _onTabChanged(index),
@@ -131,5 +147,6 @@ class _DiscoverViewState extends State<DiscoverView> {
         ),
       ),
     );
+    });
   }
 }

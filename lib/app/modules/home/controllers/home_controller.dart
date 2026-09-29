@@ -121,6 +121,12 @@ class HomeController extends GetxController {
   bool get hasAnyChannels =>
       availableChannels.isNotEmpty || connectedChannels.isNotEmpty;
 
+  /// Returns true if at least one connected channel has ACTIVE status.
+  /// This is the global source of truth for the "no connected account" guard.
+  /// REAUTH_REQUIRED, DISCONNECTED and EXPIRED channels are NOT considered active.
+  bool get hasActiveConnection =>
+      connectedChannels.any((c) => c.isActive);
+
   @override
   void onInit() {
     super.onInit();
@@ -128,7 +134,16 @@ class HomeController extends GetxController {
     loadDashboardData();
   }
 
+  /// Refreshes ONLY the connection list without fetching audit/todos.
+  /// Called by ConnectAccountsView after connect/disconnect to keep
+  /// the global guard in sync immediately.
+  Future<void> refreshConnectionState() async {
+    await fetchConnections();
+    connectedChannels.refresh();
+  }
+
   /// Refreshes dashboard data non-destructively in place
+
   Future<void> refreshDashboard() async {
     await loadDashboardData(isRefresh: true);
   }

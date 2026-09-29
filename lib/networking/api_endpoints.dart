@@ -179,4 +179,24 @@ class ApiEndpoints {
   // --- Trends Feed Endpoints ---
   static const String trends = '/api/v1/trends';
   static String trendDetails(dynamic id) => '/api/v1/trends/$id';
+
+  // --- Pixo AI Orchestration Endpoints (M10) ---
+  /// Main SSE streaming endpoint.  POST with { conversationId?, message }.
+  static const String pixoStream = '/api/v1/pixo/stream';
+
+  /// Fetch persisted messages for recovery reconciliation after a disconnect.
+  /// Never re-POST to pixoStream for recovery — use this instead.
+  static String pixoConversationMessages(dynamic conversationId) =>
+      '/api/v1/pixo/conversations/$conversationId/messages';
+
+  /// Option B cancellation — halts backend LLM consumption server-side.
+  static String pixoCancelMessage(dynamic conversationId, dynamic messageId) =>
+      '/api/v1/pixo/conversations/$conversationId/messages/$messageId/cancel';
+
+  /// List all Pixo conversations for the sidebar.
+  static const String pixoConversations = '/api/v1/pixo/conversations';
+
+  /// Single conversation detail.
+  static String pixoConversationDetail(dynamic conversationId) =>
+      '/api/v1/pixo/conversations/$conversationId';
 }

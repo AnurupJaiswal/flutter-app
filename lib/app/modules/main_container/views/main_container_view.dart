@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:lala_ai/app/modules/calendar/views/calendar_view.dart';
+import 'package:lala_ai/app/modules/connect_accounts/widgets/connect_account_fullscreen.dart';
+import 'package:lala_ai/app/modules/home/controllers/home_controller.dart';
 import 'package:lala_ai/app/modules/home/views/home_view.dart';
 import 'package:lala_ai/app/modules/main_container/controllers/main_container_controller.dart';
 import 'package:lala_ai/app/modules/discover/views/discover_view.dart';
@@ -11,6 +13,7 @@ import 'package:lala_ai/app/navigation/app_navigation_service.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
 import 'package:lala_ai/utils/theme/theme_service.dart';
+
 
 class MainContainerView extends GetView<MainContainerController> {
   const MainContainerView({super.key});
@@ -29,17 +32,44 @@ class MainContainerView extends GetView<MainContainerController> {
         },
         child: Scaffold(
           backgroundColor: CC.background,
-          body: Obx(() => IndexedStack(
-            index: controller.currentIndex.value,
-            children: [
-              _buildTabNavigator(AppNavigationService.tabDashboard, const HomeView()),
-              _buildTabNavigator(AppNavigationService.tabStudio, const StudioView()),
-              _buildTabNavigator(AppNavigationService.tabTrends, const TrendingView()),
-              _buildTabNavigator(AppNavigationService.tabCalendar, const CalendarView()),
-              _buildTabNavigator(AppNavigationService.tabDiscover, const DiscoverView()),
-            ],
-          )),
+          body: Obx(() {
+            // Resolve HomeController safely — it is always registered by MainContainerBinding
+            // before MainContainerView builds, but we guard defensively.
+            if (!Get.isRegistered<HomeController>()) {
+              return const _GlobalConnectionLoading();
+            }
+            final homeCtrl = Get.find<HomeController>();
+
+            // ── STEP 1: Loading guard ─────────────────────────────────────────────
+            // While HomeController is performing its initial connection fetch,
+            // show a neutral loading indicator to prevent an empty-state flash.
+            if (homeCtrl.isDashboardLoading.value) {
+              return const _GlobalConnectionLoading();
+            }
+
+            // ── STEP 2: No active connection guard ────────────────────────────────
+            // If the API returned zero ACTIVE channels, show the fullscreen
+            // "Connect Account" state instead of the normal tab content.
+            // Settings, Profile, and ConnectAccountsView are pushed via Get.to()
+            // on top of this scaffold, so they are never blocked by this guard.
+            if (!homeCtrl.hasActiveConnection) {
+              return const ConnectAccountFullScreen();
+            }
+
+            // ── STEP 3: Normal tab content ────────────────────────────────────────
+            return IndexedStack(
+              index: controller.currentIndex.value,
+              children: [
+                _buildTabNavigator(AppNavigationService.tabDashboard, const HomeView()),
+                _buildTabNavigator(AppNavigationService.tabStudio, const StudioView()),
+                _buildTabNavigator(AppNavigationService.tabTrends, const TrendingView()),
+                _buildTabNavigator(AppNavigationService.tabCalendar, const CalendarView()),
+                _buildTabNavigator(AppNavigationService.tabDiscover, const DiscoverView()),
+              ],
+            );
+          }),
           bottomNavigationBar: Obx(() => Container(
+
             decoration: BoxDecoration(
               color: CC.surface,
               border: Border(
@@ -115,6 +145,25 @@ class MainContainerView extends GetView<MainContainerController> {
           builder: (_) => rootPage,
         );
       },
+    );
+  }
+}
+
+/// Private loading placeholder shown during the initial connection state fetch.
+/// Prevents the "Connect Account" empty state from flashing momentarily on login.
+class _GlobalConnectionLoading extends StatelessWidget {
+  const _GlobalConnectionLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: CC.background,
+      body: Center(
+        child: CircularProgressIndicator(
+          color: CC.primary,
+          strokeWidth: 2.5,
+        ),
+      ),
     );
   }
 }

@@ -17,6 +17,7 @@ import 'package:lala_ai/app/modules/trending/controllers/trending_controller.dar
 import 'package:lala_ai/app/modules/studio/controllers/studio_controller.dart';
 import 'package:lala_ai/app/modules/studio/data/api_studio_chat_repository.dart';
 import 'package:lala_ai/app/modules/studio/data/studio_chat_repository.dart';
+import 'package:lala_ai/app/modules/studio/data/pixo_sse_repository.dart';
 
 class MainContainerBinding extends Bindings {
   @override
@@ -48,8 +49,14 @@ class MainContainerBinding extends Bindings {
     if (!Get.isRegistered<StudioChatRepository>()) {
       Get.lazyPut<StudioChatRepository>(() => ApiStudioChatRepository());
     }
+    if (!Get.isRegistered<PixoSseRepository>()) {
+      Get.lazyPut<PixoSseRepository>(() => PixoSseRepository());
+    }
     if (!Get.isRegistered<StudioController>()) {
-      Get.lazyPut<StudioController>(() => StudioController(repository: Get.find<StudioChatRepository>()));
+      Get.lazyPut<StudioController>(() => StudioController(
+            repository: Get.find<StudioChatRepository>(),
+            pixoRepo: Get.find<PixoSseRepository>(),
+          ));
     }
 
     if (!Get.isRegistered<SettingsController>()) {

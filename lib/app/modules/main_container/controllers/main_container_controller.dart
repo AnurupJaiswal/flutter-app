@@ -43,6 +43,7 @@ class MainContainerController extends GetxController {
     } else {
       currentIndex.value = index;
       if (index == AppNavigationService.tabTrends && Get.isRegistered<TrendingController>()) {
+        Get.find<TrendingController>().loadMyCategories();
         Get.find<TrendingController>().loadTrends();
       }
     }

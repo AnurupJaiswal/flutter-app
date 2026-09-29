@@ -120,6 +120,7 @@ class _ProfileViewState extends State<ProfileView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Avatar
                             Container(
@@ -149,9 +150,13 @@ class _ProfileViewState extends State<ProfileView> {
                                       Icon(Icons.verified_rounded, color: CC.primary, size: 15),
                                     ],
                                   ),
-                                  4.height,
-                                  Text(userEmail, style: TS.caption(color: CC.textSecondary), overflow: TextOverflow.ellipsis),
-                                  6.height,
+                                  2.height,
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(userEmail, style: TS.caption(color: CC.textSecondary)),
+                                  ),
+                                  8.height,
                                   Row(
                                     children: [
                                       Flexible(
@@ -183,7 +188,7 @@ class _ProfileViewState extends State<ProfileView> {
                                 ],
                               ),
                             ),
-                            8.width,
+                            12.width,
                             // Edit icon → navigates to full page
                             GestureDetector(
                               onTap: () async {
@@ -255,15 +260,7 @@ class _ProfileViewState extends State<ProfileView> {
                   // ── Journey Statistics ─────────────────────────────────────
                   Text("Journey Statistics", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 14)),
                   10.height,
-                  Row(
-                    children: [
-                      Expanded(child: _journeyStat(scriptsMade, "Scripts Made", Icons.movie_creation_outlined)),
-                      10.width,
-                      Expanded(child: _journeyStat(timeSaved, "Time Saved", Icons.timer_outlined)),
-                      10.width,
-                      Expanded(child: _journeyStat(channelGrowth, "Channel Growth", Icons.show_chart_rounded)),
-                    ],
-                  ),
+                  _buildJourneyStatsDashboard(scriptsMade, timeSaved, channelGrowth),
                   16.height,
 
                   // ── Creator Tools & Account ────────────────────────────────
@@ -296,9 +293,24 @@ class _ProfileViewState extends State<ProfileView> {
   );
   }
 
-  Widget _journeyStat(String val, String label, IconData icon) {
+  Widget _buildJourneyStatsDashboard(String scripts, String time, String growth) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(child: _statCard(scripts, "Scripts", Icons.movie_creation_outlined)),
+          10.width,
+          Expanded(child: _statCard(time, "Time Saved", Icons.timer_outlined)),
+          10.width,
+          Expanded(child: _statCard(growth, "Growth", Icons.show_chart_rounded)),
+        ],
+      ),
+    );
+  }
+
+  Widget _statCard(String val, String label, IconData icon) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       decoration: BoxDecoration(
         color: CC.surface,
         borderRadius: BorderRadius.circular(14),
@@ -308,7 +320,7 @@ class _ProfileViewState extends State<ProfileView> {
         ),
         boxShadow: [
           BoxShadow(
-            color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.08),
+            color: CC.isDark ? CC.black.withValues(alpha: 0.45) : CC.black.withValues(alpha: 0.06),
             blurRadius: 14,
             offset: const Offset(0, 6),
           ),
@@ -325,10 +337,28 @@ class _ProfileViewState extends State<ProfileView> {
             ),
             child: Icon(icon, color: CC.textPrimary, size: 16),
           ),
-          8.height,
-          Text(val, style: TS.sectionTitle(color: CC.textPrimary, fontSize: 16)),
+          Spacer(), // Pushes text to the bottom evenly
+          4.height,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              val, 
+              style: TS.sectionTitle(
+                color: CC.textPrimary, 
+                fontSize: 20,
+              ).copyWith(fontWeight: FontWeight.w500),
+            ),
+          ),
           2.height,
-          Text(label, style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 10)),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              label, 
+              style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11, fontWeight: FontWeight.w500),
+            ),
+          ),
         ],
       ),
     );
