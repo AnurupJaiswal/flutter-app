@@ -29,7 +29,14 @@ class HomeView extends GetView<HomeController> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text("Lala Ai", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 17, fontWeight: FontWeight.w800)),
+              Text(
+                "Lala Ai",
+                style: TS.sectionTitle(
+                  color: CC.textPrimary,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
               Text(
                 "Create. Grow. Smarter.",
                 style: TS.caption(color: CC.textSecondary, fontSize: 11),
@@ -41,7 +48,11 @@ class HomeView extends GetView<HomeController> {
               alignment: Alignment.center,
               children: [
                 IconButton(
-                  icon: Icon(Icons.notifications_none_rounded, color: CC.textPrimary, size: 22),
+                  icon: Icon(
+                    Icons.notifications_none_rounded,
+                    color: CC.textPrimary,
+                    size: 22,
+                  ),
                   splashRadius: 20,
                   onPressed: () {},
                 ),
@@ -60,7 +71,11 @@ class HomeView extends GetView<HomeController> {
               ],
             ),
             IconButton(
-              icon: Icon(Icons.person_outline_rounded, color: CC.textPrimary, size: 22),
+              icon: Icon(
+                Icons.person_outline_rounded,
+                color: CC.textPrimary,
+                size: 22,
+              ),
               splashRadius: 20,
               onPressed: () => Get.to(() => const ProfileView()),
             ),
@@ -69,7 +84,8 @@ class HomeView extends GetView<HomeController> {
         body: SafeArea(
           child: Obx(() {
             // 1. Initial Load: show full-screen shimmer skeleton while fetching first API call
-            if (controller.isDashboardLoading.value && !controller.isRefreshing.value) {
+            if (controller.isDashboardLoading.value &&
+                !controller.isRefreshing.value) {
               return _buildInitialShimmerLoading();
             }
 
@@ -87,15 +103,17 @@ class HomeView extends GetView<HomeController> {
                       physics: const AlwaysScrollableScrollPhysics(
                         parent: BouncingScrollPhysics(),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 16,
+                      ),
                       child: ConstrainedBox(
-                        constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight,
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildInitialEmptyState(),
-                            32.height,
-                          ],
+                          children: [_buildInitialEmptyState(), 32.height],
                         ),
                       ),
                     );
@@ -113,7 +131,10 @@ class HomeView extends GetView<HomeController> {
                 physics: const AlwaysScrollableScrollPhysics(
                   parent: BouncingScrollPhysics(),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -146,22 +167,33 @@ class HomeView extends GetView<HomeController> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Hey, $name",
-              style: TS.displayLarge(fontSize: 22, fontWeight: FontWeight.w700)),
+          Text(
+            "Hey, $name",
+            style: TS.displayLarge(fontSize: 22, fontWeight: FontWeight.w700),
+          ),
           8.height,
           if (controller.availableChannels.isNotEmpty)
             _buildChannelDropdownSelector(context, current)
           else
-            Text("No channels connected",
-                style: TS.bodySmall(color: CC.textSecondary).copyWith(fontSize: 11)),
+            Text(
+              "No channels connected",
+              style: TS
+                  .bodySmall(color: CC.textSecondary)
+                  .copyWith(fontSize: 11),
+            ),
         ],
       );
     });
   }
 
-  Widget _buildChannelDropdownSelector(BuildContext context, ChannelOption? current) {
+  Widget _buildChannelDropdownSelector(
+    BuildContext context,
+    ChannelOption? current,
+  ) {
     final platform = current?.platform ?? 'YOUTUBE';
-    final handle = current?.handle ?? (platform == 'YOUTUBE' ? 'YouTube Channel' : 'Instagram Profile');
+    final handle =
+        current?.handle ??
+        (platform == 'YOUTUBE' ? 'YouTube Channel' : 'Instagram Profile');
     final formattedHandle = handle.startsWith('@') ? handle : "@$handle";
     final isYt = platform == 'YOUTUBE';
     final statusColor = current?.statusColor ?? const Color(0xFF22C55E);
@@ -173,10 +205,15 @@ class HomeView extends GetView<HomeController> {
         decoration: BoxDecoration(
           color: CC.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6), width: 1),
+          border: Border.all(
+            color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+            width: 1,
+          ),
           boxShadow: [
             BoxShadow(
-              color: CC.isDark ? CC.black.withValues(alpha: 0.25) : CC.black.withValues(alpha: 0.04),
+              color: CC.isDark
+                  ? CC.black.withValues(alpha: 0.25)
+                  : CC.black.withValues(alpha: 0.04),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -193,7 +230,9 @@ class HomeView extends GetView<HomeController> {
                 formattedHandle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TS.caption(color: CC.textPrimary, fontWeight: FontWeight.w700).copyWith(fontSize: 12),
+                style: TS
+                    .caption(color: CC.textPrimary, fontWeight: FontWeight.w700)
+                    .copyWith(fontSize: 12),
               ),
             ),
             6.width,
@@ -206,7 +245,11 @@ class HomeView extends GetView<HomeController> {
               ),
             ),
             4.width,
-            Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: CC.textSecondary),
+            Icon(
+              Icons.keyboard_arrow_down_rounded,
+              size: 18,
+              color: CC.textSecondary,
+            ),
           ],
         ),
       ),
@@ -233,7 +276,10 @@ class HomeView extends GetView<HomeController> {
               ),
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -251,7 +297,10 @@ class HomeView extends GetView<HomeController> {
                     16.height,
                     Text(
                       "Select Active Channel",
-                      style: TS.sectionTitle(color: CC.textPrimary, fontSize: 18),
+                      style: TS.sectionTitle(
+                        color: CC.textPrimary,
+                        fontSize: 18,
+                      ),
                     ),
                     4.height,
                     Text(
@@ -260,42 +309,63 @@ class HomeView extends GetView<HomeController> {
                     ),
                     16.height,
                     ...controller.availableChannels.map((ch) {
-                      final isSelected = controller.selectedChannel.value?.id.toString() == ch.id.toString();
+                      final isSelected =
+                          controller.selectedChannel.value?.id.toString() ==
+                          ch.id.toString();
                       final isYt = ch.platform == 'YOUTUBE';
-                      final displayHandle = ch.handle.startsWith('@') ? ch.handle : "@${ch.handle}";
+                      final displayHandle = ch.handle.startsWith('@')
+                          ? ch.handle
+                          : "@${ch.handle}";
                       final statusColor = ch.statusColor;
                       final statusText = ch.statusDisplay;
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 8),
                         decoration: BoxDecoration(
-                          color: isSelected ? CC.primary.withValues(alpha: 0.08) : CC.searchBackground,
+                          color: isSelected
+                              ? CC.primary.withValues(alpha: 0.08)
+                              : CC.searchBackground,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: isSelected ? CC.primary : CC.stroke.withValues(alpha: 0.4),
+                            color: isSelected
+                                ? CC.primary
+                                : CC.stroke.withValues(alpha: 0.4),
                             width: isSelected ? 1.5 : 1,
                           ),
                         ),
                         child: ListTile(
                           dense: true,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 2,
+                          ),
                           leading: Container(
                             width: 38,
                             height: 38,
                             decoration: BoxDecoration(
                               color: isYt
-                                  ? const Color(0xFFFF0000).withValues(alpha: 0.08)
-                                  : const Color(0xFFE1306C).withValues(alpha: 0.08),
+                                  ? const Color(
+                                      0xFFFF0000,
+                                    ).withValues(alpha: 0.08)
+                                  : const Color(
+                                      0xFFE1306C,
+                                    ).withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                 color: isYt
-                                    ? const Color(0xFFFF0000).withValues(alpha: 0.2)
-                                    : const Color(0xFFE1306C).withValues(alpha: 0.2),
+                                    ? const Color(
+                                        0xFFFF0000,
+                                      ).withValues(alpha: 0.2)
+                                    : const Color(
+                                        0xFFE1306C,
+                                      ).withValues(alpha: 0.2),
                                 width: 1,
                               ),
                             ),
                             child: Center(
-                              child: isYt ? CW.youtubeIcon(size: 22) : CW.instagramIcon(size: 22),
+                              child: isYt
+                                  ? CW.youtubeIcon(size: 22)
+                                  : CW.instagramIcon(size: 22),
                             ),
                           ),
                           title: Row(
@@ -305,7 +375,9 @@ class HomeView extends GetView<HomeController> {
                                   ch.name.isNotEmpty ? ch.name : displayHandle,
                                   style: TS.bodySmall(
                                     color: CC.textPrimary,
-                                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w700
+                                        : FontWeight.w600,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -313,7 +385,10 @@ class HomeView extends GetView<HomeController> {
                               ),
                               8.width,
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
                                 decoration: BoxDecoration(
                                   color: statusColor.withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(6),
@@ -351,7 +426,9 @@ class HomeView extends GetView<HomeController> {
                             padding: const EdgeInsets.only(top: 2),
                             child: Text(
                               displayHandle,
-                              style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11),
+                              style: TS
+                                  .caption(color: CC.textSecondary)
+                                  .copyWith(fontSize: 11),
                             ),
                           ),
                           trailing: isSelected
@@ -362,7 +439,11 @@ class HomeView extends GetView<HomeController> {
                                     color: CC.primary,
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(Icons.check_rounded, color: Colors.white, size: 16),
+                                  child: const Icon(
+                                    Icons.check_rounded,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
                                 )
                               : Container(
                                   width: 24,
@@ -370,7 +451,9 @@ class HomeView extends GetView<HomeController> {
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: CC.stroke.withValues(alpha: CC.isDark ? 0.4 : 0.7),
+                                      color: CC.stroke.withValues(
+                                        alpha: CC.isDark ? 0.4 : 0.7,
+                                      ),
                                       width: 1.5,
                                     ),
                                   ),
@@ -388,13 +471,22 @@ class HomeView extends GetView<HomeController> {
                       child: OutlinedButton.icon(
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(color: CC.primary),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
-                        icon: Icon(Icons.add_rounded, color: CC.primary, size: 18),
+                        icon: Icon(
+                          Icons.add_rounded,
+                          color: CC.primary,
+                          size: 18,
+                        ),
                         label: Text(
                           "Manage / Connect Channels",
-                          style: TS.bodySmall(color: CC.primary, fontWeight: FontWeight.w600),
+                          style: TS.bodySmall(
+                            color: CC.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         onPressed: () {
                           Navigator.pop(ctx);
@@ -422,54 +514,101 @@ class HomeView extends GetView<HomeController> {
           children: [
             Builder(
               builder: (context) => GestureDetector(
-                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AnalyticsView())),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const AnalyticsView()),
+                ),
                 behavior: HitTestBehavior.opaque,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text("Channel Health Audit", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 16)),
+                    Text(
+                      "Channel Health Audit",
+                      style: TS.sectionTitle(
+                        color: CC.textPrimary,
+                        fontSize: 16,
+                      ),
+                    ),
                     4.width,
-                    Icon(Icons.chevron_right_rounded, size: 18, color: CC.textSecondary),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      size: 18,
+                      color: CC.textSecondary,
+                    ),
                   ],
                 ),
               ),
             ),
-            Obx(() => GestureDetector(
-              onTap: controller.isAuditing.value ? null : () => controller.runChannelAudit(),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: CC.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: CC.primary.withValues(alpha: 0.25), width: 0.8),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (controller.isAuditing.value) ...[
-                      SizedBox(
-                        width: 12,
-                        height: 12,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: CC.primary),
-                      ),
-                      6.width,
-                      Text("Auditing...", style: TS.caption(color: CC.primary, fontWeight: FontWeight.w700).copyWith(fontSize: 11)),
-                    ] else ...[
-                      Icon(Icons.refresh_rounded, size: 14, color: CC.primary),
-                      4.width,
-                      Text("Run Audit", style: TS.caption(color: CC.primary, fontWeight: FontWeight.w700).copyWith(fontSize: 11)),
+            Obx(
+              () => GestureDetector(
+                onTap: controller.isAuditing.value
+                    ? null
+                    : () => controller.runChannelAudit(),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: CC.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: CC.primary.withValues(alpha: 0.25),
+                      width: 0.8,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (controller.isAuditing.value) ...[
+                        SizedBox(
+                          width: 12,
+                          height: 12,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: CC.primary,
+                          ),
+                        ),
+                        6.width,
+                        Text(
+                          "Auditing...",
+                          style: TS
+                              .caption(
+                                color: CC.primary,
+                                fontWeight: FontWeight.w700,
+                              )
+                              .copyWith(fontSize: 11),
+                        ),
+                      ] else ...[
+                        Icon(
+                          Icons.refresh_rounded,
+                          size: 14,
+                          color: CC.primary,
+                        ),
+                        4.width,
+                        Text(
+                          "Run Audit",
+                          style: TS
+                              .caption(
+                                color: CC.primary,
+                                fontWeight: FontWeight.w700,
+                              )
+                              .copyWith(fontSize: 11),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
-            )),
+            ),
           ],
         ),
         12.height,
         Builder(
           builder: (context) {
             return GestureDetector(
-              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AnalyticsView())),
+              onTap: () => Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const AnalyticsView())),
               behavior: HitTestBehavior.opaque,
               child: Container(
                 padding: const EdgeInsets.all(18),
@@ -482,190 +621,266 @@ class HomeView extends GetView<HomeController> {
                   ),
                 ),
                 child: Obx(() {
-                if (controller.isAuditing.value && !controller.hasAuditData.value) {
-                  return SkeletonShimmer(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const SkeletonCircle(size: 72),
-                            18.width,
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const SkeletonBox(width: 160, height: 16),
-                                  8.height,
-                                  const SkeletonBox(width: double.infinity, height: 11),
-                                  6.height,
-                                  const SkeletonBox(width: 140, height: 11),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        16.height,
-                        Row(
-                          children: [
-                            Expanded(child: const SkeletonBox(height: 38, borderRadius: BorderRadius.all(Radius.circular(8)))),
-                            6.width,
-                            Expanded(child: const SkeletonBox(height: 38, borderRadius: BorderRadius.all(Radius.circular(8)))),
-                            6.width,
-                            Expanded(child: const SkeletonBox(height: 38, borderRadius: BorderRadius.all(Radius.circular(8)))),
-                            6.width,
-                            Expanded(child: const SkeletonBox(height: 38, borderRadius: BorderRadius.all(Radius.circular(8)))),
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                }
-                final hasAudit = controller.hasAuditData.value;
-                final score = controller.healthScore.value;
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        // RepaintBoundary isolates circular meter repaints
-                        RepaintBoundary(
-                          child: Stack(
-                            alignment: Alignment.center,
+                  if (controller.isAuditing.value &&
+                      !controller.hasAuditData.value) {
+                    return SkeletonShimmer(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
                             children: [
-                              SizedBox(
-                                width: 72,
-                                height: 72,
-                                child: CircularProgressIndicator(
-                                  value: hasAudit && score > 0 ? (score / 100) : 0.0,
-                                  strokeWidth: 7,
-                                  backgroundColor: CC.primary.withValues(alpha: 0.12),
-                                  color: score >= 80
-                                      ? CC.success
-                                      : (score >= 60 ? CC.primary : CC.error),
-                                  strokeCap: StrokeCap.round,
+                              const SkeletonCircle(size: 72),
+                              18.width,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const SkeletonBox(width: 160, height: 16),
+                                    8.height,
+                                    const SkeletonBox(
+                                      width: double.infinity,
+                                      height: 11,
+                                    ),
+                                    6.height,
+                                    const SkeletonBox(width: 140, height: 11),
+                                  ],
                                 ),
                               ),
-                              Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    hasAudit ? "$score" : "--",
-                                    style: TS.sectionTitle(color: CC.textPrimary, fontSize: 20),
-                                  ),
-                                  Text(
-                                    "/100",
-                                    style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 10),
-                                  ),
-                                ],
-                              ),
                             ],
                           ),
-                        ),
-                        18.width,
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          16.height,
+                          Row(
                             children: [
-                              Text(
-                                hasAudit
-                                    ? (score >= 80
-                                        ? "Channel Health: Excellent ($score%)"
-                                        : (score >= 50 ? "Channel Health: Good ($score%)" : "Channel Health: Needs Work ($score%)"))
-                                    : "Channel Health: Pending Audit",
-                                style: TS.bodySmall(color: CC.textPrimary, fontWeight: FontWeight.w700),
+                              Expanded(
+                                child: const SkeletonBox(
+                                  height: 38,
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(8),
+                                  ),
+                                ),
                               ),
-                              4.height,
-                              Text(
-                                hasAudit
-                                    ? (controller.lastSyncedText.value.isNotEmpty
-                                        ? "Audit score calculated from retention, SEO metadata, and upload pacing. ${controller.lastSyncedText.value}."
-                                        : "Audit score calculated from your live channel metrics.")
-                                    : "No audit data yet. Tap 'Run Audit' above to calculate your score.",
-                                style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11, height: 1.3),
+                              6.width,
+                              Expanded(
+                                child: const SkeletonBox(
+                                  height: 38,
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(8),
+                                  ),
+                                ),
+                              ),
+                              6.width,
+                              Expanded(
+                                child: const SkeletonBox(
+                                  height: 38,
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(8),
+                                  ),
+                                ),
+                              ),
+                              6.width,
+                              Expanded(
+                                child: const SkeletonBox(
+                                  height: 38,
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(8),
+                                  ),
+                                ),
                               ),
                             ],
                           ),
-                        ),
-                      ],
-                    ),
-                    16.height,
-                    // 4-pillar audit sub-scores breakdown
-                    Row(
-                      children: [
-                        _buildScorePill(
+                        ],
+                      ),
+                    );
+                  }
+                  final hasAudit = controller.hasAuditData.value;
+                  final score = controller.healthScore.value;
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          // RepaintBoundary isolates circular meter repaints
+                          RepaintBoundary(
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 72,
+                                  height: 72,
+                                  child: CircularProgressIndicator(
+                                    value: hasAudit && score > 0
+                                        ? (score / 100)
+                                        : 0.0,
+                                    strokeWidth: 7,
+                                    backgroundColor: CC.primary.withValues(
+                                      alpha: 0.12,
+                                    ),
+                                    color: score >= 80
+                                        ? CC.success
+                                        : (score >= 60 ? CC.primary : CC.error),
+                                    strokeCap: StrokeCap.round,
+                                  ),
+                                ),
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      hasAudit ? "$score" : "--",
+                                      style: TS.sectionTitle(
+                                        color: CC.textPrimary,
+                                        fontSize: 20,
+                                      ),
+                                    ),
+                                    Text(
+                                      "/100",
+                                      style: TS
+                                          .caption(color: CC.textSecondary)
+                                          .copyWith(fontSize: 10),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          18.width,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  hasAudit
+                                      ? (score >= 80
+                                            ? "Channel Health: Excellent ($score%)"
+                                            : (score >= 50
+                                                  ? "Channel Health: Good ($score%)"
+                                                  : "Channel Health: Needs Work ($score%)"))
+                                      : "Channel Health: Pending Audit",
+                                  style: TS.bodySmall(
+                                    color: CC.textPrimary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                4.height,
+                                Text(
+                                  hasAudit
+                                      ? (controller
+                                                .lastSyncedText
+                                                .value
+                                                .isNotEmpty
+                                            ? "Audit score calculated from retention, SEO metadata, and upload pacing. ${controller.lastSyncedText.value}."
+                                            : "Audit score calculated from your live channel metrics.")
+                                      : "No audit data yet. Tap 'Run Audit' above to calculate your score.",
+                                  style: TS
+                                      .caption(color: CC.textSecondary)
+                                      .copyWith(fontSize: 11, height: 1.3),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      16.height,
+                      // 4-pillar audit sub-scores breakdown
+                      Row(
+                        children: [
+                          _buildScorePill(
                             "Engagement",
-                            hasAudit ? "${controller.engagementScore.value}%" : "--",
-                            Icons.thumb_up_alt_outlined),
-                        6.width,
-                        _buildScorePill(
+                            hasAudit
+                                ? "${controller.engagementScore.value}%"
+                                : "--",
+                            Icons.thumb_up_alt_outlined,
+                          ),
+                          6.width,
+                          _buildScorePill(
                             "Consistency",
-                            hasAudit ? "${controller.consistencyScore.value}%" : "--",
-                            Icons.calendar_month_outlined),
-                        6.width,
-                        _buildScorePill(
+                            hasAudit
+                                ? "${controller.consistencyScore.value}%"
+                                : "--",
+                            Icons.calendar_month_outlined,
+                          ),
+                          6.width,
+                          _buildScorePill(
                             "Growth",
-                            hasAudit ? "${controller.growthScore.value}%" : "--",
-                            Icons.trending_up_rounded),
-                        6.width,
-                        _buildScorePill(
+                            hasAudit
+                                ? "${controller.growthScore.value}%"
+                                : "--",
+                            Icons.trending_up_rounded,
+                          ),
+                          6.width,
+                          _buildScorePill(
                             "Reach",
                             hasAudit ? "${controller.reachScore.value}%" : "--",
-                            Icons.remove_red_eye_outlined),
-                      ],
-                    ),
-                    16.height,
-                    Divider(height: 1, color: CC.stroke),
-                    14.height,
-                    Row(
-                      children: [
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AnalyticsView())),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              decoration: BoxDecoration(
-                                color: Colors.transparent,
-                                border: Border.all(color: CC.stroke),
-                                borderRadius: BorderRadius.circular(10),
+                            Icons.remove_red_eye_outlined,
+                          ),
+                        ],
+                      ),
+                      16.height,
+                      Divider(height: 1, color: CC.stroke),
+                      14.height,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const AnalyticsView(),
+                                ),
                               ),
-                              child: Center(
-                                child: Text(
-                                  "Detailed Analytics",
-                                  style: TS.caption(color: CC.textPrimary, fontWeight: FontWeight.w600),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.transparent,
+                                  border: Border.all(color: CC.stroke),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    "Detailed Analytics",
+                                    style: TS.caption(
+                                      color: CC.textPrimary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                        10.width,
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () => Get.toNamed(Routes.CHAT_HOME),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              decoration: BoxDecoration(
-                                color: CC.primary.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  "Ask Pixo",
-                                  style: TS.caption(color: CC.primary, fontWeight: FontWeight.w700),
+                          10.width,
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => Get.toNamed(Routes.CHAT_HOME),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: CC.primary.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    "Ask Pixo",
+                                    style: TS.caption(
+                                      color: CC.primary,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
-                );
-              }),
-            ),
-          );
-        }),
+                        ],
+                      ),
+                    ],
+                  );
+                }),
+              ),
+            );
+          },
+        ),
       ],
     );
   }
@@ -685,7 +900,9 @@ class HomeView extends GetView<HomeController> {
             4.height,
             Text(
               value,
-              style: TS.caption(color: CC.textPrimary, fontWeight: FontWeight.w700).copyWith(fontSize: 11),
+              style: TS
+                  .caption(color: CC.textPrimary, fontWeight: FontWeight.w700)
+                  .copyWith(fontSize: 11),
             ),
             2.height,
             Text(
@@ -737,47 +954,56 @@ class HomeView extends GetView<HomeController> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("SWOT Audit & Action Items", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 16)),
+            Text(
+              "SWOT Audit & Action Items",
+              style: TS.sectionTitle(color: CC.textPrimary, fontSize: 16),
+            ),
             Icon(Icons.analytics_outlined, color: CC.textPrimary, size: 20),
           ],
         ),
         12.height,
         // Equal width tab pills across row
-        Obx(() => Row(
-          children: categories.map((cat) {
-            final key = cat["key"]!;
-            final label = cat["label"]!;
-            final isSelected = controller.selectedSwotCategory.value == key;
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => controller.selectedSwotCategory.value = key,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isSelected ? CC.primary : CC.surface,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: isSelected ? CC.primary : CC.stroke,
-                      width: 1,
+        Obx(
+          () => Row(
+            children: categories.map((cat) {
+              final key = cat["key"]!;
+              final label = cat["label"]!;
+              final isSelected = controller.selectedSwotCategory.value == key;
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => controller.selectedSwotCategory.value = key,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected ? CC.primary : CC.surface,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isSelected ? CC.primary : CC.stroke,
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      label,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TS
+                          .caption(
+                            color: isSelected ? CC.whiteText : CC.textSecondary,
+                            fontWeight: isSelected
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                          )
+                          .copyWith(fontSize: 11),
                     ),
                   ),
-                  child: Text(
-                    label,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TS.caption(
-                      color: isSelected ? CC.whiteText : CC.textSecondary,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                    ).copyWith(fontSize: 11),
-                  ),
                 ),
-              ),
-            );
-          }).toList(),
-        )),
+              );
+            }).toList(),
+          ),
+        ),
         12.height,
         // SWOT Cards List with Convert to To-Do Action
         Obx(() {
@@ -798,11 +1024,27 @@ class HomeView extends GetView<HomeController> {
               ),
               child: Column(
                 children: [
-                  Icon(Icons.lightbulb_outline_rounded, size: 32, color: CC.grey),
+                  Icon(
+                    Icons.lightbulb_outline_rounded,
+                    size: 32,
+                    color: CC.grey,
+                  ),
                   8.height,
-                  Text("No $cat detected yet", style: TS.bodySmall(color: CC.textPrimary, fontWeight: FontWeight.w600)),
+                  Text(
+                    "No $cat detected yet",
+                    style: TS.bodySmall(
+                      color: CC.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   4.height,
-                  Text("Run a channel audit above to generate insights.", textAlign: TextAlign.center, style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11)),
+                  Text(
+                    "Run a channel audit above to generate insights.",
+                    textAlign: TextAlign.center,
+                    style: TS
+                        .caption(color: CC.textSecondary)
+                        .copyWith(fontSize: 11),
+                  ),
                 ],
               ),
             );
@@ -840,16 +1082,31 @@ class HomeView extends GetView<HomeController> {
                             color: CC.primary.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: Icon(getSwotIcon(iconName), color: CC.textPrimary, size: 20),
+                          child: Icon(
+                            getSwotIcon(iconName),
+                            color: CC.textPrimary,
+                            size: 20,
+                          ),
                         ),
                         12.width,
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(title, style: TS.bodySmall(color: CC.textPrimary, fontWeight: FontWeight.w700)),
+                              Text(
+                                title,
+                                style: TS.bodySmall(
+                                  color: CC.textPrimary,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                               3.height,
-                              Text(desc, style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11, height: 1.3)),
+                              Text(
+                                desc,
+                                style: TS
+                                    .caption(color: CC.textSecondary)
+                                    .copyWith(fontSize: 11, height: 1.3),
+                              ),
                             ],
                           ),
                         ),
@@ -857,20 +1114,35 @@ class HomeView extends GetView<HomeController> {
                     ),
                     12.height,
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: CC.primary.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: CC.primary.withValues(alpha: 0.15), width: 0.8),
+                        border: Border.all(
+                          color: CC.primary.withValues(alpha: 0.15),
+                          width: 0.8,
+                        ),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.lightbulb_outline_rounded, size: 14, color: CC.primary),
+                          Icon(
+                            Icons.lightbulb_outline_rounded,
+                            size: 14,
+                            color: CC.primary,
+                          ),
                           8.width,
                           Expanded(
                             child: Text(
                               actionable,
-                              style: TS.caption(color: CC.textPrimary, fontWeight: FontWeight.w500).copyWith(fontSize: 11),
+                              style: TS
+                                  .caption(
+                                    color: CC.textPrimary,
+                                    fontWeight: FontWeight.w500,
+                                  )
+                                  .copyWith(fontSize: 11),
                             ),
                           ),
                           8.width,
@@ -881,7 +1153,10 @@ class HomeView extends GetView<HomeController> {
                               tag: tag,
                             ),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: CC.primary,
                                 borderRadius: BorderRadius.circular(6),
@@ -889,11 +1164,20 @@ class HomeView extends GetView<HomeController> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.add_rounded, size: 12, color: CC.whiteText),
+                                  Icon(
+                                    Icons.add_rounded,
+                                    size: 12,
+                                    color: CC.whiteText,
+                                  ),
                                   2.width,
                                   Text(
                                     "To-Do",
-                                    style: TS.caption(color: CC.whiteText, fontWeight: FontWeight.w700).copyWith(fontSize: 10),
+                                    style: TS
+                                        .caption(
+                                          color: CC.whiteText,
+                                          fontWeight: FontWeight.w700,
+                                        )
+                                        .copyWith(fontSize: 10),
                                   ),
                                 ],
                               ),
@@ -912,10 +1196,6 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
-
-
-
-
   // ─── Actionable Creator To-Dos Section ────────────────────────────────────
   Widget _buildActionableToDosSection(BuildContext context) {
     return Column(
@@ -924,31 +1204,48 @@ class HomeView extends GetView<HomeController> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("Creator To-Dos", style: TS.sectionTitle(color: CC.textPrimary, fontSize: 16)),
+            Text(
+              "Creator To-Dos",
+              style: TS.sectionTitle(color: CC.textPrimary, fontSize: 16),
+            ),
             Obx(() {
-              final done = controller.toDoItems.where((i) => (i['isDone'] as bool)).length;
+              final done = controller.toDoItems
+                  .where((i) => (i['isDone'] as bool))
+                  .length;
               final total = controller.toDoItems.length;
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: CC.primary.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   "$done/$total Completed",
-                  style: TS.caption(color: CC.primary, fontWeight: FontWeight.w700).copyWith(fontSize: 10),
+                  style: TS
+                      .caption(color: CC.primary, fontWeight: FontWeight.w700)
+                      .copyWith(fontSize: 10),
                 ),
               );
             }),
           ],
         ),
         6.height,
-        Text("AI-generated tasks to boost your channel reach", style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11)),
+        Text(
+          "AI-generated tasks to boost your channel reach",
+          style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11),
+        ),
         10.height,
         // Progress bar
         Obx(() {
-          final done = controller.toDoItems.where((i) => (i['isDone'] as bool)).length;
-          final total = controller.toDoItems.isEmpty ? 1 : controller.toDoItems.length;
+          final done = controller.toDoItems
+              .where((i) => (i['isDone'] as bool))
+              .length;
+          final total = controller.toDoItems.isEmpty
+              ? 1
+              : controller.toDoItems.length;
           final progress = controller.toDoItems.isEmpty ? 0.0 : (done / total);
           return Container(
             height: 6,
@@ -993,9 +1290,21 @@ class HomeView extends GetView<HomeController> {
                 children: [
                   Icon(Icons.checklist_rounded, size: 32, color: CC.grey),
                   8.height,
-                  Text("No active To-Dos", style: TS.bodySmall(color: CC.textPrimary, fontWeight: FontWeight.w600)),
+                  Text(
+                    "No active To-Dos",
+                    style: TS.bodySmall(
+                      color: CC.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   4.height,
-                  Text("Tap '+ To-Do' on any audit recommendation above to add tasks.", textAlign: TextAlign.center, style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11)),
+                  Text(
+                    "Tap '+ To-Do' on any audit recommendation above to add tasks.",
+                    textAlign: TextAlign.center,
+                    style: TS
+                        .caption(color: CC.textSecondary)
+                        .copyWith(fontSize: 11),
+                  ),
                 ],
               ),
             );
@@ -1003,7 +1312,7 @@ class HomeView extends GetView<HomeController> {
 
           return Column(
             children: controller.toDoItems.map((item) {
-              final id = item['id'] as int;
+              final id = item['id'];
               final title = item['title'] as String? ?? "";
               final subtitle = item['subtitle'] as String? ?? "";
               final isDone = item['isDone'] as bool? ?? false;
@@ -1012,7 +1321,9 @@ class HomeView extends GetView<HomeController> {
               return Container(
                 margin: const EdgeInsets.only(bottom: 10),
                 decoration: BoxDecoration(
-                  color: isDone ? CC.surface.withValues(alpha: 0.5) : CC.surface,
+                  color: isDone
+                      ? CC.surface.withValues(alpha: 0.5)
+                      : CC.surface,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: isDone
@@ -1028,7 +1339,10 @@ class HomeView extends GetView<HomeController> {
                     onTap: () => _showToDoDetailsBottomSheet(context, item),
                     borderRadius: BorderRadius.circular(14),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
@@ -1045,13 +1359,19 @@ class HomeView extends GetView<HomeController> {
                                 color: isDone ? CC.primary : Colors.transparent,
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(
-                                  color: isDone ? CC.primary : CC.grey.withValues(alpha: 0.6),
+                                  color: isDone
+                                      ? CC.primary
+                                      : CC.grey.withValues(alpha: 0.6),
                                   width: 1.8,
                                 ),
                               ),
                               child: isDone
                                   ? const Center(
-                                      child: Icon(Icons.check_rounded, color: CC.whiteText, size: 15),
+                                      child: Icon(
+                                        Icons.check_rounded,
+                                        color: CC.whiteText,
+                                        size: 15,
+                                      ),
                                     )
                                   : null,
                             ),
@@ -1064,22 +1384,32 @@ class HomeView extends GetView<HomeController> {
                               children: [
                                 Text(
                                   title,
-                                  style: TS.bodySmall(
-                                    color: isDone ? CC.textSecondary : CC.textPrimary,
-                                    fontWeight: FontWeight.w600,
-                                  ).copyWith(
-                                    fontSize: 13,
-                                    decoration: isDone ? TextDecoration.lineThrough : null,
-                                    decorationColor: CC.textSecondary,
-                                  ),
+                                  style: TS
+                                      .bodySmall(
+                                        color: isDone
+                                            ? CC.textSecondary
+                                            : CC.textPrimary,
+                                        fontWeight: FontWeight.w600,
+                                      )
+                                      .copyWith(
+                                        fontSize: 13,
+                                        decoration: isDone
+                                            ? TextDecoration.lineThrough
+                                            : null,
+                                        decorationColor: CC.textSecondary,
+                                      ),
                                 ),
                                 if (subtitle.isNotEmpty) ...[
                                   3.height,
                                   Text(
                                     subtitle,
-                                    style: TS.caption(
-                                      color: CC.textSecondary.withValues(alpha: 0.8),
-                                    ).copyWith(fontSize: 11),
+                                    style: TS
+                                        .caption(
+                                          color: CC.textSecondary.withValues(
+                                            alpha: 0.8,
+                                          ),
+                                        )
+                                        .copyWith(fontSize: 11),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -1091,7 +1421,10 @@ class HomeView extends GetView<HomeController> {
                           // Tag
                           if (tag.isNotEmpty) ...[
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: isDone
                                     ? CC.stroke.withValues(alpha: 0.2)
@@ -1100,10 +1433,14 @@ class HomeView extends GetView<HomeController> {
                               ),
                               child: Text(
                                 tag,
-                                style: TS.caption(
-                                  color: isDone ? CC.textSecondary : CC.primary,
-                                  fontWeight: FontWeight.w700,
-                                ).copyWith(fontSize: 10),
+                                style: TS
+                                    .caption(
+                                      color: isDone
+                                          ? CC.textSecondary
+                                          : CC.primary,
+                                      fontWeight: FontWeight.w700,
+                                    )
+                                    .copyWith(fontSize: 10),
                               ),
                             ),
                             6.width,
@@ -1134,8 +1471,11 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
-  void _showToDoDetailsBottomSheet(BuildContext context, Map<String, dynamic> item) {
-    final id = item['id'] as int;
+  void _showToDoDetailsBottomSheet(
+    BuildContext context,
+    Map<String, dynamic> item,
+  ) {
+    final id = item['id'];
 
     CW.showCustomBottomSheet(
       context: context,
@@ -1143,7 +1483,9 @@ class HomeView extends GetView<HomeController> {
       titleIcon: Icons.task_alt_rounded,
       children: [
         Obx(() {
-          final currentItem = controller.toDoItems.firstWhereOrNull((i) => i['id'] == id) ?? item;
+          final currentItem =
+              controller.toDoItems.firstWhereOrNull((i) => i['id'] == id) ??
+              item;
           final title = currentItem['title'] as String? ?? "";
           final subtitle = currentItem['subtitle'] as String? ?? "";
           final details = currentItem['details'] as String? ?? subtitle;
@@ -1158,19 +1500,30 @@ class HomeView extends GetView<HomeController> {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 3.5,
+                      ),
                       decoration: BoxDecoration(
                         color: CC.primary.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
                         tag,
-                        style: TS.caption(color: CC.primary, fontWeight: FontWeight.w700).copyWith(fontSize: 11),
+                        style: TS
+                            .caption(
+                              color: CC.primary,
+                              fontWeight: FontWeight.w700,
+                            )
+                            .copyWith(fontSize: 11),
                       ),
                     ),
                     8.width,
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 3.5,
+                      ),
                       decoration: BoxDecoration(
                         color: isDone
                             ? Colors.green.withValues(alpha: 0.14)
@@ -1179,10 +1532,12 @@ class HomeView extends GetView<HomeController> {
                       ),
                       child: Text(
                         isDone ? "Completed" : "Pending",
-                        style: TS.caption(
-                          color: isDone ? Colors.green : CC.textSecondary,
-                          fontWeight: FontWeight.w600,
-                        ).copyWith(fontSize: 11),
+                        style: TS
+                            .caption(
+                              color: isDone ? Colors.green : CC.textSecondary,
+                              fontWeight: FontWeight.w600,
+                            )
+                            .copyWith(fontSize: 11),
                       ),
                     ),
                   ],
@@ -1193,23 +1548,21 @@ class HomeView extends GetView<HomeController> {
               // Title
               Text(
                 title,
-                style: TS.sectionTitle(
-                  color: CC.textPrimary,
-                  fontSize: 16,
-                ).copyWith(
-                  height: 1.3,
-                  decoration: isDone ? TextDecoration.lineThrough : null,
-                  decorationColor: CC.textSecondary,
-                ),
+                style: TS
+                    .sectionTitle(color: CC.textPrimary, fontSize: 16)
+                    .copyWith(
+                      height: 1.3,
+                      decoration: isDone ? TextDecoration.lineThrough : null,
+                      decorationColor: CC.textSecondary,
+                    ),
               ),
               if (details.isNotEmpty && details != title) ...[
                 10.height,
                 Text(
                   details,
-                  style: TS.bodySmall(color: CC.textSecondary).copyWith(
-                    fontSize: 13,
-                    height: 1.4,
-                  ),
+                  style: TS
+                      .bodySmall(color: CC.textSecondary)
+                      .copyWith(fontSize: 13, height: 1.4),
                 ),
               ],
               24.height,
@@ -1219,7 +1572,9 @@ class HomeView extends GetView<HomeController> {
                 children: [
                   Expanded(
                     child: CW.commonBtn(
-                      title: isDone ? "Mark as Incomplete" : "Mark as Completed",
+                      title: isDone
+                          ? "Mark as Incomplete"
+                          : "Mark as Completed",
                       color: isDone ? CC.darkPopUpBack : CC.primary,
                       textColor: isDone ? CC.textPrimary : CC.whiteText,
                       onTap: () {
@@ -1239,7 +1594,9 @@ class HomeView extends GetView<HomeController> {
                       decoration: BoxDecoration(
                         color: Colors.red.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.red.withValues(alpha: 0.25)),
+                        border: Border.all(
+                          color: Colors.red.withValues(alpha: 0.25),
+                        ),
                       ),
                       child: const Center(
                         child: Icon(

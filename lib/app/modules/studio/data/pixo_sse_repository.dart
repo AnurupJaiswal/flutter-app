@@ -8,34 +8,54 @@ import 'package:lala_ai/app/modules/studio/data/pixo_event.dart';
 import 'package:lala_ai/networking/api_endpoints.dart';
 import 'package:lala_ai/networking/api_service.dart';
 
-/// Handles the Pixo AI streaming protocol.
+/// The single source of truth for ALL Pixo-related network calls.
 ///
-/// Key constraints (from M10 spec):
-/// - Flutter **never** sends duplicate `/stream` requests during recovery.
-/// - Flutter **never** connects to LLM providers directly.
-/// - Cancellation uses the dedicated cancel endpoint (Option B), not HTTP abort.
+/// M10 architecture constraints (strictly enforced here):
+///
+/// ① `stream()` is the **only** way to send a user message.  Never call any
+///    legacy `/api/v1/chats` endpoint to "send" a message.
+/// ② `fetchHistory()` is the **only** recovery mechanism after a disconnect.
+///    Never re-POST to `pixoStream` for recovery.
+/// ③ `cancelMessage()` (Option B) must be called before dropping the HTTP
+///    connection to prevent orphaned LLM calls on the Java side.
+/// ④ Conversation list / rename / delete use the Pixo conversation endpoints,
+///    not the old generic chat endpoints.
 class PixoSseRepository {
-  static final Dio _streamDio = _buildStreamDio();
+  // ── Shared Dio instances ──────────────────────────────────────────────────
 
-  static Dio _buildStreamDio() {
-    final dio = Dio(BaseOptions(
-      baseUrl: ApiEndpoints.baseUrl.trim(),
-      // SSE connections must not time-out on receive — set to 0 (infinite).
-      connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: Duration.zero,
-      responseType: ResponseType.stream,
-    ));
-    return dio;
-  }
+  /// Infinite receive-timeout for the long-lived SSE connection.
+  static final Dio _streamDio = Dio(BaseOptions(
+    baseUrl: ApiEndpoints.baseUrl.trim(),
+    connectTimeout: const Duration(seconds: 30),
+    receiveTimeout: Duration.zero, // SSE must not time-out on receive
+    responseType: ResponseType.stream,
+  ));
 
-  // ── Streaming ─────────────────────────────────────────────────────────────
+  /// Standard JSON Dio for all non-streaming Pixo calls.
+  static Dio get _jsonDio => Dio(BaseOptions(
+        baseUrl: ApiEndpoints.baseUrl.trim(),
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 30),
+        responseType: ResponseType.json,
+      ));
 
-  /// Opens the SSE stream for a single user turn.
+  static Options _authOptions({String contentType = 'application/json'}) =>
+      Options(
+        headers: {
+          'Authorization': 'Bearer ${ApiService.token}',
+          'Content-Type': contentType,
+        },
+        validateStatus: (_) => true,
+      );
+
+  // ── 1. SSE Streaming ──────────────────────────────────────────────────────
+
+  /// Opens the single Pixo SSE stream for one user turn.
   ///
-  /// [conversationId] is null for new conversations; the backend creates one
-  /// and sends the id back in the START event.
+  /// Pass [conversationId] for existing conversations; omit (null) to let the
+  /// backend create a new one — the `START` event will return the new id.
   ///
-  /// Returns a [Stream<PixoEvent>] that the controller dispatches on.
+  /// Returns a typed [Stream<PixoEvent>] that [StudioController] dispatches on.
   Stream<PixoEvent> stream({
     int? conversationId,
     required String message,
@@ -43,13 +63,18 @@ class PixoSseRepository {
   }) async* {
     final token = ApiService.token;
     if (token == null || token.isEmpty) {
+      debugPrint('[Pixo SSE Error] Unauthenticated request attempted.');
       yield PixoErrorEvent(message: 'Not authenticated');
       return;
     }
 
+    final preview = message.length > 60 ? '${message.substring(0, 60)}...' : message;
+    debugPrint('[Pixo SSE Send] ---> POST ${ApiEndpoints.pixoStream} | conversationId: $conversationId | message: "$preview"');
+
     final body = <String, dynamic>{
       'message': message,
-      if (conversationId != null) 'conversationId': conversationId,
+      if (conversationId != null && conversationId > 0)
+        'conversationId': conversationId,
     };
 
     Response<ResponseBody> response;
@@ -71,37 +96,41 @@ class PixoSseRepository {
       );
     } on DioException catch (e) {
       if (CancelToken.isCancel(e)) {
+        debugPrint('[Pixo SSE Cancel] Request was cancelled by user via CancelToken.');
         yield const PixoCancelledEvent();
         return;
       }
+      debugPrint('[Pixo SSE Error] DioException during stream: ${e.message} (type: ${e.type})');
       yield PixoErrorEvent(message: e.message ?? 'Network error');
       return;
     } catch (e) {
+      debugPrint('[Pixo SSE Error] Unexpected exception during stream: $e');
       yield PixoErrorEvent(message: e.toString());
       return;
     }
 
+    debugPrint('[Pixo SSE Response] <--- HTTP ${response.statusCode} ${response.statusMessage ?? ""}');
+
     if (response.statusCode != 200) {
+      debugPrint('[Pixo SSE Error] Stream request failed with status HTTP ${response.statusCode}');
       yield PixoErrorEvent(
           message: 'HTTP ${response.statusCode}: ${response.statusMessage}');
       return;
     }
 
-    // Parse the raw byte stream as SSE frames.
-    final stream = response.data!.stream;
+    // ── SSE frame parser ────────────────────────────────────────────────────
+    final byteStream = response.data!.stream;
     final buffer = StringBuffer();
-
     String currentEvent = '';
     String currentData = '';
 
-    await for (final bytes in stream) {
+    await for (final bytes in byteStream) {
       buffer.write(utf8.decode(bytes, allowMalformed: true));
 
-      // Process complete lines separated by '\n'
       final raw = buffer.toString();
       final lines = raw.split('\n');
 
-      // Keep any incomplete last line in the buffer
+      // Keep any incomplete trailing line in the buffer
       buffer
         ..clear()
         ..write(lines.last);
@@ -110,7 +139,7 @@ class PixoSseRepository {
         final trimmed = line.trimRight();
 
         if (trimmed.isEmpty) {
-          // Empty line = dispatch accumulated event
+          // Empty line → dispatch the accumulated event frame
           if (currentEvent.isNotEmpty || currentData.isNotEmpty) {
             final event = _parseFrame(currentEvent.trim(), currentData.trim());
             if (event != null) yield event;
@@ -123,23 +152,23 @@ class PixoSseRepository {
         if (trimmed.startsWith('event:')) {
           currentEvent = trimmed.substring('event:'.length).trim();
         } else if (trimmed.startsWith('data:')) {
-          // data can be multi-line; append
           final chunk = trimmed.substring('data:'.length).trim();
-          currentData = currentData.isEmpty ? chunk : '$currentData\n$chunk';
+          currentData =
+              currentData.isEmpty ? chunk : '$currentData\n$chunk';
         }
-        // id: and retry: fields are intentionally ignored
+        // id: and retry: are intentionally ignored per M10 spec
       }
     }
 
-    // Flush any remaining buffer content
+    // Flush any trailing content not terminated by a newline
     final remaining = buffer.toString().trimRight();
     if (remaining.isNotEmpty) {
       for (final line in remaining.split('\n')) {
-        final trimmed = line.trimRight();
-        if (trimmed.startsWith('event:')) {
-          currentEvent = trimmed.substring('event:'.length).trim();
-        } else if (trimmed.startsWith('data:')) {
-          currentData = trimmed.substring('data:'.length).trim();
+        final t = line.trimRight();
+        if (t.startsWith('event:')) {
+          currentEvent = t.substring('event:'.length).trim();
+        } else if (t.startsWith('data:')) {
+          currentData = t.substring('data:'.length).trim();
         }
       }
       final event = _parseFrame(currentEvent.trim(), currentData.trim());
@@ -149,46 +178,59 @@ class PixoSseRepository {
 
   PixoEvent? _parseFrame(String eventType, String rawData) {
     if (eventType.isEmpty) return null;
+    debugPrint('[Pixo SSE Receive] Event: "$eventType" | Payload: ${rawData.length > 100 ? '${rawData.substring(0, 100)}...' : rawData}');
+    
     Map<String, dynamic> data = {};
     if (rawData.isNotEmpty) {
       try {
         final decoded = jsonDecode(rawData);
         if (decoded is Map) {
           data = Map<String, dynamic>.from(decoded);
+        } else if (decoded != null) {
+          data['message'] = decoded.toString();
+          data['content'] = decoded.toString();
         }
-      } catch (e) {
-        debugPrint('[Pixo SSE] JSON parse error for event "$eventType": $e');
+      } catch (_) {
+        // Payload is plain text (e.g., plain error message or non-JSON string)
+        data['message'] = rawData;
+        data['content'] = rawData;
+
+        // Best-effort regex extraction for conversationId and messageId if formatted like conversationId: 123
+        final convMatch = RegExp(r'conversationId["\s:=]+(\d+)', caseSensitive: false).firstMatch(rawData);
+        if (convMatch != null) {
+          data['conversationId'] = int.tryParse(convMatch.group(1) ?? '');
+        }
+        final msgMatch = RegExp(r'messageId["\s:=]+(\d+)', caseSensitive: false).firstMatch(rawData);
+        if (msgMatch != null) {
+          data['messageId'] = int.tryParse(msgMatch.group(1) ?? '');
+        }
       }
     }
+
     try {
-      return PixoEvent.fromParsed(eventType, data);
+      final event = PixoEvent.fromParsed(eventType, data);
+      debugPrint('[Pixo SSE Dispatch] Dispatched ${event.runtimeType}');
+      return event;
     } catch (e) {
-      debugPrint('[Pixo SSE] Unknown event "$eventType": $e');
+      debugPrint('[Pixo SSE Error] Unparseable event "$eventType": $e');
       return PixoUnknownEvent(eventType: eventType);
     }
   }
 
-  // ── Recovery ──────────────────────────────────────────────────────────────
+  // ── 2. Recovery — history fetch (NO re-streaming) ─────────────────────────
 
-  /// Fetch the persisted conversation history for reconciliation after a
-  /// network disconnect.  Uses `messageId` to skip already-rendered messages.
+  /// Fetches the authoritative persisted messages for [conversationId].
   ///
-  /// Rule: **never** resend the original /stream request.  Always use this.
+  /// Called ONLY during disconnect recovery.  Never re-POST to [pixoStream].
   Future<List<ChatMessageModel>> fetchHistory(int conversationId) async {
+    debugPrint('[Pixo History] GET ${ApiEndpoints.pixoConversationMessages(conversationId)}');
     try {
-      final dio = Dio(BaseOptions(
-        baseUrl: ApiEndpoints.baseUrl.trim(),
-        connectTimeout: const Duration(seconds: 15),
-        receiveTimeout: const Duration(seconds: 30),
-      ));
-      final response = await dio.get(
+      final response = await _jsonDio.get(
         ApiEndpoints.pixoConversationMessages(conversationId),
-        options: Options(headers: {
-          'Authorization': 'Bearer ${ApiService.token}',
-        }),
+        options: _authOptions(),
       );
       if (response.statusCode == 200 && response.data != null) {
-        final dynamic raw = response.data;
+        final raw = response.data;
         List<dynamic>? list;
         if (raw is List) {
           list = raw;
@@ -198,43 +240,107 @@ class PixoSseRepository {
               raw['items'] as List?;
         }
         if (list != null) {
-          return list
+          final res = list
               .whereType<Map>()
               .map((e) =>
                   ChatMessageModel.fromJson(Map<String, dynamic>.from(e)))
               .toList();
+          debugPrint('[Pixo History] Loaded ${res.length} messages for convId: $conversationId');
+          return res;
         }
       }
     } catch (e) {
-      debugPrint('[Pixo] fetchHistory error: $e');
+      debugPrint('[Pixo Error] fetchHistory failed for convId $conversationId: $e');
     }
     return [];
   }
 
-  // ── Cancellation (Option B) ───────────────────────────────────────────────
+  // ── 3. Cancellation — Option B ────────────────────────────────────────────
 
-  /// Sends the dedicated cancel request to halt backend LLM consumption.
-  ///
-  /// Flutter must call this rather than merely dropping the HTTP connection,
-  /// to prevent orphaned LLM calls on the Java side.
   Future<void> cancelMessage({
     required int conversationId,
     required int messageId,
   }) async {
+    debugPrint('[Pixo Cancel] POST ${ApiEndpoints.pixoCancelMessage(conversationId, messageId)}');
     try {
-      final dio = Dio(BaseOptions(
-        baseUrl: ApiEndpoints.baseUrl.trim(),
-        connectTimeout: const Duration(seconds: 10),
-        receiveTimeout: const Duration(seconds: 10),
-      ));
-      await dio.post(
+      await _jsonDio.post(
         ApiEndpoints.pixoCancelMessage(conversationId, messageId),
-        options: Options(headers: {
-          'Authorization': 'Bearer ${ApiService.token}',
-        }),
+        options: _authOptions(),
       );
     } catch (e) {
-      debugPrint('[Pixo] cancelMessage error (non-fatal): $e');
+      debugPrint('[Pixo Error] cancelMessage failed (non-fatal): $e');
+    }
+  }
+
+  // ── 4. Conversation list (sidebar) ────────────────────────────────────────
+
+  Future<List<ChatSessionModel>> getConversations() async {
+    debugPrint('[Pixo Conversations] GET ${ApiEndpoints.pixoConversations}');
+    try {
+      final response = await _jsonDio.get(
+        ApiEndpoints.pixoConversations,
+        options: _authOptions(),
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        final raw = response.data;
+        List<dynamic>? list;
+        if (raw is List) {
+          list = raw;
+        } else if (raw is Map) {
+          list = raw['content'] as List? ??
+              raw['conversations'] as List? ??
+              raw['data'] as List? ??
+              raw['sessions'] as List?;
+        }
+        if (list != null) {
+          final res = list
+              .whereType<Map>()
+              .map((e) =>
+                  ChatSessionModel.fromJson(Map<String, dynamic>.from(e)))
+              .toList();
+          debugPrint('[Pixo Conversations] Loaded ${res.length} sessions from backend.');
+          return res;
+        }
+      }
+    } catch (e) {
+      debugPrint('[Pixo Error] getConversations failed: $e');
+    }
+    return [];
+  }
+
+  // ── 5. Rename conversation ────────────────────────────────────────────────
+
+  Future<bool> renameConversation({
+    required int conversationId,
+    required String newTitle,
+  }) async {
+    debugPrint('[Pixo Rename] PUT ${ApiEndpoints.pixoConversationDetail(conversationId)} | title: "$newTitle"');
+    try {
+      final response = await _jsonDio.put(
+        ApiEndpoints.pixoConversationDetail(conversationId),
+        data: {'title': newTitle},
+        options: _authOptions(),
+      );
+      return response.statusCode == 200 || response.statusCode == 204;
+    } catch (e) {
+      debugPrint('[Pixo Error] renameConversation failed: $e');
+      return false;
+    }
+  }
+
+  // ── 6. Delete conversation ────────────────────────────────────────────────
+
+  Future<bool> deleteConversation(int conversationId) async {
+    debugPrint('[Pixo Delete] DELETE ${ApiEndpoints.pixoConversationDetail(conversationId)}');
+    try {
+      final response = await _jsonDio.delete(
+        ApiEndpoints.pixoConversationDetail(conversationId),
+        options: _authOptions(),
+      );
+      return response.statusCode == 200 || response.statusCode == 204;
+    } catch (e) {
+      debugPrint('[Pixo Error] deleteConversation failed: $e');
+      return false;
     }
   }
 }

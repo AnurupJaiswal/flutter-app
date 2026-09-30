@@ -25,8 +25,7 @@ class ChannelOption {
   });
 
   bool get isActive =>
-      status.toUpperCase() == 'ACTIVE' ||
-      status.toUpperCase() == 'CONNECTED';
+      status.toUpperCase() == 'ACTIVE' || status.toUpperCase() == 'CONNECTED';
   bool get isDisconnected =>
       status.toUpperCase() == 'DISCONNECTED' ||
       status.toUpperCase() == 'INACTIVE';
@@ -57,14 +56,15 @@ class HomeController extends GetxController {
     required this.trendRepository,
     DashboardRepository? dashboardRepository,
     AuthRepository? authRepository,
-  })  : dashboardRepository = dashboardRepository ?? ApiDashboardRepository(),
-        authRepository = authRepository ??
-            (Get.isRegistered<AuthRepository>()
-                ? Get.find<AuthRepository>()
-                : ApiAuthRepository());
+  }) : dashboardRepository = dashboardRepository ?? ApiDashboardRepository(),
+       authRepository =
+           authRepository ??
+           (Get.isRegistered<AuthRepository>()
+               ? Get.find<AuthRepository>()
+               : ApiAuthRepository());
 
   final activeTab = DashboardTab.overview.obs;
-  
+
   // Loading & Data State Flags
   final isDashboardLoading = true.obs;
   final isRefreshing = false.obs;
@@ -124,8 +124,7 @@ class HomeController extends GetxController {
   /// Returns true if at least one connected channel has ACTIVE status.
   /// This is the global source of truth for the "no connected account" guard.
   /// REAUTH_REQUIRED, DISCONNECTED and EXPIRED channels are NOT considered active.
-  bool get hasActiveConnection =>
-      connectedChannels.any((c) => c.isActive);
+  bool get hasActiveConnection => connectedChannels.any((c) => c.isActive);
 
   @override
   void onInit() {
@@ -149,7 +148,10 @@ class HomeController extends GetxController {
   }
 
   /// Master orchestrator for initial load & pull-to-refresh
-  Future<void> loadDashboardData({bool isRefresh = false, dynamic specificAccountId}) async {
+  Future<void> loadDashboardData({
+    bool isRefresh = false,
+    dynamic specificAccountId,
+  }) async {
     if (isRefresh) {
       if (isRefreshing.value) return;
       isRefreshing.value = true;
@@ -190,21 +192,30 @@ class HomeController extends GetxController {
   /// 1. Individual API: Fetch Creator Connections List
   Future<void> fetchConnections({dynamic specificAccountId}) async {
     try {
-      final connectionsRes = await dashboardRepository.getConnectionsWithEntitlements();
-      final channels = connectionsRes?.connections ?? await dashboardRepository.getConnectedChannels();
+      final connectionsRes = await dashboardRepository
+          .getConnectionsWithEntitlements();
+      final channels =
+          connectionsRes?.connections ??
+          await dashboardRepository.getConnectedChannels();
 
       final options = <ChannelOption>[];
 
       if (channels.isNotEmpty) {
         connectedChannels.assignAll(channels);
         for (final c in channels) {
-          options.add(ChannelOption(
-            id: c.id,
-            platform: c.platform,
-            handle: c.platformAccountName.isNotEmpty ? c.platformAccountName : c.platform,
-            name: c.platformAccountName.isNotEmpty ? c.platformAccountName : c.platform,
-            status: c.status,
-          ));
+          options.add(
+            ChannelOption(
+              id: c.id,
+              platform: c.platform,
+              handle: c.platformAccountName.isNotEmpty
+                  ? c.platformAccountName
+                  : c.platform,
+              name: c.platformAccountName.isNotEmpty
+                  ? c.platformAccountName
+                  : c.platform,
+              status: c.status,
+            ),
+          );
         }
       } else {
         connectedChannels.clear();
@@ -216,11 +227,16 @@ class HomeController extends GetxController {
       ChannelOption? active;
       if (options.isNotEmpty) {
         if (specificAccountId != null) {
-          active = options.firstWhereOrNull((o) => o.id.toString() == specificAccountId.toString());
+          active = options.firstWhereOrNull(
+            (o) => o.id.toString() == specificAccountId.toString(),
+          );
         } else if (selectedChannel.value != null) {
-          active = options.firstWhereOrNull((o) => o.id.toString() == selectedChannel.value!.id.toString());
+          active = options.firstWhereOrNull(
+            (o) => o.id.toString() == selectedChannel.value!.id.toString(),
+          );
         }
-        active ??= options.firstWhereOrNull((o) => o.isActive) ?? options.firstOrNull;
+        active ??=
+            options.firstWhereOrNull((o) => o.isActive) ?? options.firstOrNull;
       }
 
       if (active != null) {
@@ -228,8 +244,12 @@ class HomeController extends GetxController {
         activeConnectedAccountId.value = active.id;
         isYoutubeConnected.value = active.platform == 'YOUTUBE';
         isInstagramConnected.value = active.platform == 'INSTAGRAM';
-        if (active.platform == 'YOUTUBE') youtubeHandle.value = active.handle;
-        if (active.platform == 'INSTAGRAM') instagramHandle.value = active.handle;
+        if (active.platform == 'YOUTUBE') {
+          youtubeHandle.value = active.handle;
+        }
+        if (active.platform == 'INSTAGRAM') {
+          instagramHandle.value = active.handle;
+        }
       } else {
         selectedChannel.value = null;
         activeConnectedAccountId.value = null;
@@ -247,7 +267,10 @@ class HomeController extends GetxController {
   }
 
   /// 2. Individual API: Fetch Channel Audit Overview & SWOT
-  Future<void> fetchAuditOverview(dynamic channelId, {bool isRefresh = false}) async {
+  Future<void> fetchAuditOverview(
+    dynamic channelId, {
+    bool isRefresh = false,
+  }) async {
     try {
       final audit = await dashboardRepository.getDashboardOverview(channelId);
       if (audit != null) {
@@ -257,9 +280,12 @@ class HomeController extends GetxController {
         consistencyScore.value = audit.consistencyScore;
         growthScore.value = audit.growthScore;
         reachScore.value = audit.reachScore;
-        auditStatus.value = audit.auditStatus.isNotEmpty ? audit.auditStatus : (audit.healthScore > 0 ? "AUDITED" : "Needs Audit");
+        auditStatus.value = audit.auditStatus.isNotEmpty
+            ? audit.auditStatus
+            : (audit.healthScore > 0 ? "AUDITED" : "Needs Audit");
         lastAuditId.value = audit.auditId;
-        lastSyncedText.value = audit.dataAsOf != null && audit.dataAsOf!.isNotEmpty
+        lastSyncedText.value =
+            audit.dataAsOf != null && audit.dataAsOf!.isNotEmpty
             ? "Data as of ${audit.dataAsOf!.formatSyncDate}"
             : "Synced recently";
 
@@ -279,19 +305,31 @@ class HomeController extends GetxController {
   /// 3. Individual API: Fetch Creator To-Dos
   Future<void> fetchTodos(dynamic channelId) async {
     try {
-      final todos = await dashboardRepository.getTodos(connectedAccountId: channelId);
-      toDoItems.assignAll(todos.map((t) => {
-        "id": t.id,
-        "title": t.title,
-        "subtitle": t.subtitle ?? (t.expectedOutcome.isNotEmpty ? t.expectedOutcome : "Recommended by AI"),
-        "details": t.details ?? t.expectedOutcome,
-        "isDone": t.isDone,
-        "tag": t.tag,
-        "source": "Channel Audit",
-        "impact": t.expectedOutcome,
-        "priority": t.priority,
-        "dueDate": t.dueDate ?? "This Week",
-      }).toList());
+      final todos = await dashboardRepository.getTodos(
+        connectedAccountId: channelId,
+      );
+      toDoItems.assignAll(
+        todos
+            .map(
+              (t) => {
+                "id": t.id,
+                "title": t.title,
+                "subtitle":
+                    t.subtitle ??
+                    (t.expectedOutcome.isNotEmpty
+                        ? t.expectedOutcome
+                        : "Recommended by AI"),
+                "details": t.details ?? t.expectedOutcome,
+                "isDone": t.isDone,
+                "tag": t.tag,
+                "source": "Channel Audit",
+                "impact": t.expectedOutcome,
+                "priority": t.priority,
+                "dueDate": t.dueDate ?? "This Week",
+              },
+            )
+            .toList(),
+      );
     } catch (e) {
       debugPrint("fetchTodos error: $e");
     }
@@ -352,8 +390,8 @@ class HomeController extends GetxController {
           "icon": key == 'strengths'
               ? "thumb_up"
               : (key == 'weaknesses'
-                  ? "warning"
-                  : (key == 'opportunities' ? "trending_up" : "shield")),
+                    ? "warning"
+                    : (key == 'opportunities' ? "trending_up" : "shield")),
           "actionable": actionable,
           "tag": tag,
         });
@@ -371,18 +409,21 @@ class HomeController extends GetxController {
     if (accounts != null) {
       if (accounts.youtube != null) {
         isYoutubeConnected.value = accounts.youtube!.connected;
-        if (accounts.youtube!.handle != null && accounts.youtube!.handle!.isNotEmpty) {
+        if (accounts.youtube!.handle != null &&
+            accounts.youtube!.handle!.isNotEmpty) {
           youtubeHandle.value = accounts.youtube!.handle!;
         }
       }
       if (accounts.instagram != null) {
         isInstagramConnected.value = accounts.instagram!.connected;
-        if (accounts.instagram!.handle != null && accounts.instagram!.handle!.isNotEmpty) {
+        if (accounts.instagram!.handle != null &&
+            accounts.instagram!.handle!.isNotEmpty) {
           instagramHandle.value = accounts.instagram!.handle!;
         }
       }
     }
-    hasRealAnalytics.value = isYoutubeConnected.value || isInstagramConnected.value;
+    hasRealAnalytics.value =
+        isYoutubeConnected.value || isInstagramConnected.value;
   }
 
   void toggleYoutubeConnection() {
@@ -404,71 +445,105 @@ class HomeController extends GetxController {
     String? priority,
     String? dueDate,
   }) async {
-    // Check if task already exists
+    // Check if task already exists in local state
     final alreadyExists = toDoItems.any((item) => item['title'] == title);
     if (alreadyExists) {
-      AppToast.info("Task is already in your To-Do list!");
+      AppToast.info("This recommendation is already in your To-Do list");
       return;
     }
 
-    final newId = DateTime.now().millisecondsSinceEpoch;
-    toDoItems.insert(0, {
-      "id": newId,
-      "title": title,
-      "subtitle": subtitle,
-      "details": details ?? subtitle,
-      "isDone": false,
-      "tag": tag,
-      "source": source ?? "Channel Audit Recommendation",
-      "impact": impact ?? "+15% Channel Reach",
-      "priority": priority ?? "High",
-      "dueDate": dueDate ?? "This Week",
-    });
-    AppToast.success("Added to Creator To-Dos!");
-
-    // Persist to server if active connection exists
     final accountId = activeConnectedAccountId.value;
     final auditId = lastAuditId.value;
-    if (accountId != null && auditId != null) {
-      String p = (priority ?? "ORANGE").toUpperCase();
-      if (!['RED', 'ORANGE', 'YELLOW'].contains(p)) {
-        p = 'ORANGE';
-      }
-      await dashboardRepository.convertRecommendationToTodo(
+
+    String p = (priority ?? "HIGH").toUpperCase();
+    if (p == 'ORANGE') p = 'MEDIUM';
+    if (p == 'RED') p = 'HIGH';
+    if (p == 'YELLOW') p = 'LOW';
+    if (!['HIGH', 'MEDIUM', 'LOW'].contains(p)) p = 'HIGH';
+
+    if (accountId != null) {
+      final res = await dashboardRepository.convertRecommendationToTodo(
         connectedAccountId: accountId,
-        channelAuditId: auditId,
+        channelAuditId: auditId ?? 0,
         title: title,
         priority: p,
         expectedOutcome: impact ?? subtitle,
       );
+
+      if (res.isDuplicate) {
+        AppToast.info("This recommendation is already in your To-Do list");
+        return;
+      } else if (res.isCreated) {
+        final serverId = res.todoId ?? DateTime.now().millisecondsSinceEpoch;
+        toDoItems.insert(0, {
+          "id": serverId,
+          "title": title,
+          "subtitle": subtitle,
+          "details": details ?? subtitle,
+          "isDone": false,
+          "tag": tag,
+          "source": source ?? "Channel Audit Recommendation",
+          "impact": impact ?? subtitle,
+          "priority": p,
+          "dueDate": dueDate ?? "This Week",
+        });
+        toDoItems.refresh();
+        AppToast.success("To-Do created successfully!");
+      } else {
+        AppToast.error(
+          res.message ?? "Failed to convert recommendation to To-Do",
+        );
+      }
+    } else {
+      AppToast.error("No active connected channel found.");
     }
   }
 
   Future<void> toggleToDoItem(dynamic id) async {
-    final index = toDoItems.indexWhere((item) => item['id'] == id);
+    final index = toDoItems.indexWhere(
+      (item) => item['id'].toString() == id.toString(),
+    );
     if (index != -1) {
       final current = toDoItems[index]['isDone'] as bool;
       final newStatus = !current;
-      toDoItems[index] = {
-        ...toDoItems[index],
-        'isDone': newStatus,
-      };
+      toDoItems[index] = {...toDoItems[index], 'isDone': newStatus};
       toDoItems.refresh();
-      if (newStatus) {
-        AppToast.success("Action item marked as completed!");
-      }
 
       // Sync with server
-      await dashboardRepository.updateTodoStatus(id, newStatus);
+      final success = await dashboardRepository.updateTodoStatus(id, newStatus);
+      if (success) {
+        if (newStatus) {
+          AppToast.success("Action item marked as completed!");
+        }
+      } else {
+        // Rollback on failure
+        toDoItems[index] = {...toDoItems[index], 'isDone': current};
+        toDoItems.refresh();
+        AppToast.error("Failed to update status on server.");
+      }
     }
   }
 
   Future<void> removeToDoItem(dynamic id) async {
-    toDoItems.removeWhere((item) => item['id'] == id);
-    AppToast.info("Task removed");
+    final index = toDoItems.indexWhere(
+      (item) => item['id'].toString() == id.toString(),
+    );
+    if (index == -1) return;
+
+    final removedItem = toDoItems[index];
+    toDoItems.removeAt(index);
+    toDoItems.refresh();
 
     // Sync deletion with server
-    await dashboardRepository.deleteTodo(id);
+    final success = await dashboardRepository.deleteTodo(id);
+    if (success) {
+      AppToast.info("Task deleted");
+    } else {
+      // Rollback on failure
+      toDoItems.insert(index, removedItem);
+      toDoItems.refresh();
+      AppToast.error("Failed to delete task from server.");
+    }
   }
 
   Future<void> runChannelAudit() async {

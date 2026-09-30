@@ -157,7 +157,9 @@ class StudioDrawerSidebar extends GetView<StudioController> {
                 10.width,
                 Expanded(
                   child: Text(
-                    session.title,
+                    session.title.trim().isNotEmpty
+                        ? session.title
+                        : "New Conversation",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TS.bodySmall(

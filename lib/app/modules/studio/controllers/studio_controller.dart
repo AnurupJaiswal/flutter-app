@@ -9,7 +9,6 @@ import 'package:lala_ai/Models/chat_model.dart';
 import 'package:lala_ai/app/modules/studio/data/pixo_event.dart';
 import 'package:lala_ai/app/modules/studio/data/pixo_message.dart';
 import 'package:lala_ai/app/modules/studio/data/pixo_sse_repository.dart';
-import 'package:lala_ai/app/modules/studio/data/studio_chat_repository.dart';
 import 'package:lala_ai/utils/common_methods.dart';
 
 // ── Stream state machine ──────────────────────────────────────────────────────
@@ -32,27 +31,29 @@ enum PixoStreamState {
 
 // ── Controller ────────────────────────────────────────────────────────────────
 
+/// Manages the full Pixo chat lifecycle.
+///
+/// ALL network calls go through [PixoSseRepository].  There is no legacy
+/// StudioChatRepository dependency — the Pixo SSE contract is the only API.
+///
+/// Conversation identity is established by the `START` SSE event, not by a
+/// pre-flight REST call.
 class StudioController extends GetxController {
-  // ── Dependencies ────────────────────────────────────────────────────────
-  final StudioChatRepository repository;
   final PixoSseRepository pixoRepo;
 
-  StudioController({
-    required this.repository,
-    required this.pixoRepo,
-  });
+  StudioController({required this.pixoRepo});
 
-  // ── Conversation state ───────────────────────────────────────────────────
+  // ── Conversation state ────────────────────────────────────────────────────
   final chats = <ChatSessionModel>[].obs;
   final activeChat = Rxn<ChatSessionModel>();
 
-  /// Pixo-aware message list (replaces the old flat ChatMessageModel list).
+  /// Pixo-aware message list (exclusive rendering model for the Studio view).
   final pixoMessages = <PixoMessage>[].obs;
 
   final isChatsLoading = false.obs;
   final searchQuery = ''.obs;
 
-  // ── Stream state machine ─────────────────────────────────────────────────
+  // ── Stream state machine ──────────────────────────────────────────────────
   final streamState = PixoStreamState.idle.obs;
 
   bool get isAiThinkingValue =>
@@ -65,33 +66,34 @@ class StudioController extends GetxController {
       streamState.value != PixoStreamState.providerUnavailable &&
       streamState.value != PixoStreamState.contextUnavailable;
 
-  // Reactive bool alias consumed by existing StudioView/Composer widgets.
-  RxBool get isAiThinking => isAiThinkingValue.obs;
-
-  // ── SSE correlation keys (from START event) ──────────────────────────────
+  // ── SSE correlation keys from START event ─────────────────────────────────
   int? _activeConversationId;
   int? _activeMessageId;
 
-  // ── Entitlement event data (for modal) ───────────────────────────────────
+  // ── Entitlement event data (for upsell modal) ─────────────────────────────
   final entitlementMessage = ''.obs;
   final requiredPlan = Rxn<String>();
 
-  // ── Cancellation ────────────────────────────────────────────────────────
+  // ── Cancellation handles ──────────────────────────────────────────────────
   CancelToken? _sseCancel;
   StreamSubscription<PixoEvent>? _sseSub;
 
-  // ── UI controllers ───────────────────────────────────────────────────────
+  // ── UI controllers ────────────────────────────────────────────────────────
   final messageInputController = TextEditingController();
   final searchInputController = TextEditingController();
   final messageFocusNode = FocusNode();
   final chatScrollController = ScrollController();
 
-  // ── Reconnect/app-background tracking ───────────────────────────────────
   bool _isReconnecting = false;
+  String _pendingUserText = '';
 
   @override
   void onInit() {
     super.onInit();
+    // Capture pending user text to seed the local session title from the START event.
+    messageInputController.addListener(() {
+      _pendingUserText = messageInputController.text.trim();
+    });
     loadChats();
   }
 
@@ -106,16 +108,23 @@ class StudioController extends GetxController {
     super.onClose();
   }
 
-  // ── Chat list ─────────────────────────────────────────────────────────────
+  // ── Conversation list ─────────────────────────────────────────────────────
 
+  /// Fetches the sidebar conversation list using [GET /api/v1/pixo/conversations].
   Future<void> loadChats() async {
     if (isClosed) return;
     isChatsLoading.value = true;
+    debugPrint('[Pixo Controller] loadChats starting...');
     try {
-      final list = await repository.getChats();
+      final list = await pixoRepo.getConversations();
+      debugPrint('[Pixo Controller] loadChats fetched ${list.length} sessions from repo.');
+      for (final s in list) {
+        debugPrint('   -> Session ID: "${s.id}" | Title: "${s.title}" | Messages: ${s.messages.length}');
+      }
       if (!isClosed) chats.assignAll(list);
-    } catch (_) {
-      if (!isClosed) CM.showToast('Failed to load chat history', isError: true);
+    } catch (e) {
+      debugPrint('[Pixo Controller Error] loadChats failed: $e');
+      if (!isClosed) CM.showToast('Failed to load conversations', isError: true);
     } finally {
       if (!isClosed) isChatsLoading.value = false;
     }
@@ -156,13 +165,36 @@ class StudioController extends GetxController {
     return map;
   }
 
-  void openChat(ChatSessionModel session) {
+  Future<void> openChat(ChatSessionModel session) async {
+    debugPrint('[Pixo Controller] openChat called -> session.id: "${session.id}", title: "${session.title}"');
+    _cancelActiveStream(notify: false);
     activeChat.value = session;
-    // Convert legacy messages to PixoMessages
-    pixoMessages.assignAll(
-      session.messages.map(PixoMessage.fromLegacy).toList(),
-    );
+    _activeConversationId = int.tryParse(session.id);
+    _activeMessageId = null;
+
+    debugPrint('[Pixo Controller] activeConversationId parsed: $_activeConversationId');
+
+    if (session.messages.isNotEmpty) {
+      pixoMessages.assignAll(
+        session.messages.map(PixoMessage.fromLegacy).toList(),
+      );
+    } else {
+      pixoMessages.clear();
+    }
+    streamState.value = PixoStreamState.idle;
     _scrollToBottom();
+
+    if (_activeConversationId != null && _activeConversationId! > 0) {
+      debugPrint('[Pixo Controller] Fetching history from server for convId: $_activeConversationId');
+      final history = await pixoRepo.fetchHistory(_activeConversationId!);
+      debugPrint('[Pixo Controller] History returned ${history.length} messages for convId: $_activeConversationId');
+      if (history.isNotEmpty && !isClosed) {
+        pixoMessages.assignAll(history.map(PixoMessage.fromLegacy).toList());
+        _scrollToBottom();
+      }
+    } else {
+      debugPrint('[Pixo Controller Warning] openChat: _activeConversationId is null or <= 0 (session.id was: "${session.id}")');
+    }
   }
 
   void startNewChat() {
@@ -175,36 +207,21 @@ class StudioController extends GetxController {
     streamState.value = PixoStreamState.idle;
   }
 
-  // ── Send ──────────────────────────────────────────────────────────────────
+  // ── Send ─────────────────────────────────────────────────────────────────
+  //
+  // NO pre-flight REST call to create a chat session.
+  // The START SSE event establishes the conversationId.
 
   Future<void> sendMessage([String? prefilledPrompt]) async {
     final text = (prefilledPrompt ?? messageInputController.text).trim();
     if (text.isEmpty || isAiThinkingValue) return;
 
+    debugPrint('[Pixo Controller] Sending message: "$text" | activeConvId: $_activeConversationId');
+
     messageInputController.clear();
     streamState.value = PixoStreamState.idle;
 
-    // Create a local chat session if there is none yet.
-    if (activeChat.value == null) {
-      try {
-        final newChat = await repository.createChat(initialMessage: text);
-        if (isClosed) return;
-        activeChat.value = newChat;
-        chats.insert(0, newChat);
-      } catch (_) {
-        final fb = ChatSessionModel(
-          id: 'pixo_${DateTime.now().millisecondsSinceEpoch}',
-          title: text.length > 28 ? '${text.substring(0, 28)}...' : text,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-          messages: [],
-        );
-        activeChat.value = fb;
-        chats.insert(0, fb);
-      }
-    }
-
-    // Add user message locally.
+    // ── User message (local) ──
     final userMsg = PixoMessage(
       localId: 'usr_${DateTime.now().millisecondsSinceEpoch}',
       role: MessageRole.user,
@@ -214,18 +231,18 @@ class StudioController extends GetxController {
     pixoMessages.add(userMsg);
     _scrollToBottom();
 
-    // Add placeholder for assistant response.
-    final assistantPlaceholder = PixoMessage(
-      localId: 'asst_${DateTime.now().millisecondsSinceEpoch}',
+    // ── Assistant placeholder (replaced by SSE events) ──
+    final placeholderId = 'asst_${DateTime.now().millisecondsSinceEpoch}';
+    pixoMessages.add(PixoMessage(
+      localId: placeholderId,
       role: MessageRole.assistant,
       timestamp: DateTime.now(),
       isStreaming: true,
       renderMode: PixoRenderMode.streaming,
-    );
-    pixoMessages.add(assistantPlaceholder);
+    ));
     final assistantIndex = pixoMessages.length - 1;
 
-    // Open the SSE stream.
+    // ── Open the SSE stream ──
     _sseCancel = CancelToken();
     streamState.value = PixoStreamState.start;
 
@@ -240,16 +257,13 @@ class StudioController extends GetxController {
           (event) => _onSseEvent(event, assistantIndex),
           onError: (e) {
             if (!isClosed) {
-              _finaliseAssistantMessage(
-                assistantIndex,
-                errorMessage: 'Stream error: $e',
-              );
+              _finaliseAssistantMessage(assistantIndex,
+                  errorMessage: 'Stream error: $e');
               streamState.value = PixoStreamState.error;
             }
           },
           onDone: () {
-            // If the stream closed without COMPLETED (e.g. network drop),
-            // attempt recovery.
+            // If the stream closed without COMPLETED → attempt recovery
             if (!isClosed &&
                 streamState.value != PixoStreamState.completed &&
                 streamState.value != PixoStreamState.cancelled &&
@@ -265,17 +279,37 @@ class StudioController extends GetxController {
 
   void _onSseEvent(PixoEvent event, int assistantIndex) {
     if (isClosed) return;
+    debugPrint('[Pixo Controller] Handling event: ${event.runtimeType}');
 
     switch (event) {
       case PixoStartEvent():
-        _activeConversationId = event.conversationId;
-        _activeMessageId = event.messageId;
+        debugPrint('[Pixo Controller] START -> convId: ${event.conversationId}, msgId: ${event.messageId}');
+        if (event.conversationId > 0) {
+          _activeConversationId = event.conversationId;
+        }
+        if (event.messageId > 0) {
+          _activeMessageId = event.messageId;
+        }
         streamState.value = PixoStreamState.start;
 
+        if (activeChat.value == null) {
+          final session = ChatSessionModel(
+            id: event.conversationId.toString(),
+            title: _pendingUserText,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+            messages: [],
+          );
+          activeChat.value = session;
+          chats.insert(0, session);
+        }
+
       case PixoContextReadyEvent():
+        debugPrint('[Pixo Controller] CONTEXT_READY');
         streamState.value = PixoStreamState.contextReady;
 
       case PixoToolResultEvent():
+        debugPrint('[Pixo Controller] TOOL_RESULT -> ${event.payload.keys}');
         streamState.value = PixoStreamState.toolResult;
         if (assistantIndex < pixoMessages.length) {
           pixoMessages[assistantIndex] = pixoMessages[assistantIndex].copyWith(
@@ -287,12 +321,12 @@ class StudioController extends GetxController {
         }
 
       case PixoGeneratingEvent():
+        debugPrint('[Pixo Controller] GENERATING tokens...');
         streamState.value = PixoStreamState.generating;
 
       case PixoTokenEvent():
-        // Deduplication: only append tokens whose messageId matches.
         if (_activeMessageId != null &&
-            event.messageId != _activeMessageId) return;
+            event.messageId != _activeMessageId) { return; }
         if (assistantIndex < pixoMessages.length) {
           pixoMessages[assistantIndex] =
               pixoMessages[assistantIndex].appendToken(event.content);
@@ -300,6 +334,7 @@ class StudioController extends GetxController {
         }
 
       case PixoCompletedEvent():
+        debugPrint('[Pixo Controller] COMPLETED turn successfully.');
         streamState.value = PixoStreamState.completed;
         if (assistantIndex < pixoMessages.length) {
           pixoMessages[assistantIndex] =
@@ -310,46 +345,53 @@ class StudioController extends GetxController {
         loadChats();
 
       case PixoErrorEvent():
+        debugPrint('[Pixo Controller Error] Stream error: ${event.message}');
         streamState.value = PixoStreamState.error;
-        _finaliseAssistantMessage(assistantIndex,
-            errorMessage: event.message);
+        _finaliseAssistantMessage(assistantIndex, errorMessage: event.message);
 
       case PixoEntitlementDeniedEvent():
+        debugPrint('[Pixo Controller Error] ENTITLEMENT_DENIED -> plan: ${event.requiredPlan}');
         streamState.value = PixoStreamState.entitlementDenied;
         entitlementMessage.value = event.message;
         requiredPlan.value = event.requiredPlan;
         _removeAssistantPlaceholder(assistantIndex);
 
       case PixoUsageLimitEvent():
+        debugPrint('[Pixo Controller Error] USAGE_LIMIT_REACHED -> ${event.message}');
         streamState.value = PixoStreamState.usageLimitReached;
         CM.showToast(event.message, isError: true);
         _removeAssistantPlaceholder(assistantIndex);
 
       case PixoProviderUnavailableEvent():
+        debugPrint('[Pixo Controller Error] PROVIDER_UNAVAILABLE');
         streamState.value = PixoStreamState.providerUnavailable;
         _finaliseAssistantMessage(assistantIndex,
             errorMessage:
                 'AI provider is temporarily unavailable. Please try again shortly.');
 
       case PixoContextUnavailableEvent():
+        debugPrint('[Pixo Controller Error] CONTEXT_UNAVAILABLE');
         streamState.value = PixoStreamState.contextUnavailable;
-        _finaliseAssistantMessage(assistantIndex,
-            errorMessage: event.message);
+        _finaliseAssistantMessage(assistantIndex, errorMessage: event.message);
 
       case PixoCancelledEvent():
+        debugPrint('[Pixo Controller] Stream CANCELLED');
         streamState.value = PixoStreamState.cancelled;
         _removeAssistantPlaceholder(assistantIndex);
 
       case PixoUnknownEvent():
-        // Silently ignore unknown events — forward-compatible.
+        debugPrint('[Pixo Controller] Unknown event: ${event.eventType}');
         break;
     }
   }
 
-  // ── Cancellation (Option B) ───────────────────────────────────────────────
 
-  /// Stops generation by calling the backend cancel endpoint, then drops the
-  /// local SSE connection.  This prevents orphaned LLM calls.
+  // ── Cancellation — Option B ───────────────────────────────────────────────
+
+  /// Stops generation by invoking the server-side cancel endpoint FIRST, then
+  /// dropping the local SSE subscription.
+  ///
+  /// This prevents orphaned LLM calls on the Java side (M10 acceptance criterion).
   Future<void> stopGenerating() async {
     if (!isAiThinkingValue) return;
     final convId = _activeConversationId;
@@ -357,7 +399,6 @@ class StudioController extends GetxController {
 
     _cancelActiveStream(notify: true);
 
-    // Option B: tell the backend to halt server-side LLM consumption.
     if (convId != null && msgId != null) {
       await pixoRepo.cancelMessage(
           conversationId: convId, messageId: msgId);
@@ -377,9 +418,10 @@ class StudioController extends GetxController {
 
   // ── Network Disconnect & Recovery ─────────────────────────────────────────
 
-  /// Called when the SSE stream closes unexpectedly mid-generation.
-  /// Fetches the authoritative server state and reconciles without re-sending
-  /// the original user message.
+  /// Called when SSE closes unexpectedly mid-generation.
+  ///
+  /// Fetches authoritative server state via REST and reconciles using `messageId`.
+  /// Never re-sends the original stream request.
   Future<void> _attemptRecovery(int assistantIndex) async {
     if (isClosed || _isReconnecting) return;
     final convId = _activeConversationId;
@@ -395,18 +437,19 @@ class StudioController extends GetxController {
 
     try {
       final history = await pixoRepo.fetchHistory(convId);
-
       if (isClosed) return;
 
-      // Find the server's authoritative version of our in-flight message.
+      // Find the server's authoritative version of the in-flight assistant message.
       final serverMsg = history.lastWhereOrNull(
-        (m) =>
-            m.id == _activeMessageId?.toString() ||
-            (m.isAssistant && m.createdAt.isAfter(pixoMessages.first.timestamp)),
+        (m) => m.id == _activeMessageId?.toString() ||
+            (m.isAssistant &&
+                assistantIndex < pixoMessages.length &&
+                m.createdAt
+                    .isAfter(pixoMessages[assistantIndex].timestamp)),
       );
 
       if (serverMsg != null && assistantIndex < pixoMessages.length) {
-        // Server finished generation while we were disconnected — replace local.
+        // Server finished while disconnected — replace local streaming state.
         pixoMessages[assistantIndex] = PixoMessage(
           localId: pixoMessages[assistantIndex].localId,
           conversationId: _activeConversationId,
@@ -420,9 +463,9 @@ class StudioController extends GetxController {
         streamState.value = PixoStreamState.completed;
         CM.showToast('Reconnected — conversation restored.');
       } else {
-        // Server hasn't finished — surface an error with retry option.
         _finaliseAssistantMessage(assistantIndex,
-            errorMessage: 'Connection lost mid-stream. Pull down to retry.');
+            errorMessage:
+                'Connection lost mid-stream. Pull down to retry.');
         streamState.value = PixoStreamState.error;
       }
     } catch (e) {
@@ -436,15 +479,12 @@ class StudioController extends GetxController {
     }
   }
 
-  // ── App backgrounding ─────────────────────────────────────────────────────
+  // ── App backgrounding (M10 acceptance criterion) ──────────────────────────
 
-  /// Called by [WidgetsBindingObserver] in the view when the app returns to
-  /// foreground.  If a conversation was in-flight, restores state from the server.
+  /// Called by [WidgetsBindingObserver] when the app returns to foreground.
   Future<void> onAppResumed() async {
     final convId = _activeConversationId;
     if (convId == null || isClosed) return;
-
-    // If still showing "thinking", attempt recovery.
     if (isAiThinkingValue) {
       final lastAssistantIdx =
           pixoMessages.lastIndexWhere((m) => m.isAssistant);
@@ -458,14 +498,13 @@ class StudioController extends GetxController {
 
   Future<void> regenerateLastMessage() async {
     if (isClosed || pixoMessages.isEmpty || isAiThinkingValue) return;
-    final lastUser =
-        pixoMessages.lastWhereOrNull((m) => m.isUser);
+    final lastUser = pixoMessages.lastWhereOrNull((m) => m.isUser);
     if (lastUser == null) return;
     if (pixoMessages.last.isAssistant) pixoMessages.removeLast();
     await sendMessage(lastUser.textContent);
   }
 
-  // ── Like/Dislike ──────────────────────────────────────────────────────────
+  // ── Feedback ──────────────────────────────────────────────────────────────
 
   void toggleLikeMessage(PixoMessage message, bool isLiked) {
     if (isClosed) return;
@@ -474,9 +513,8 @@ class StudioController extends GetxController {
       final current = pixoMessages[idx];
       final newLike = current.isLiked == isLiked ? null : isLiked;
       pixoMessages[idx] = current.copyWith(isLiked: newLike);
-      CM.showToast(newLike == true
-          ? 'Feedback submitted: Liked'
-          : 'Feedback submitted: Disliked');
+      CM.showToast(
+          newLike == true ? 'Feedback: Liked' : 'Feedback: Disliked');
     }
   }
 
@@ -489,26 +527,32 @@ class StudioController extends GetxController {
 
   Future<void> renameSession(ChatSessionModel session, String newTitle) async {
     if (newTitle.trim().isEmpty || isClosed) return;
-    final ok = await repository.renameChat(
-        chatId: session.id, newTitle: newTitle.trim());
+    final convId = int.tryParse(session.id);
+    if (convId == null) return;
+
+    final ok = await pixoRepo.renameConversation(
+        conversationId: convId, newTitle: newTitle.trim());
     if (isClosed) return;
     if (ok) {
       if (activeChat.value?.id == session.id) {
         activeChat.value = activeChat.value!.copyWith(title: newTitle.trim());
       }
       await loadChats();
-      CM.showToast('Chat renamed successfully');
+      CM.showToast('Conversation renamed');
     }
   }
 
   Future<void> deleteSession(ChatSessionModel session) async {
     if (isClosed) return;
-    final ok = await repository.deleteChat(session.id);
+    final convId = int.tryParse(session.id);
+    if (convId == null) return;
+
+    final ok = await pixoRepo.deleteConversation(convId);
     if (isClosed) return;
     if (ok) {
       chats.removeWhere((c) => c.id == session.id);
       if (activeChat.value?.id == session.id) startNewChat();
-      CM.showToast('Chat deleted');
+      CM.showToast('Conversation deleted');
     }
   }
 
@@ -533,7 +577,6 @@ class StudioController extends GetxController {
   void _removeAssistantPlaceholder(int index) {
     if (index >= 0 && index < pixoMessages.length) {
       final msg = pixoMessages[index];
-      // Only remove if it has no content yet.
       if (msg.textContent.isEmpty && msg.toolResultPayload == null) {
         pixoMessages.removeAt(index);
       } else {

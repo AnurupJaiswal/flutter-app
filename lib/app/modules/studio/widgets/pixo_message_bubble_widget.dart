@@ -112,7 +112,7 @@ class PixoMessageBubbleWidget extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      'Pixo AI',
+                      'Lala AI',
                       style: TS.caption(
                         color: CC.textPrimary,
                         fontWeight: FontWeight.w700,
@@ -181,28 +181,6 @@ class PixoMessageBubbleWidget extends StatelessWidget {
                           tooltip: 'Regenerate',
                           onTap: onRegenerate,
                         ),
-                      if (onLike != null) ...[
-                        _buildActionButton(
-                          icon: message.isLiked == true
-                              ? Icons.thumb_up_alt_rounded
-                              : Icons.thumb_up_off_alt_rounded,
-                          color: message.isLiked == true
-                              ? CC.primary
-                              : CC.grey,
-                          tooltip: 'Helpful',
-                          onTap: () => onLike!(true),
-                        ),
-                        _buildActionButton(
-                          icon: message.isLiked == false
-                              ? Icons.thumb_down_alt_rounded
-                              : Icons.thumb_down_off_alt_rounded,
-                          color: message.isLiked == false
-                              ? CC.error
-                              : CC.grey,
-                          tooltip: 'Not helpful',
-                          onTap: () => onLike!(false),
-                        ),
-                      ],
                     ],
                   ),
               ],

@@ -51,18 +51,18 @@ class PixoToolResultCard extends StatelessWidget {
     if (p.containsKey('audit') ||
         p.containsKey('followers') ||
         p.containsKey('engagement_rate') ||
-        p.containsKey('creatorHandle')) return _ToolType.audit;
+        p.containsKey('creatorHandle')) { return _ToolType.audit; }
     if (p.containsKey('trends') ||
-        p.containsKey('trending_topics')) return _ToolType.trends;
+        p.containsKey('trending_topics')) { return _ToolType.trends; }
     if (p.containsKey('comparison') ||
         p.containsKey('creator_a') ||
-        p.containsKey('creator_b')) return _ToolType.compare;
+        p.containsKey('creator_b')) { return _ToolType.compare; }
     if (p.containsKey('script') ||
         p.containsKey('hook') ||
-        p.containsKey('scenes')) return _ToolType.script;
+        p.containsKey('scenes')) { return _ToolType.script; }
     if (p.containsKey('plan') ||
         p.containsKey('calendar') ||
-        p.containsKey('schedule')) return _ToolType.plan;
+        p.containsKey('schedule')) { return _ToolType.plan; }
     return _ToolType.generic;
   }
 }

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lala_ai/app/modules/profile/views/profile_view.dart';
 import 'package:lala_ai/app/modules/calendar/controllers/calendar_controller.dart';
+import 'package:lala_ai/utils/app_toast.dart';
 import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
-
 import 'package:lala_ai/utils/theme/theme_service.dart';
 
 class CalendarView extends GetView<CalendarController> {
@@ -21,174 +21,221 @@ class CalendarView extends GetView<CalendarController> {
     return GetBuilder<ThemeService>(
       builder: (_) {
         return Scaffold(
-      backgroundColor: CC.background,
-      appBar: CW.commonAppbar(
-        isNotHomepage: false,
-        wantBackIcon: false,
-        title: "Content Calendar",
-        actions: [
-          IconButton(
-            icon: Icon(Icons.person_outline_rounded, color: CC.textPrimary, size: 22),
-            splashRadius: 20,
-            onPressed: () => Get.to(() => const ProfileView()),
+          backgroundColor: CC.background,
+          appBar: CW.commonAppbar(
+            isNotHomepage: false,
+            wantBackIcon: false,
+            title: "Content Calendar",
+            actions: [
+              IconButton(
+                icon: Icon(
+                  Icons.refresh_rounded,
+                  color: CC.textPrimary,
+                  size: 22,
+                ),
+                splashRadius: 20,
+                onPressed: () => controller.fetchDrafts(),
+                tooltip: "Refresh Drafts",
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.person_outline_rounded,
+                  color: CC.textPrimary,
+                  size: 22,
+                ),
+                splashRadius: 20,
+                onPressed: () => Get.to(() => const ProfileView()),
+              ),
+            ],
           ),
-        ],
-      ),
-      body: SafeArea(
-        child: Stack(
-          children: [
-            SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ── Subtitle Description ───────────────────────────────
-                  Text(
-                    "Plan, manage and grow your content",
-                    style: TS.bodySmall(
-                      color: CC.textSecondary,
-                    ).copyWith(fontSize: 13),
+          body: SafeArea(
+            child: Stack(
+              children: [
+                SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
                   ),
-                  16.height,
-
-                  // ── Month & Weekly Date Selector Strip ──────────────────
-                  _buildMonthAndWeeklyStrip(context),
-                  20.height,
-
-                  // ── Filter Category Pills ───────────────────────────────
-                  _buildFilterPills(),
-                  20.height,
-
-                  // ── Posts Section for Selected Date ─────────────────────
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Obx(() => Text(
-                            "Posts for ${controller.selectedDateFormatted}",
+                      // ── Subtitle Description ───────────────────────────────
+                      Text(
+                        "Plan, manage and grow your content",
+                        style: TS
+                            .bodySmall(color: CC.textSecondary)
+                            .copyWith(fontSize: 13),
+                      ),
+                      16.height,
+
+                      // ── Month & Weekly Date Selector Strip ──────────────────
+                      _buildMonthAndWeeklyStrip(context),
+                      20.height,
+
+                      // ── Filter Category Pills ───────────────────────────────
+                      _buildFilterPills(),
+                      20.height,
+
+                      // ── Posts Section for Selected Date ─────────────────────
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Obx(
+                            () => Text(
+                              "Posts for ${controller.selectedDateFormatted}",
+                              style: TS.sectionTitle(
+                                color: CC.textPrimary,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                          Obx(
+                            () => Text(
+                              "${controller.filteredTodayPosts.length} post",
+                              style: TS.caption(
+                                color: CC.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      10.height,
+
+                      Obx(() {
+                        if (controller.isLoading.value) {
+                          return _buildLoadingSkeleton();
+                        }
+                        if (controller.errorMessage.value.isNotEmpty) {
+                          return _buildErrorState(
+                            controller.errorMessage.value,
+                          );
+                        }
+
+                        final list = controller.filteredTodayPosts;
+                        if (list.isEmpty) {
+                          return _buildEmptySection(
+                            "No scheduled posts for ${controller.selectedDateFormatted}",
+                          );
+                        }
+                        return Column(
+                          children: list
+                              .asMap()
+                              .entries
+                              .map(
+                                (entry) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: _buildPostCard(
+                                    context: context,
+                                    post: entry.value,
+                                    index: entry.key,
+                                    isToday: true,
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                        );
+                      }),
+                      20.height,
+
+                      // ── Upcoming & Drafts Section ───────────────────────────
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Upcoming & Drafts",
                             style: TS.sectionTitle(
                               color: CC.textPrimary,
                               fontSize: 16,
                             ),
-                          )),
-                      Obx(() => Text(
-                            "${controller.filteredTodayPosts.length} post",
-                            style: TS.caption(
-                              color: CC.primary,
-                              fontWeight: FontWeight.w600,
+                          ),
+                          Obx(
+                            () => Text(
+                              "${controller.filteredUpcomingPosts.length} posts",
+                              style: TS.caption(
+                                color: CC.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                          )),
+                          ),
+                        ],
+                      ),
+                      10.height,
+                      Obx(() {
+                        if (controller.isLoading.value) {
+                          return _buildLoadingSkeleton();
+                        }
+
+                        final list = controller.filteredUpcomingPosts;
+                        if (list.isEmpty) {
+                          return _buildEmptySection(
+                            "No upcoming posts for this filter",
+                          );
+                        }
+                        return Column(
+                          children: list
+                              .asMap()
+                              .entries
+                              .map(
+                                (entry) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: _buildPostCard(
+                                    context: context,
+                                    post: entry.value,
+                                    index: entry.key,
+                                    isToday: false,
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                        );
+                      }),
+                      100.height, // Spacing for floating action button
                     ],
                   ),
-                  10.height,
-                  Obx(() {
-                    final list = controller.filteredTodayPosts;
-                    if (list.isEmpty) {
-                      return _buildEmptySection("No scheduled posts for ${controller.selectedDateFormatted}");
-                    }
-                    return Column(
-                      children: list
-                          .asMap()
-                          .entries
-                          .map((entry) => _buildPostCard(
-                                context: context,
-                                post: entry.value,
-                                index: entry.key,
-                                isToday: true,
-                              ))
-                          .toList(),
-                    );
-                  }),
-                  20.height,
+                ),
 
-                  // ── Upcoming & Drafts Section ───────────────────────────
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Upcoming & Drafts",
-                        style: TS.sectionTitle(
-                          color: CC.textPrimary,
-                          fontSize: 16,
+                // ── Floating Action Button (New Post Draft) ─────────────────
+                Positioned(
+                  right: 16,
+                  bottom: 24,
+                  child: GestureDetector(
+                    onTap: () => _showCreateDraftSheet(context),
+                    child: Container(
+                      width: 58,
+                      height: 58,
+                      decoration: BoxDecoration(
+                        color: CC.primary,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: CC.isDark
+                                ? CC.black.withValues(alpha: 0.45)
+                                : CC.black.withValues(alpha: 0.12),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.add_rounded,
+                          color: CC.whiteText,
+                          size: 30,
                         ),
                       ),
-                      Obx(() => Text(
-                            "${controller.filteredUpcomingPosts.length} posts",
-                            style: TS.caption(
-                              color: CC.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          )),
-                    ],
-                  ),
-                  10.height,
-                  Obx(() {
-                    final list = controller.filteredUpcomingPosts;
-                    if (list.isEmpty) {
-                      return _buildEmptySection("No upcoming posts for this filter");
-                    }
-                    return Column(
-                      children: list
-                          .asMap()
-                          .entries
-                          .map((entry) => Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: _buildPostCard(
-                                  context: context,
-                                  post: entry.value,
-                                  index: entry.key,
-                                  isToday: false,
-                                ),
-                              ))
-                          .toList(),
-                    );
-                  }),
-                  100.height, // Spacing for floating action button
-                ],
-              ),
-            ),
-
-            // ── Floating Action Button (New Post) ──────────────────────────
-            Positioned(
-              right: 16,
-              bottom: 24,
-              child: GestureDetector(
-                onTap: () => _showCreateDraftSheet(context),
-                child: Container(
-                  width: 58,
-                  height: 58,
-                  decoration: BoxDecoration(
-                    color: CC.primary,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: CC.isDark
-                            ? CC.black.withValues(alpha: 0.45)
-                            : CC.black.withValues(alpha: 0.12),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.add_rounded,
-                      color: CC.whiteText,
-                      size: 30,
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
-    );
+          ),
+        );
       },
     );
   }
 
-
-  /// Month Header & Day Selector (Clean non-overlapping layout with smooth date scrolling)
+  /// Month Header & Day Selector
   Widget _buildMonthAndWeeklyStrip(BuildContext context) {
     return RepaintBoundary(
       child: Container(
@@ -220,22 +267,30 @@ class CalendarView extends GetView<CalendarController> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
-                    icon: Icon(Icons.chevron_left_rounded,
-                        color: CC.textPrimary, size: 22),
+                    icon: Icon(
+                      Icons.chevron_left_rounded,
+                      color: CC.textPrimary,
+                      size: 22,
+                    ),
                     onPressed: () => controller.previousMonth(),
                     splashRadius: 18,
                     tooltip: "Previous Month",
                   ),
-                  Obx(() => Text(
-                        controller.currentMonthName,
-                        style: TS.sectionTitle(
-                          color: CC.textPrimary,
-                          fontSize: 16,
-                        ),
-                      )),
+                  Obx(
+                    () => Text(
+                      controller.currentMonthName,
+                      style: TS.sectionTitle(
+                        color: CC.textPrimary,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
                   IconButton(
-                    icon: Icon(Icons.chevron_right_rounded,
-                        color: CC.textPrimary, size: 22),
+                    icon: Icon(
+                      Icons.chevron_right_rounded,
+                      color: CC.textPrimary,
+                      size: 22,
+                    ),
                     onPressed: () => controller.nextMonth(),
                     splashRadius: 18,
                     tooltip: "Next Month",
@@ -253,7 +308,7 @@ class CalendarView extends GetView<CalendarController> {
     );
   }
 
-  /// Horizontal Scrollable Month Strip (All days 1..30/31)
+  /// Horizontal Scrollable Month Strip
   Widget _buildMonthStripView() {
     return Obx(() {
       final days = controller.daysList;
@@ -304,9 +359,7 @@ class CalendarView extends GetView<CalendarController> {
                       dayStr,
                       style: TS
                           .caption(
-                            color: isSelected
-                                ? CC.primary
-                                : CC.textSecondary,
+                            color: isSelected ? CC.primary : CC.textSecondary,
                             fontWeight: isSelected
                                 ? FontWeight.w700
                                 : FontWeight.w500,
@@ -325,14 +378,16 @@ class CalendarView extends GetView<CalendarController> {
                       child: Center(
                         child: Text(
                           "$dateNum",
-                          style: TS.bodySmall(
-                            color: isSelected
-                                ? CC.whiteText
-                                : CC.textPrimary,
-                            fontWeight: isSelected
-                                ? FontWeight.w700
-                                : FontWeight.w600,
-                          ).copyWith(fontSize: 13),
+                          style: TS
+                              .bodySmall(
+                                color: isSelected
+                                    ? CC.whiteText
+                                    : CC.textPrimary,
+                                fontWeight: isSelected
+                                    ? FontWeight.w700
+                                    : FontWeight.w600,
+                              )
+                              .copyWith(fontSize: 13),
                         ),
                       ),
                     ),
@@ -343,9 +398,7 @@ class CalendarView extends GetView<CalendarController> {
                       decoration: BoxDecoration(
                         color: isSelected
                             ? CC.primary
-                            : (hasDot
-                                ? dotColor
-                                : Colors.transparent),
+                            : (hasDot ? dotColor : Colors.transparent),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -358,10 +411,6 @@ class CalendarView extends GetView<CalendarController> {
       );
     });
   }
-
-
-
-
 
   /// Filter Category Pills
   Widget _buildFilterPills() {
@@ -382,8 +431,10 @@ class CalendarView extends GetView<CalendarController> {
               onTap: () => controller.selectFilter(label),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: isSelected ? CC.primary : CC.surface,
                   borderRadius: BorderRadius.circular(20),
@@ -433,6 +484,7 @@ class CalendarView extends GetView<CalendarController> {
     required int index,
     required bool isToday,
   }) {
+    final id = post["id"];
     final title = post["title"] as String;
     final platform = post["platform"] as String;
     final platformTag = post["platformTag"] as String;
@@ -469,14 +521,16 @@ class CalendarView extends GetView<CalendarController> {
               8.width,
 
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: platform == "YouTube" || platform == "Instagram"
                       ? const Color(0xFFFDE8EC)
                       : (CC.isDark
-                          ? CC.whiteText.withValues(alpha: 0.08)
-                          : CC.black.withValues(alpha: 0.05)),
+                            ? CC.whiteText.withValues(alpha: 0.08)
+                            : CC.black.withValues(alpha: 0.05)),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -493,26 +547,29 @@ class CalendarView extends GetView<CalendarController> {
               ),
               const Spacer(),
 
+              // Status Badge
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
-                  color: status == "Scheduled"
+                  color: status == "Scheduled" || status == "Posted"
                       ? const Color(0xFFE8F5E9)
                       : (CC.isDark
-                          ? CC.whiteText.withValues(alpha: 0.08)
-                          : CC.black.withValues(alpha: 0.05)),
+                            ? CC.whiteText.withValues(alpha: 0.08)
+                            : CC.black.withValues(alpha: 0.05)),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      status == "Scheduled"
+                      status == "Scheduled" || status == "Posted"
                           ? Icons.check_circle_outline_rounded
                           : Icons.description_outlined,
                       size: 13,
-                      color: status == "Scheduled"
+                      color: status == "Scheduled" || status == "Posted"
                           ? const Color(0xFF2E7D32)
                           : CC.textSecondary,
                     ),
@@ -521,7 +578,7 @@ class CalendarView extends GetView<CalendarController> {
                       status,
                       style: TS
                           .caption(
-                            color: status == "Scheduled"
+                            color: status == "Scheduled" || status == "Posted"
                                 ? const Color(0xFF2E7D32)
                                 : CC.textSecondary,
                             fontWeight: FontWeight.w600,
@@ -533,25 +590,99 @@ class CalendarView extends GetView<CalendarController> {
               ),
               6.width,
 
-              Icon(Icons.more_vert_rounded,
-                  color: CC.textSecondary, size: 18),
+              // Action Options Menu
+              PopupMenuButton<String>(
+                icon: Icon(
+                  Icons.more_vert_rounded,
+                  color: CC.textSecondary,
+                  size: 18,
+                ),
+                color: CC.surface,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                onSelected: (val) {
+                  if (val == 'schedule') {
+                    _pickScheduleDateTime(context, id);
+                  } else if (val == 'revert_draft') {
+                    controller.updateDraftStatus(draftId: id, status: 'DRAFT');
+                  } else if (val == 'mark_posted') {
+                    controller.updateDraftStatus(draftId: id, status: 'POSTED');
+                  }
+                },
+                itemBuilder: (ctx) => [
+                  PopupMenuItem(
+                    value: 'schedule',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_month_rounded,
+                          size: 16,
+                          color: CC.primary,
+                        ),
+                        8.width,
+                        Text(
+                          "Schedule Post",
+                          style: TS.bodySmall(color: CC.textPrimary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (status != "Posted")
+                    PopupMenuItem(
+                      value: 'mark_posted',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.check_circle_outline_rounded,
+                            size: 16,
+                            color: Colors.green,
+                          ),
+                          8.width,
+                          Text(
+                            "Mark as Posted",
+                            style: TS.bodySmall(color: CC.textPrimary),
+                          ),
+                        ],
+                      ),
+                    ),
+                  if (status == "Scheduled" || status == "Posted")
+                    PopupMenuItem(
+                      value: 'revert_draft',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.undo_rounded,
+                            size: 16,
+                            color: CC.textSecondary,
+                          ),
+                          8.width,
+                          Text(
+                            "Revert to Draft",
+                            style: TS.bodySmall(color: CC.textPrimary),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
             ],
           ),
           12.height,
 
           Text(
             title,
-            style: TS.sectionTitle(
-              color: CC.textPrimary,
-              fontSize: 15,
-            ),
+            style: TS.sectionTitle(color: CC.textPrimary, fontSize: 15),
           ),
           8.height,
 
           Row(
             children: [
-              Icon(Icons.access_time_rounded,
-                  size: 14, color: CC.textSecondary),
+              Icon(
+                Icons.access_time_rounded,
+                size: 14,
+                color: CC.textSecondary,
+              ),
               4.width,
               Text(
                 time,
@@ -572,10 +703,7 @@ class CalendarView extends GetView<CalendarController> {
                 child: Text(
                   aiTime,
                   style: TS
-                      .caption(
-                        color: CC.primary,
-                        fontWeight: FontWeight.w700,
-                      )
+                      .caption(color: CC.primary, fontWeight: FontWeight.w700)
                       .copyWith(fontSize: 12),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -601,11 +729,14 @@ class CalendarView extends GetView<CalendarController> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.content_copy_rounded,
-                            size: 15, color: CC.textPrimary),
+                        Icon(
+                          Icons.content_copy_rounded,
+                          size: 15,
+                          color: CC.textPrimary,
+                        ),
                         6.width,
                         Text(
-                          "Copy Everything",
+                          "Copy Details",
                           style: TS
                               .bodySmall(
                                 color: CC.textPrimary,
@@ -621,25 +752,48 @@ class CalendarView extends GetView<CalendarController> {
               10.width,
               Expanded(
                 child: InkWell(
-                  onTap: () => controller.markAsPosted(post),
+                  onTap: () {
+                    if (status == "Posted") {
+                      controller.updateDraftStatus(
+                        draftId: id,
+                        status: "DRAFT",
+                      );
+                    } else {
+                      controller.updateDraftStatus(
+                        draftId: id,
+                        status: "POSTED",
+                      );
+                    }
+                  },
                   borderRadius: BorderRadius.circular(10),
                   child: Container(
                     height: 40,
                     decoration: BoxDecoration(
-                      color: CC.primary,
+                      color: status == "Posted" ? CC.darkPopUpBack : CC.primary,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.near_me_rounded,
-                            size: 15, color: CC.whiteText),
+                        Icon(
+                          status == "Posted"
+                              ? Icons.undo_rounded
+                              : Icons.near_me_rounded,
+                          size: 15,
+                          color: status == "Posted"
+                              ? CC.textPrimary
+                              : CC.whiteText,
+                        ),
                         6.width,
                         Text(
-                          "Mark as Posted",
+                          status == "Posted"
+                              ? "Revert to Draft"
+                              : "Mark as Posted",
                           style: TS
                               .bodySmall(
-                                color: CC.whiteText,
+                                color: status == "Posted"
+                                    ? CC.textPrimary
+                                    : CC.whiteText,
                                 fontWeight: FontWeight.w700,
                               )
                               .copyWith(fontSize: 12),
@@ -681,73 +835,409 @@ class CalendarView extends GetView<CalendarController> {
     );
   }
 
+  Widget _buildLoadingSkeleton() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: CC.surface,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: CC.stroke,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              12.width,
+              Expanded(child: Container(height: 16, color: CC.stroke)),
+            ],
+          ),
+          12.height,
+          Container(height: 12, width: double.infinity, color: CC.stroke),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(String error) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: CC.surface,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        children: [
+          Text(error, style: TS.bodySmall(color: CC.error)),
+          12.height,
+          OutlinedButton(
+            onPressed: () => controller.fetchDrafts(),
+            child: const Text("Retry"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickScheduleDateTime(
+    BuildContext context,
+    dynamic draftId,
+  ) async {
+    final now = DateTime.now();
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: controller.selectedDate.value.isBefore(now)
+          ? now
+          : controller.selectedDate.value,
+      firstDate: now,
+      lastDate: DateTime(now.year + 2),
+    );
+
+    if (pickedDate == null) return;
+    if (!context.mounted) return;
+
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: const TimeOfDay(hour: 18, minute: 15),
+    );
+
+    if (pickedTime == null) return;
+
+    final localDateTime = DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      pickedTime.hour,
+      pickedTime.minute,
+    );
+
+    await controller.scheduleContentDraft(
+      draftId: draftId,
+      localScheduledAt: localDateTime,
+    );
+  }
+
   void _showCreateDraftSheet(BuildContext context) {
     final titleCtrl = TextEditingController();
-    final dateCtrl = TextEditingController(text: "Sep 12, 2026");
-    final timeCtrl = TextEditingController(text: "6:15 PM");
+    final scriptCtrl = TextEditingController();
+    String selectedContentType = 'SHORT'; // SHORT, LONG_FORM, REEL
+    final now = DateTime.now();
+    DateTime selectedScheduleDate = controller.selectedDate.value.isBefore(now)
+        ? now
+        : controller.selectedDate.value;
+    TimeOfDay selectedScheduleTime = const TimeOfDay(hour: 18, minute: 15);
 
-    CW.showCustomBottomSheet(
-      context: context,
-      title: "Create Post Draft",
-      titleIcon: Icons.edit_calendar_rounded,
-      children: [
-        CW.commonTextFormField(
-          controller: titleCtrl,
-          hintText: "Enter post title or concept...",
-          labelText: "Post Title",
-        ),
-        12.height,
-        Row(
+    CW
+        .showCustomBottomSheet(
+          context: context,
+          title: "Create & Schedule Post",
+          titleIcon: Icons.edit_calendar_rounded,
           children: [
-            Expanded(
-                child: CW.commonTextFormField(
-                    controller: dateCtrl,
-                    hintText: "Date",
-                    labelText: "Date")),
-            10.width,
-            Expanded(
-                child: CW.commonTextFormField(
-                    controller: timeCtrl,
-                    hintText: "Time",
-                    labelText: "Time")),
+            StatefulBuilder(
+              builder: (ctx, setModalState) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Content Type",
+                      style: TS.caption(
+                        color: CC.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    6.height,
+                    Row(
+                      children: [
+                        _buildTypeChip(
+                          "Short",
+                          "SHORT",
+                          selectedContentType,
+                          (val) =>
+                              setModalState(() => selectedContentType = val),
+                        ),
+                        8.width,
+                        _buildTypeChip(
+                          "Reel",
+                          "REEL",
+                          selectedContentType,
+                          (val) =>
+                              setModalState(() => selectedContentType = val),
+                        ),
+                        8.width,
+                        _buildTypeChip(
+                          "Long-Form",
+                          "LONG_FORM",
+                          selectedContentType,
+                          (val) =>
+                              setModalState(() => selectedContentType = val),
+                        ),
+                      ],
+                    ),
+                    16.height,
+                    CW.commonTextFormField(
+                      controller: titleCtrl,
+                      hintText: "Enter post title or concept...",
+                      labelText: "Post Title",
+                    ),
+                    12.height,
+                    CW.commonTextFormField(
+                      controller: scriptCtrl,
+                      hintText: "Enter script notes or hook context...",
+                      labelText: "Script / Hook Notes (Optional)",
+                    ),
+                    16.height,
+                    Text(
+                      "Schedule Date & Time",
+                      style: TS.caption(
+                        color: CC.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    6.height,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () async {
+                              final picked = await showDatePicker(
+                                context: context,
+                                initialDate: selectedScheduleDate,
+                                firstDate: DateTime.now(),
+                                lastDate: DateTime(DateTime.now().year + 2),
+                              );
+                              if (picked != null) {
+                                setModalState(
+                                  () => selectedScheduleDate = picked,
+                                );
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: CC.surface,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: CC.stroke.withValues(alpha: 0.6),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.calendar_month_rounded,
+                                    size: 16,
+                                    color: CC.primary,
+                                  ),
+                                  8.width,
+                                  Expanded(
+                                    child: Text(
+                                      "${selectedScheduleDate.day}/${selectedScheduleDate.month}/${selectedScheduleDate.year}",
+                                      style: TS.bodySmall(
+                                        color: CC.textPrimary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        10.width,
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () async {
+                              final picked = await showTimePicker(
+                                context: context,
+                                initialTime: selectedScheduleTime,
+                              );
+                              if (picked != null) {
+                                setModalState(
+                                  () => selectedScheduleTime = picked,
+                                );
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: CC.surface,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: CC.stroke.withValues(alpha: 0.6),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.access_time_rounded,
+                                    size: 16,
+                                    color: CC.primary,
+                                  ),
+                                  8.width,
+                                  Expanded(
+                                    child: Text(
+                                      selectedScheduleTime.format(context),
+                                      style: TS.bodySmall(
+                                        color: CC.textPrimary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    10.height,
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.lightbulb_outline_rounded,
+                          size: 14,
+                          color: CC.primary,
+                        ),
+                        6.width,
+                        Text(
+                          "Pixo AI Peak Engagement: 6:15 PM",
+                          style: TS.caption(
+                            color: CC.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    20.height,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              side: BorderSide(
+                                color: CC.stroke.withValues(alpha: 0.6),
+                              ),
+                            ),
+                            onPressed: () async {
+                              if (titleCtrl.text.trim().isEmpty) {
+                                AppToast.error(
+                                  "Please enter a title for your draft.",
+                                );
+                                return;
+                              }
+                              CW.dismissBottomSheet();
+                              await controller.createContentDraft(
+                                title: titleCtrl.text.trim(),
+                                contentType: selectedContentType,
+                                scriptData: scriptCtrl.text.trim().isNotEmpty
+                                    ? scriptCtrl.text.trim()
+                                    : null,
+                              );
+                            },
+                            child: Text(
+                              "Save as Draft",
+                              style: TS.bodySmall(
+                                color: CC.textPrimary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                        10.width,
+                        Expanded(
+                          child: CW.commonBtn(
+                            title: "Schedule Post",
+                            onTap: () async {
+                              if (titleCtrl.text.trim().isEmpty) {
+                                AppToast.error(
+                                  "Please enter a title for your draft.",
+                                );
+                                return;
+                              }
+                              final localScheduledAt = DateTime(
+                                selectedScheduleDate.year,
+                                selectedScheduleDate.month,
+                                selectedScheduleDate.day,
+                                selectedScheduleTime.hour,
+                                selectedScheduleTime.minute,
+                              );
+                              CW.dismissBottomSheet();
+                              await controller.createAndScheduleContentDraft(
+                                title: titleCtrl.text.trim(),
+                                contentType: selectedContentType,
+                                scriptData: scriptCtrl.text.trim().isNotEmpty
+                                    ? scriptCtrl.text.trim()
+                                    : null,
+                                localScheduledAt: localScheduledAt,
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              },
+            ),
           ],
+        )
+        .then((_) {
+          titleCtrl.dispose();
+          scriptCtrl.dispose();
+        });
+  }
+
+  Widget _buildTypeChip(
+    String label,
+    String value,
+    String selectedValue,
+    ValueChanged<String> onSelect,
+  ) {
+    final isSelected = selectedValue == value;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => onSelect(value),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: isSelected ? CC.primary : CC.surface,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isSelected ? CC.primary : CC.stroke,
+              width: 1,
+            ),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TS
+                  .bodySmall(
+                    color: isSelected ? CC.whiteText : CC.textPrimary,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  )
+                  .copyWith(fontSize: 12),
+            ),
+          ),
         ),
-        10.height,
-        Row(
-          children: [
-            Icon(Icons.lightbulb_outline_rounded, size: 14, color: CC.primary),
-            6.width,
-            Text("Pixo AI Suggestion: 6:15 PM (Best Retention)",
-                style: TS.caption(
-                    color: CC.primary, fontWeight: FontWeight.w600)),
-          ],
-        ),
-        16.height,
-        CW.commonBtn(
-          title: "Save Post Draft",
-          onTap: () {
-            if (titleCtrl.text.isNotEmpty) {
-              controller.addDraft({
-                "title": titleCtrl.text,
-                "platform": "YouTube",
-                "platformTag": "YouTube Shorts",
-                "time": "Sep 12, 2026 at 6:15 PM",
-                "status": "Scheduled",
-                "aiTime": "6:15 PM (Highest Engagement)",
-                "aiIconType": "sparkle",
-                "date": DateTime(2026, 9, 12),
-                "caption": "${titleCtrl.text} — Created with Lala AI!",
-                "hashtags": "#LalaAI #AITools #Shorts #ContentCreator",
-              });
-            }
-            CW.dismissBottomSheet();
-          },
-        ),
-      ],
-    ).then((_) {
-      titleCtrl.dispose();
-      dateCtrl.dispose();
-      timeCtrl.dispose();
-    });
+      ),
+    );
   }
 }

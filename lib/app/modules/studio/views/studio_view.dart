@@ -11,31 +11,59 @@ import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
 import 'package:lala_ai/utils/theme/theme_service.dart';
 
-class StudioView extends GetView<StudioController>
-    with WidgetsBindingObserver {
+class StudioView extends StatefulWidget {
   const StudioView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Register for app lifecycle events to handle backgrounding (M10 checklist)
-    WidgetsBinding.instance.addObserver(this as WidgetsBindingObserver);
+  State<StudioView> createState() => _StudioViewState();
+}
 
+class _StudioViewState extends State<StudioView> with WidgetsBindingObserver {
+  late final StudioController _ctrl;
+  Worker? _entitlementWorker;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = Get.find<StudioController>();
+    WidgetsBinding.instance.addObserver(this);
+
+    // Watch for ENTITLEMENT_DENIED and show upsell modal reactively.
+    _entitlementWorker = ever(_ctrl.streamState, (state) {
+      if (state == PixoStreamState.entitlementDenied && mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            PixoEntitlementModal.show(
+              context,
+              message: _ctrl.entitlementMessage.value,
+              requiredPlan: _ctrl.requiredPlan.value,
+            );
+          }
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _entitlementWorker?.dispose();
+    super.dispose();
+  }
+
+  // ── App lifecycle — backgrounding / resuming (M10 checklist) ──────────────
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _ctrl.onAppResumed();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return GetBuilder<ThemeService>(
       builder: (_) {
         final isDesktop = MediaQuery.of(context).size.width >= 800;
-
-        // Watch for ENTITLEMENT_DENIED and show upsell modal reactively.
-        ever(controller.streamState, (state) {
-          if (state == PixoStreamState.entitlementDenied) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              PixoEntitlementModal.show(
-                context,
-                message: controller.entitlementMessage.value,
-                requiredPlan: controller.requiredPlan.value,
-              );
-            });
-          }
-        });
 
         Widget mainContent = Scaffold(
           backgroundColor: CC.background,
@@ -54,14 +82,14 @@ class StudioView extends GetView<StudioController>
                           Scaffold.of(scaffoldContext).openDrawer(),
                     ),
                   ),
-            titleWidget: Obx(() => _buildStatusChip()),
+            titleWidget: Obx(() => _buildStatusChip(_ctrl.streamState.value)),
             actions: [
               IconButton(
                 icon: Icon(Icons.add_comment_outlined,
                     color: CC.textPrimary, size: 18),
                 splashRadius: 18,
                 tooltip: 'New Chat',
-                onPressed: controller.startNewChat,
+                onPressed: _ctrl.startNewChat,
               ),
             ],
           ),
@@ -70,9 +98,9 @@ class StudioView extends GetView<StudioController>
               children: [
                 Expanded(
                   child: Obx(() {
-                    final messages = controller.pixoMessages;
-                    final state = controller.streamState.value;
-                    final isThinking = controller.isAiThinkingValue;
+                    final messages = _ctrl.pixoMessages;
+                    final state = _ctrl.streamState.value;
+                    final isThinking = _ctrl.isAiThinkingValue;
 
                     // ── Empty / Starter state ──
                     if (messages.isEmpty && !isThinking) {
@@ -81,7 +109,7 @@ class StudioView extends GetView<StudioController>
 
                     // ── Active message list ──
                     return ListView.builder(
-                      controller: controller.chatScrollController,
+                      controller: _ctrl.chatScrollController,
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 16),
                       itemCount: messages.length +
@@ -100,10 +128,8 @@ class StudioView extends GetView<StudioController>
                               (index == messages.length - 1 &&
                                       msg.isAssistant &&
                                       !isThinking)
-                                  ? controller.regenerateLastMessage
+                                  ? _ctrl.regenerateLastMessage
                                   : null,
-                          onLike: (liked) =>
-                              controller.toggleLikeMessage(msg, liked),
                         );
                       },
                     );
@@ -112,11 +138,11 @@ class StudioView extends GetView<StudioController>
 
                 // ── Message composer with Pixo command support ──
                 Obx(() => StudioMessageComposer(
-                      controller: controller.messageInputController,
-                      focusNode: controller.messageFocusNode,
-                      isLoading: controller.isAiThinkingValue,
-                      onSend: () => controller.sendMessage(),
-                      onStop: controller.stopGenerating,
+                      controller: _ctrl.messageInputController,
+                      focusNode: _ctrl.messageFocusNode,
+                      isLoading: _ctrl.isAiThinkingValue,
+                      onSend: () => _ctrl.sendMessage(),
+                      onStop: _ctrl.stopGenerating,
                     )),
               ],
             ),
@@ -142,8 +168,7 @@ class StudioView extends GetView<StudioController>
     );
   }
 
-  Widget _buildStatusChip() {
-    final state = controller.streamState.value;
+  Widget _buildStatusChip(PixoStreamState state) {
     String label = '';
     Color color = CC.primary;
 
@@ -186,6 +211,12 @@ class StudioView extends GetView<StudioController>
         color = CC.textSecondary;
     }
 
+    final isSpinning = state == PixoStreamState.generating ||
+        state == PixoStreamState.start ||
+        state == PixoStreamState.contextReady ||
+        state == PixoStreamState.toolResult ||
+        state == PixoStreamState.reconnecting;
+
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 250),
       child: Container(
@@ -194,16 +225,13 @@ class StudioView extends GetView<StudioController>
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withValues(alpha: 0.25), width: 0.8),
+          border:
+              Border.all(color: color.withValues(alpha: 0.25), width: 0.8),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (state == PixoStreamState.generating ||
-                state == PixoStreamState.start ||
-                state == PixoStreamState.contextReady ||
-                state == PixoStreamState.toolResult ||
-                state == PixoStreamState.reconnecting)
+            if (isSpinning)
               Padding(
                 padding: const EdgeInsets.only(right: 5),
                 child: SizedBox(
@@ -229,48 +257,46 @@ class StudioView extends GetView<StudioController>
   Widget _buildEmptyState() {
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 580),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: CC.primary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(Icons.movie_creation_outlined,
-                        color: CC.textPrimary, size: 18),
-                  ),
-                  10.width,
-                  Text('Pixo AI Studio',
-                      style: TS.screenTitle(fontSize: 16)),
-                ],
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: CC.primary.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                      color: CC.primary.withValues(alpha: 0.20), width: 0.8),
+                ),
+                child: Text(
+                  'Lala AI Studio',
+                  style: TS.caption(
+                      color: CC.primary,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12),
+                ),
               ),
-              18.height,
-              Text('How can I help?',
-                  style: TS.displayLarge(fontSize: 22)),
-              6.height,
+              16.height,
               Text(
-                'Generate scripts, audit creators, discover trends and grow your audience — all via natural language or slash commands.',
-                style: TS.subHeading(color: CC.textSecondary),
+                'How can I help you today?',
+                style: TS.displayLarge(fontSize: 24, fontWeight: FontWeight.w700),
               ),
-              20.height,
-              // Command hint chips
+              8.height,
+              Text(
+                'Generate scripts, audit creators, discover trends and grow your audience — all powered by Lala AI.',
+                style: TS.subHeading(color: CC.textSecondary).copyWith(height: 1.4),
+              ),
+              24.height,
               Wrap(
                 spacing: 8,
-                runSpacing: 8,
+                runSpacing: 10,
                 children: [
                   '/audit @creator',
                   '/trends',
                   '/script',
-                  '/compare',
-                  '/plan',
                 ].map((cmd) => _CommandHintChip(cmd)).toList(),
               ),
             ],
@@ -287,19 +313,30 @@ class _CommandHintChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-      decoration: BoxDecoration(
-        color: CC.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: CC.stroke.withValues(alpha: 0.6), width: 0.8),
-      ),
-      child: Text(
-        label,
-        style: TS.caption(
-            color: CC.primary,
-            fontWeight: FontWeight.w600,
-            fontSize: 12),
+    return GestureDetector(
+      onTap: () {
+        final ctrl = Get.find<StudioController>();
+        ctrl.messageInputController.text = '$label ';
+        ctrl.messageInputController.selection = TextSelection.fromPosition(
+          TextPosition(offset: ctrl.messageInputController.text.length),
+        );
+        ctrl.messageFocusNode.requestFocus();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: CC.surface,
+          borderRadius: BorderRadius.circular(20),
+          border:
+              Border.all(color: CC.stroke.withValues(alpha: 0.6), width: 0.8),
+        ),
+        child: Text(
+          label,
+          style: TS.caption(
+              color: CC.primary,
+              fontWeight: FontWeight.w600,
+              fontSize: 12),
+        ),
       ),
     );
   }

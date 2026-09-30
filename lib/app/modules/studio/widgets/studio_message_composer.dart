@@ -97,22 +97,17 @@ class _StudioMessageComposerState extends State<StudioMessageComposer> {
   }
 
   void _openQuickActionsSheet() {
-    showModalBottomSheet(
-      context: context,
-      useRootNavigator: false,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (sheetContext) => _StudioQuickActionsSheet(
-        onActionSelected: (prompt) {
-          widget.controller.text = prompt;
-          widget.controller.selection = TextSelection.fromPosition(
-            TextPosition(offset: prompt.length),
-          );
-          _onTextChanged();
-          CW.dismissBottomSheet(sheetContext);
-        },
-      ),
-    );
+    if (widget.controller.text.startsWith('/')) {
+      widget.controller.clear();
+      _onTextChanged();
+    } else {
+      widget.controller.text = '/';
+      widget.controller.selection = TextSelection.fromPosition(
+        const TextPosition(offset: 1),
+      );
+      _onTextChanged();
+      _effectiveFocusNode.requestFocus();
+    }
   }
 
   List<String> get _filteredEntities {
@@ -673,154 +668,3 @@ class _StudioVoiceSheetState extends State<_StudioVoiceSheet>
   }
 }
 
-// ── Quick Actions Sheet Widget ───────────────────────────────────────────────
-class _StudioQuickActionsSheet extends StatelessWidget {
-  final ValueChanged<String> onActionSelected;
-
-  const _StudioQuickActionsSheet({required this.onActionSelected});
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        decoration: BoxDecoration(
-          color: CC.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          border: Border.all(
-            color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: CC.black.withValues(alpha: 0.25),
-              blurRadius: 24,
-              offset: const Offset(0, -6),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: CC.stroke,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            20.height,
-            Text(
-              "Quick Actions",
-              style: TS.sectionTitle(color: CC.textPrimary, fontSize: 18),
-            ),
-            6.height,
-            Text(
-              "Select a prompt to quickly generate content ideas",
-              style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 12),
-            ),
-            20.height,
-
-            _buildActionTile(
-              context,
-              icon: Icons.article_rounded,
-              title: "Generate Script",
-              subtitle: "Write a complete short-form video script",
-              prompt: "/script ",
-            ),
-
-            _buildActionTile(
-              context,
-              icon: Icons.troubleshoot_rounded,
-              title: "Generate SEO & Keywords",
-              subtitle: "Optimize titles, descriptions & tags",
-              prompt: "/seo ",
-            ),
-
-            _buildActionTile(
-              context,
-              icon: Icons.lightbulb_outline_rounded,
-              title: "Viral Hooks",
-              subtitle: "Get scroll-stopping opening lines",
-              prompt: "/hooks ",
-            ),
-
-            _buildActionTile(
-              context,
-              icon: Icons.trending_up_rounded,
-              title: "Audience Growth Strategy",
-              subtitle: "Tips for increasing retention & engagement",
-              prompt: "/growth ",
-            ),
-
-            12.height,
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionTile(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required String prompt,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: CC.background,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
-          width: 0.5,
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () => onActionSelected(prompt),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: CC.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(icon, color: CC.primary, size: 20),
-                ),
-                16.width,
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: TS.bodyMedium(color: CC.textPrimary, fontWeight: FontWeight.w600),
-                      ),
-                      Text(
-                        subtitle,
-                        style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(Icons.chevron_right_rounded, color: CC.textSecondary, size: 20),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}

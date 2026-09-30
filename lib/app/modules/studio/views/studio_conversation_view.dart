@@ -5,7 +5,6 @@ import 'package:lala_ai/app/modules/studio/widgets/pixo_message_bubble_widget.da
 import 'package:lala_ai/app/modules/studio/widgets/studio_drawer_sidebar.dart';
 import 'package:lala_ai/app/modules/studio/widgets/studio_message_composer.dart';
 import 'package:lala_ai/utils/common_widget.dart';
-import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
 import 'package:lala_ai/utils/theme/theme_service.dart';
@@ -89,7 +88,6 @@ class StudioConversationView extends GetView<StudioController> {
                           onRegenerate: (index == list.length - 1 && msg.isAssistant && !isThinking)
                               ? controller.regenerateLastMessage
                               : null,
-                          onLike: (liked) => controller.toggleLikeMessage(msg, liked),
                         );
                       },
                     );
@@ -127,37 +125,6 @@ class StudioConversationView extends GetView<StudioController> {
 
         return mainContent;
       },
-    );
-  }
-
-  Widget _buildThinkingIndicator() {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 760),
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 24),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              CW.aiAvatar(size: 26, isAssistant: true),
-              12.width,
-              SizedBox(
-                width: 14,
-                height: 14,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(CC.primary),
-                ),
-              ),
-              8.width,
-              Text(
-                "Thinking...",
-                style: TS.caption(color: CC.textSecondary),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

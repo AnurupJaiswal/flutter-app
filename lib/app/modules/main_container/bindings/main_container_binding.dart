@@ -15,8 +15,6 @@ import 'package:lala_ai/app/modules/saved/controllers/saved_controller.dart';
 import 'package:lala_ai/app/modules/settings/controllers/settings_controller.dart';
 import 'package:lala_ai/app/modules/trending/controllers/trending_controller.dart';
 import 'package:lala_ai/app/modules/studio/controllers/studio_controller.dart';
-import 'package:lala_ai/app/modules/studio/data/api_studio_chat_repository.dart';
-import 'package:lala_ai/app/modules/studio/data/studio_chat_repository.dart';
 import 'package:lala_ai/app/modules/studio/data/pixo_sse_repository.dart';
 
 class MainContainerBinding extends Bindings {
@@ -45,18 +43,15 @@ class MainContainerBinding extends Bindings {
     Get.lazyPut<SavedController>(() => SavedController(savedRepository: Get.find()), fenix: true);
     Get.lazyPut<ChatController>(() => ChatController(repository: Get.find()), fenix: true);
 
-    // Studio — registered here because StudioView lives in IndexedStack (not a route push)
-    if (!Get.isRegistered<StudioChatRepository>()) {
-      Get.lazyPut<StudioChatRepository>(() => ApiStudioChatRepository());
-    }
+    // Studio — registered here because StudioView lives in IndexedStack (not a route push).
+    // ALL chat goes through PixoSseRepository — no legacy StudioChatRepository.
     if (!Get.isRegistered<PixoSseRepository>()) {
       Get.lazyPut<PixoSseRepository>(() => PixoSseRepository());
     }
     if (!Get.isRegistered<StudioController>()) {
-      Get.lazyPut<StudioController>(() => StudioController(
-            repository: Get.find<StudioChatRepository>(),
-            pixoRepo: Get.find<PixoSseRepository>(),
-          ));
+      Get.lazyPut<StudioController>(
+        () => StudioController(pixoRepo: Get.find<PixoSseRepository>()),
+      );
     }
 
     if (!Get.isRegistered<SettingsController>()) {

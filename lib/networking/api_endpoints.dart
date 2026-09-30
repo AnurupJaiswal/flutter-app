@@ -4,7 +4,7 @@ class ApiEndpoints {
   //     'https://purple-primarily-coated-happens.trycloudflare.com';
 
   static const String baseUrl =
-      'https://guru-oklahoma-month-organize.trycloudflare.com';
+      'https://places-strings-guarantee-ways.trycloudflare.com';
 
   static const String signupUrl =
       'https://lala-ai-green.vercel.app/auth/get-started?redirect=/checkout';
@@ -22,8 +22,8 @@ class ApiEndpoints {
   static const String creatorConnections = '/api/v1/creators/me/connections';
   static String youtubeAuth([dynamic connectedAccountId]) =>
       connectedAccountId != null
-          ? '/api/v1/creators/me/connections/youtube/auth?connectedAccountId=$connectedAccountId'
-          : '/api/v1/creators/me/connections/youtube/auth';
+      ? '/api/v1/creators/me/connections/youtube/auth?connectedAccountId=$connectedAccountId'
+      : '/api/v1/creators/me/connections/youtube/auth';
   static const String instagramAuth =
       '/api/v1/creators/me/connections/instagram/auth';
   static String deleteConnection(String connectionId) =>
@@ -126,19 +126,60 @@ class ApiEndpoints {
   // Dashboard & Audit Endpoints
   static String dashboardOverview(dynamic connectedAccountId) =>
       connectedAccountId != null
-          ? '/api/v1/dashboard/overview?connectedAccountId=$connectedAccountId'
-          : '/api/v1/dashboard/overview';
+      ? '/api/v1/dashboard/overview?connectedAccountId=$connectedAccountId'
+      : '/api/v1/dashboard/overview';
 
   // Creator To-Dos Endpoints
   static String dashboardTodos([dynamic connectedAccountId]) =>
       connectedAccountId != null
-          ? '/api/v1/dashboard/todos?connectedAccountId=$connectedAccountId'
-          : '/api/v1/dashboard/todos';
+      ? '/api/v1/dashboard/todos?connectedAccountId=$connectedAccountId'
+      : '/api/v1/dashboard/todos';
   static const String dashboardTodosConvert = '/api/v1/dashboard/todos/convert';
   static String dashboardTodoUpdate(dynamic todoId) =>
       '/api/v1/dashboard/todos/$todoId';
   static String dashboardTodoDelete(dynamic todoId) =>
       '/api/v1/dashboard/todos/$todoId';
+
+  // Creator Calendar Endpoints
+  static const String calendarDrafts = '/api/v1/calendar/drafts';
+  static String calendarDraftsList({
+    dynamic accountId,
+    DateTime? startDate,
+    DateTime? endDate,
+    int? year,
+    int? month,
+    String? status,
+    String? contentType,
+  }) {
+    final queryParams = <String>[];
+    if (accountId != null) queryParams.add('accountId=$accountId');
+    if (startDate != null) {
+      queryParams.add(
+        'startDate=${Uri.encodeComponent(startDate.toUtc().toIso8601String())}',
+      );
+    }
+    if (endDate != null) {
+      queryParams.add(
+        'endDate=${Uri.encodeComponent(endDate.toUtc().toIso8601String())}',
+      );
+    }
+    if (year != null) queryParams.add('year=$year');
+    if (month != null) queryParams.add('month=$month');
+    if (status != null && status.isNotEmpty && status != 'All Posts') {
+      queryParams.add('status=${status.toUpperCase()}');
+    }
+    if (contentType != null && contentType.isNotEmpty) {
+      queryParams.add('contentType=${contentType.toUpperCase()}');
+    }
+
+    if (queryParams.isEmpty) return '/api/v1/calendar/drafts';
+    return '/api/v1/calendar/drafts?${queryParams.join('&')}';
+  }
+
+  static String calendarDraftSchedule(dynamic id) =>
+      '/api/v1/calendar/drafts/$id/schedule';
+  static String calendarDraftStatus(dynamic id) =>
+      '/api/v1/calendar/drafts/$id/status';
 
   // --- Auth Endpoints (aliases & extended) ---
   static const String refresh = '/api/v1/auth/refresh';

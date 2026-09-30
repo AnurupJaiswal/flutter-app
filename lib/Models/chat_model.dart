@@ -218,9 +218,16 @@ class ChatSessionModel {
       }
     }
 
+    final rawTitle = json['title']?.toString().trim() ?? '';
+    final title = rawTitle.isNotEmpty ? rawTitle : 'New Conversation';
+
     return ChatSessionModel(
-      id: json['id']?.toString() ?? json['uuid']?.toString() ?? "",
-      title: json['title']?.toString() ?? "New Chat",
+      id: json['id']?.toString() ??
+          json['conversationId']?.toString() ??
+          json['chatId']?.toString() ??
+          json['uuid']?.toString() ??
+          "",
+      title: title,
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now()
           : DateTime.now(),

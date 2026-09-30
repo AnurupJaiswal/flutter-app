@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:lala_ai/app/data/models/todo_model.dart';
 import 'package:lala_ai/networking/api_endpoints.dart';
 import 'package:lala_ai/networking/api_service.dart';
 
@@ -56,7 +57,8 @@ class PlatformEntitlement {
     final connectedVal = (json['connected'] as num?)?.toInt() ?? 0;
     final activeVal = (json['active'] as num?)?.toInt() ?? 0;
     final exceededVal = (json['entitlementExceeded'] as num?)?.toInt() ?? 0;
-    final remainingVal = (json['remaining'] as num?)?.toInt() ??
+    final remainingVal =
+        (json['remaining'] as num?)?.toInt() ??
         ((limitVal - activeVal) > 0 ? (limitVal - activeVal) : 0);
 
     return PlatformEntitlement(
@@ -86,15 +88,20 @@ class ConnectionsResponseData {
       final ents = json['entitlements'] as Map;
       for (final key in ents.keys) {
         if (ents[key] is Map) {
-          entMap[key.toString().toLowerCase()] =
-              PlatformEntitlement.fromJson(Map<String, dynamic>.from(ents[key] as Map));
+          entMap[key.toString().toLowerCase()] = PlatformEntitlement.fromJson(
+            Map<String, dynamic>.from(ents[key] as Map),
+          );
         }
       }
     }
 
     return ConnectionsResponseData(
       connections: list
-          .map((item) => ChannelConnection.fromJson(Map<String, dynamic>.from(item as Map)))
+          .map(
+            (item) => ChannelConnection.fromJson(
+              Map<String, dynamic>.from(item as Map),
+            ),
+          )
           .toList(),
       entitlements: entMap,
     );
@@ -151,9 +158,16 @@ class ChannelAuditData {
       }
 
       if (swotMap != null) {
-        for (final key in ['strengths', 'weaknesses', 'opportunities', 'threats']) {
+        for (final key in [
+          'strengths',
+          'weaknesses',
+          'opportunities',
+          'threats',
+        ]) {
           if (swotMap[key] is List) {
-            parsedSwot[key] = (swotMap[key] as List).map((e) => e.toString()).toList();
+            parsedSwot[key] = (swotMap[key] as List)
+                .map((e) => e.toString())
+                .toList();
           }
         }
       }
@@ -207,60 +221,13 @@ class ChannelAuditData {
   }
 }
 
-class TodoItemModel {
-  final dynamic id;
-  final dynamic connectedAccountId;
-  final dynamic channelAuditId;
-  final String title;
-  final String? subtitle;
-  final String? details;
-  final String priority;
-  final String tag;
-  final String expectedOutcome;
-  final bool isDone;
-  final String? dueDate;
-  final String? createdAt;
-
-  TodoItemModel({
-    required this.id,
-    this.connectedAccountId,
-    this.channelAuditId,
-    required this.title,
-    this.subtitle,
-    this.details,
-    this.priority = 'ORANGE',
-    this.tag = 'General',
-    this.expectedOutcome = '',
-    this.isDone = false,
-    this.dueDate,
-    this.createdAt,
-  });
-
-  factory TodoItemModel.fromJson(Map<String, dynamic> json) {
-    return TodoItemModel(
-      id: json['id'] ?? json['todoId'],
-      connectedAccountId: json['connectedAccountId'],
-      channelAuditId: json['channelAuditId'],
-      title: json['title']?.toString() ?? '',
-      subtitle: json['subtitle']?.toString(),
-      details: json['details']?.toString(),
-      priority: json['priority']?.toString().toUpperCase() ?? 'ORANGE',
-      tag: json['tag']?.toString() ?? 'General',
-      expectedOutcome: json['expectedOutcome']?.toString() ?? '',
-      isDone: json['isDone'] == true,
-      dueDate: json['dueDate']?.toString(),
-      createdAt: json['createdAt']?.toString(),
-    );
-  }
-}
-
 abstract class DashboardRepository {
   Future<List<ChannelConnection>> getConnectedChannels();
   Future<ConnectionsResponseData?> getConnectionsWithEntitlements();
   Future<ChannelAuditData?> getDashboardOverview(dynamic connectedAccountId);
   Future<bool> triggerAudit(dynamic connectedAccountId);
   Future<List<TodoItemModel>> getTodos({dynamic connectedAccountId});
-  Future<bool> convertRecommendationToTodo({
+  Future<ConvertTodoResult> convertRecommendationToTodo({
     required dynamic connectedAccountId,
     required dynamic channelAuditId,
     required String title,
@@ -282,7 +249,11 @@ class ApiDashboardRepository implements DashboardRepository {
             ? data['connections'] as List
             : (data is List ? data : []);
         return list
-            .map((item) => ChannelConnection.fromJson(Map<String, dynamic>.from(item as Map)))
+            .map(
+              (item) => ChannelConnection.fromJson(
+                Map<String, dynamic>.from(item as Map),
+              ),
+            )
             .toList();
       }
     } catch (e) {
@@ -298,7 +269,9 @@ class ApiDashboardRepository implements DashboardRepository {
       if (response.isSuccess && response.data != null) {
         final data = response.data;
         if (data is Map) {
-          return ConnectionsResponseData.fromJson(Map<String, dynamic>.from(data));
+          return ConnectionsResponseData.fromJson(
+            Map<String, dynamic>.from(data),
+          );
         }
       }
     } catch (e) {
@@ -308,15 +281,20 @@ class ApiDashboardRepository implements DashboardRepository {
   }
 
   @override
-  Future<ChannelAuditData?> getDashboardOverview(dynamic connectedAccountId) async {
+  Future<ChannelAuditData?> getDashboardOverview(
+    dynamic connectedAccountId,
+  ) async {
     try {
-      final response = await ApiService.get(ApiEndpoints.dashboardOverview(connectedAccountId));
+      final response = await ApiService.get(
+        ApiEndpoints.dashboardOverview(connectedAccountId),
+      );
       if (response.isSuccess && response.data != null) {
         final data = response.data;
         if (data is Map) {
-          // Check if payload has { status: "SUCCESS", audit: { ... } }
           if (data['status'] == 'SUCCESS' && data['audit'] is Map) {
-            return ChannelAuditData.fromJson(Map<String, dynamic>.from(data['audit'] as Map));
+            return ChannelAuditData.fromJson(
+              Map<String, dynamic>.from(data['audit'] as Map),
+            );
           } else if (data['auditId'] != null) {
             return ChannelAuditData.fromJson(Map<String, dynamic>.from(data));
           }
@@ -345,17 +323,29 @@ class ApiDashboardRepository implements DashboardRepository {
   @override
   Future<List<TodoItemModel>> getTodos({dynamic connectedAccountId}) async {
     try {
-      final response = await ApiService.get(ApiEndpoints.dashboardTodos(connectedAccountId));
+      final response = await ApiService.get(
+        ApiEndpoints.dashboardTodos(connectedAccountId),
+      );
       if (response.isSuccess && response.data != null) {
         final data = response.data;
         List rawTodos = [];
         if (data is Map && data['todos'] is List) {
           rawTodos = data['todos'] as List;
+        } else if (data is Map &&
+            data['data'] is Map &&
+            data['data']['todos'] is List) {
+          rawTodos = data['data']['todos'] as List;
+        } else if (data is Map && data['data'] is List) {
+          rawTodos = data['data'] as List;
         } else if (data is List) {
           rawTodos = data;
         }
         return rawTodos
-            .map((item) => TodoItemModel.fromJson(Map<String, dynamic>.from(item as Map)))
+            .map(
+              (item) => TodoItemModel.fromJson(
+                Map<String, dynamic>.from(item as Map),
+              ),
+            )
             .toList();
       }
     } catch (e) {
@@ -365,7 +355,7 @@ class ApiDashboardRepository implements DashboardRepository {
   }
 
   @override
-  Future<bool> convertRecommendationToTodo({
+  Future<ConvertTodoResult> convertRecommendationToTodo({
     required dynamic connectedAccountId,
     required dynamic channelAuditId,
     required String title,
@@ -383,10 +373,45 @@ class ApiDashboardRepository implements DashboardRepository {
           'expectedOutcome': expectedOutcome,
         },
       );
-      return response.isSuccess;
+
+      if (response.isSuccess) {
+        final resData = response.data;
+        String status = 'CREATED';
+        dynamic todoId;
+        String? message;
+
+        if (resData is Map) {
+          final statusStr = (resData['status'] ?? resData['state'])
+              ?.toString()
+              .toUpperCase();
+          if (statusStr == 'DUPLICATE' || statusStr == 'ALREADY_EXISTS') {
+            status = 'DUPLICATE';
+          } else if (statusStr != null && statusStr.isNotEmpty) {
+            status = statusStr;
+          }
+          todoId = resData['todoId'] ?? resData['id'];
+          message = resData['message']?.toString();
+        }
+
+        return ConvertTodoResult(
+          status: status,
+          todoId: todoId,
+          message: message,
+        );
+      } else {
+        final errorMsg = response.message.toLowerCase();
+        if (errorMsg.contains('duplicate') ||
+            errorMsg.contains('already exist')) {
+          return ConvertTodoResult(
+            status: 'DUPLICATE',
+            message: response.message,
+          );
+        }
+        return ConvertTodoResult(status: 'FAILED', message: response.message);
+      }
     } catch (e) {
       debugPrint("convertRecommendationToTodo error: $e");
-      return false;
+      return ConvertTodoResult(status: 'FAILED', message: e.toString());
     }
   }
 

@@ -38,18 +38,6 @@ const _kCommands = [
     description: 'Write a short-form video script with hooks & CTA',
     icon: Icons.article_rounded,
   ),
-  _PixoCommand(
-    slash: '/plan',
-    label: 'Content Calendar',
-    description: 'Create a weekly or monthly content calendar',
-    icon: Icons.calendar_month_rounded,
-  ),
-  _PixoCommand(
-    slash: '/compare',
-    label: 'Compare Creators',
-    description: 'Side-by-side performance comparison of two creators',
-    icon: Icons.compare_arrows_rounded,
-  ),
 ];
 
 /// Bottom sheet shown when the user types `/` in the message composer.
@@ -98,75 +86,80 @@ class _PixoCommandMenuSheetState extends State<PixoCommandMenuSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-        decoration: BoxDecoration(
-          color: CC.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          border: Border.all(
-            color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: CC.black.withValues(alpha: 0.28),
-              blurRadius: 28,
-              offset: const Offset(0, -6),
-            ),
-          ],
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+      decoration: BoxDecoration(
+        color: CC.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Handle
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
+        boxShadow: [
+          BoxShadow(
+            color: CC.black.withValues(alpha: 0.15),
+            blurRadius: 16,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text('Lala Commands',
+                  style: TS.sectionTitle(fontSize: 15, fontWeight: FontWeight.w700)),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: CC.stroke,
-                  borderRadius: BorderRadius.circular(2),
+                  color: CC.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                      color: CC.primary.withValues(alpha: 0.20), width: 0.6),
+                ),
+                child: Text('AI Tools',
+                    style: TS.caption(
+                        color: CC.primary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 10)),
+              ),
+            ],
+          ),
+          6.height,
+          Text(
+            'Select a command to trigger Lala AI capabilities.',
+            style: TS.caption(color: CC.textSecondary, fontSize: 11),
+          ),
+          12.height,
+          if (_filtered.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Text('No matching commands.',
+                  style: TS.bodySmall(color: CC.textSecondary)),
+            )
+          else
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 220),
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: _filtered
+                      .map((cmd) => _CommandTile(
+                            command: cmd,
+                            onTap: () {
+                              widget.onCommandSelected('${cmd.slash} ');
+                            },
+                          ))
+                      .toList(),
                 ),
               ),
             ),
-            14.height,
-            Row(
-              children: [
-                Icon(Icons.tag_rounded,
-                    color: CC.primary, size: 18),
-                8.width,
-                Text('Pixo Commands',
-                    style: TS.sectionTitle(fontSize: 16)),
-                const Spacer(),
-                Text('Backend-authorized',
-                    style: TS.caption(
-                        color: CC.textSecondary, fontSize: 10)),
-              ],
-            ),
-            4.height,
-            Text(
-              'Select a command — availability is determined server-side.',
-              style: TS.caption(color: CC.textSecondary, fontSize: 11),
-            ),
-            16.height,
-            if (_filtered.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Text('No matching commands.',
-                    style: TS.bodySmall(color: CC.textSecondary)),
-              )
-            else
-              ..._filtered.map((cmd) => _CommandTile(
-                    command: cmd,
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      widget.onCommandSelected('${cmd.slash} ');
-                    },
-                  )),
-            8.height,
-          ],
-        ),
+          4.height,
+        ],
       ),
     );
   }
