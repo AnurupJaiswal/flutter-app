@@ -26,6 +26,8 @@ abstract class CalendarRepository {
     int? month,
     String? status,
     String? contentType,
+    int? page,
+    int? limit,
   });
 
   Future<CalendarResult<ContentDraftModel>> createDraft({
@@ -57,6 +59,8 @@ class ApiCalendarRepository implements CalendarRepository {
     int? month,
     String? status,
     String? contentType,
+    int? page,
+    int? limit,
   }) async {
     try {
       final endpoint = ApiEndpoints.calendarDraftsList(
@@ -67,6 +71,8 @@ class ApiCalendarRepository implements CalendarRepository {
         month: month,
         status: status,
         contentType: contentType,
+        page: page,
+        limit: limit,
       );
       final response = await ApiService.get(endpoint);
 

@@ -28,11 +28,13 @@ class ContentDraftModel {
   bool get isScheduled =>
       status.toUpperCase() == 'SCHEDULED' || scheduledAt != null;
   bool get isPosted => status.toUpperCase() == 'POSTED';
+  bool get isMissed => status.toUpperCase() == 'MISSED';
   bool get isDraft => status.toUpperCase() == 'DRAFT';
 
-  /// Returns normalized display status string for UI badge ("Scheduled", "Posted", "Draft")
+  /// Returns normalized display status string for UI badge ("Scheduled", "Posted", "Missed", "Draft")
   String get statusDisplay {
     if (isPosted) return "Posted";
+    if (isMissed) return "Missed";
     if (isScheduled && scheduledAt != null) return "Scheduled";
     return "Draft";
   }

@@ -209,6 +209,7 @@ class CalendarController extends GetxController {
         month: monthDate.month,
         status: statusFilter,
         contentType: contentTypeFilter,
+        limit: 100,
       );
 
       if (res.isSuccess) {

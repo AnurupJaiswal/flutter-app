@@ -150,6 +150,8 @@ class ApiEndpoints {
     int? month,
     String? status,
     String? contentType,
+    int? page,
+    int? limit,
   }) {
     final queryParams = <String>[];
     if (accountId != null) queryParams.add('accountId=$accountId');
@@ -171,6 +173,8 @@ class ApiEndpoints {
     if (contentType != null && contentType.isNotEmpty) {
       queryParams.add('contentType=${contentType.toUpperCase()}');
     }
+    if (page != null) queryParams.add('page=$page');
+    if (limit != null) queryParams.add('limit=$limit');
 
     if (queryParams.isEmpty) return '/api/v1/calendar/drafts';
     return '/api/v1/calendar/drafts?${queryParams.join('&')}';
