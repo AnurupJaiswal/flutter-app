@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:lala_ai/app/modules/profile/views/profile_view.dart';
 import 'package:lala_ai/app/modules/calendar/controllers/calendar_controller.dart';
+import 'package:lala_ai/app/modules/connect_accounts/views/connect_accounts_view.dart';
+import 'package:lala_ai/app/modules/home/controllers/home_controller.dart';
+import 'package:lala_ai/app/modules/profile/views/profile_view.dart';
 import 'package:lala_ai/utils/app_toast.dart';
 import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
@@ -29,200 +31,130 @@ class CalendarView extends GetView<CalendarController> {
             actions: [
               IconButton(
                 icon: Icon(
-                  Icons.refresh_rounded,
-                  color: CC.textPrimary,
-                  size: 22,
-                ),
-                splashRadius: 20,
-                onPressed: () => controller.fetchDrafts(),
-                tooltip: "Refresh Drafts",
-              ),
-              IconButton(
-                icon: Icon(
                   Icons.person_outline_rounded,
                   color: CC.textPrimary,
                   size: 22,
                 ),
                 splashRadius: 20,
                 onPressed: () => Get.to(() => const ProfileView()),
+                tooltip: "Profile",
               ),
             ],
           ),
           body: SafeArea(
             child: Stack(
               children: [
-                SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // ── Subtitle Description ───────────────────────────────
-                      Text(
-                        "Plan, manage and grow your content",
-                        style: TS
-                            .bodySmall(color: CC.textSecondary)
-                            .copyWith(fontSize: 13),
-                      ),
-                      16.height,
+                RefreshIndicator(
+                  color: CC.primary,
+                  onRefresh: () async => controller.fetchDrafts(),
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics(),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // ── Channel / Account Selector Dropdown Pill ───────────
+                        _buildChannelHeaderSection(context),
+                        16.height,
 
-                      // ── Month & Weekly Date Selector Strip ──────────────────
-                      _buildMonthAndWeeklyStrip(context),
-                      20.height,
+                        // ── Month & Weekly Date Selector Strip ──────────────────
+                        _buildMonthAndWeeklyStrip(context),
+                        16.height,
 
-                      // ── Filter Category Pills ───────────────────────────────
-                      _buildFilterPills(),
-                      20.height,
+                        // ── Filter Category Pills ───────────────────────────────
+                        _buildFilterPills(),
+                        18.height,
 
-                      // ── Posts Section for Selected Date ─────────────────────
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Obx(
-                            () => Text(
-                              "Posts for ${controller.selectedDateFormatted}",
-                              style: TS.sectionTitle(
-                                color: CC.textPrimary,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
-                          Obx(
-                            () => Text(
-                              "${controller.filteredTodayPosts.length} post",
-                              style: TS.caption(
-                                color: CC.primary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      10.height,
+                        // ── Posts Section for Selected Date ─────────────────────
+                        _buildSectionHeader(context),
+                        12.height,
 
-                      Obx(() {
-                        if (controller.isLoading.value) {
-                          return _buildLoadingSkeleton();
-                        }
-                        if (controller.errorMessage.value.isNotEmpty) {
-                          return _buildErrorState(
-                            controller.errorMessage.value,
-                          );
-                        }
+                        Obx(() {
+                          if (controller.isLoading.value) {
+                            return _buildLoadingSkeleton();
+                          }
+                          if (controller.errorMessage.value.isNotEmpty) {
+                            return _buildErrorState(
+                              controller.errorMessage.value,
+                            );
+                          }
 
-                        final list = controller.filteredTodayPosts;
-                        if (list.isEmpty) {
-                          return _buildEmptySection(
-                            "No scheduled posts for ${controller.selectedDateFormatted}",
-                          );
-                        }
-                        return Column(
-                          children: list
-                              .asMap()
-                              .entries
-                              .map(
-                                (entry) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 12),
-                                  child: _buildPostCard(
-                                    context: context,
-                                    post: entry.value,
-                                    index: entry.key,
-                                    isToday: true,
+                          final list = controller.filteredTodayPosts;
+                          if (list.isEmpty) {
+                            return _buildEmptyDateSection(context);
+                          }
+                          return Column(
+                            children: list
+                                .asMap()
+                                .entries
+                                .map(
+                                  (entry) => Padding(
+                                    padding: const EdgeInsets.only(bottom: 12),
+                                    child: _buildPostCard(
+                                      context: context,
+                                      post: entry.value,
+                                      index: entry.key,
+                                      isToday: true,
+                                    ),
                                   ),
-                                ),
-                              )
-                              .toList(),
-                        );
-                      }),
-                      20.height,
-
-                      // ── Upcoming & Drafts Section ───────────────────────────
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Upcoming & Drafts",
-                            style: TS.sectionTitle(
-                              color: CC.textPrimary,
-                              fontSize: 16,
-                            ),
-                          ),
-                          Obx(
-                            () => Text(
-                              "${controller.filteredUpcomingPosts.length} posts",
-                              style: TS.caption(
-                                color: CC.primary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      10.height,
-                      Obx(() {
-                        if (controller.isLoading.value) {
-                          return _buildLoadingSkeleton();
-                        }
-
-                        final list = controller.filteredUpcomingPosts;
-                        if (list.isEmpty) {
-                          return _buildEmptySection(
-                            "No upcoming posts for this filter",
+                                )
+                                .toList(),
                           );
-                        }
-                        return Column(
-                          children: list
-                              .asMap()
-                              .entries
-                              .map(
-                                (entry) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 12),
-                                  child: _buildPostCard(
-                                    context: context,
-                                    post: entry.value,
-                                    index: entry.key,
-                                    isToday: false,
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                        );
-                      }),
-                      100.height, // Spacing for floating action button
-                    ],
+                        }),
+                        20.height,
+
+                        // ── Upcoming & Drafts Section ───────────────────────────
+                        _buildUpcomingSection(context),
+                        90.height, // Spacing for floating action button
+                      ],
+                    ),
                   ),
                 ),
 
                 // ── Floating Action Button (New Post Draft) ─────────────────
                 Positioned(
                   right: 16,
-                  bottom: 24,
+                  bottom: 20,
                   child: GestureDetector(
                     onTap: () => _showCreateDraftSheet(context),
                     child: Container(
-                      width: 58,
-                      height: 58,
+                      height: 52,
+                      padding: const EdgeInsets.symmetric(horizontal: 18),
                       decoration: BoxDecoration(
                         color: CC.primary,
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.circular(26),
                         boxShadow: [
                           BoxShadow(
-                            color: CC.isDark
-                                ? CC.black.withValues(alpha: 0.45)
-                                : CC.black.withValues(alpha: 0.12),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
+                            color: CC.primary.withValues(alpha: 0.35),
+                            blurRadius: 14,
+                            offset: const Offset(0, 5),
                           ),
                         ],
                       ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.add_rounded,
-                          color: CC.whiteText,
-                          size: 30,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.add_rounded,
+                            color: CC.whiteText,
+                            size: 22,
+                          ),
+                          6.width,
+                          Text(
+                            "New Post",
+                            style: TS
+                                .bodySmall(
+                                  color: CC.whiteText,
+                                  fontWeight: FontWeight.w700,
+                                )
+                                .copyWith(fontSize: 14),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -235,15 +167,85 @@ class CalendarView extends GetView<CalendarController> {
     );
   }
 
-  /// Month Header & Day Selector
-  Widget _buildMonthAndWeeklyStrip(BuildContext context) {
-    return RepaintBoundary(
+  // ════════════════════════════════════════════════════════════════════════════
+  // ── 1. ACCOUNT / CHANNEL SELECTOR (SAME AS HOME & ANALYTICS) ────────────────
+  // ════════════════════════════════════════════════════════════════════════════
+
+  Widget _buildChannelHeaderSection(BuildContext context) {
+    return Obx(() {
+      final current = controller.selectedChannel.value;
+      final channels = controller.availableChannels;
+
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          if (channels.isNotEmpty)
+            _buildChannelDropdownSelector(context, current)
+          else
+            GestureDetector(
+              onTap: () => Get.to(() => const ConnectAccountsView()),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 7,
+                ),
+                decoration: BoxDecoration(
+                  color: CC.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: CC.primary.withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.add_link_rounded,
+                      size: 16,
+                      color: CC.primary,
+                    ),
+                    6.width,
+                    Text(
+                      "Connect Channel",
+                      style: TS
+                          .caption(
+                            color: CC.primary,
+                            fontWeight: FontWeight.w700,
+                          )
+                          .copyWith(fontSize: 11),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      );
+    });
+  }
+
+  Widget _buildChannelDropdownSelector(
+    BuildContext context,
+    ChannelOption? current,
+  ) {
+    final isAll = current == null;
+    final platform = current?.platform ?? 'YOUTUBE';
+    final handle =
+        current?.handle ??
+        (platform == 'YOUTUBE' ? 'YouTube Channel' : 'Instagram Profile');
+    final formattedHandle = isAll
+        ? "All Channels"
+        : (handle.startsWith('@') ? handle : "@$handle");
+    final isYt = platform.toUpperCase() == 'YOUTUBE';
+    final statusColor = current?.statusColor ?? const Color(0xFF22C55E);
+
+    return GestureDetector(
+      onTap: () => _showChannelSelectorBottomSheet(context),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        clipBehavior: Clip.antiAlias,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: CC.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
             width: 1,
@@ -251,69 +253,456 @@ class CalendarView extends GetView<CalendarController> {
           boxShadow: [
             BoxShadow(
               color: CC.isDark
-                  ? CC.black.withValues(alpha: 0.3)
+                  ? CC.black.withValues(alpha: 0.25)
                   : CC.black.withValues(alpha: 0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
-        child: Column(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Month navigation title
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      Icons.chevron_left_rounded,
-                      color: CC.textPrimary,
-                      size: 22,
-                    ),
-                    onPressed: () => controller.previousMonth(),
-                    splashRadius: 18,
-                    tooltip: "Previous Month",
-                  ),
-                  Obx(
-                    () => Text(
-                      controller.currentMonthName,
-                      style: TS.sectionTitle(
-                        color: CC.textPrimary,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.chevron_right_rounded,
-                      color: CC.textPrimary,
-                      size: 22,
-                    ),
-                    onPressed: () => controller.nextMonth(),
-                    splashRadius: 18,
-                    tooltip: "Next Month",
-                  ),
-                ],
+            if (isAll)
+              Icon(Icons.grid_view_rounded, size: 16, color: CC.primary)
+            else if (isYt)
+              CW.youtubeIcon(size: 16)
+            else
+              CW.instagramIcon(size: 16),
+            8.width,
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 130),
+              child: Text(
+                formattedHandle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TS
+                    .caption(color: CC.textPrimary, fontWeight: FontWeight.w700)
+                    .copyWith(fontSize: 12),
               ),
             ),
-            8.height,
-
-            // Days Container
-            _buildMonthStripView(),
+            if (!isAll) ...[
+              6.width,
+              Container(
+                width: 7,
+                height: 7,
+                decoration: BoxDecoration(
+                  color: statusColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ],
+            4.width,
+            Icon(
+              Icons.keyboard_arrow_down_rounded,
+              size: 18,
+              color: CC.textSecondary,
+            ),
           ],
         ),
       ),
     );
   }
 
-  /// Horizontal Scrollable Month Strip
+  /// Same exact channel selector bottom sheet used across the entire application
+  void _showChannelSelectorBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: CC.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom,
+            ),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.8,
+              ),
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: CC.stroke,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    16.height,
+                    Text(
+                      "Select Active Channel",
+                      style: TS.sectionTitle(
+                        color: CC.textPrimary,
+                        fontSize: 18,
+                      ),
+                    ),
+                    4.height,
+                    Text(
+                      "Choose a channel to inspect its schedule, drafts, and calendar recommendations.",
+                      style: TS.caption(color: CC.textSecondary),
+                    ),
+                    16.height,
+
+                    // Connected Channel Options
+                    Obx(() {
+                      final channels = controller.availableChannels;
+                      return Column(
+                        children: channels.map((ch) {
+                          final isSelected =
+                              controller.selectedChannel.value?.id.toString() ==
+                              ch.id.toString();
+                          final isYt = ch.platform.toUpperCase() == 'YOUTUBE';
+                          final displayHandle = ch.handle.startsWith('@')
+                              ? ch.handle
+                              : "@${ch.handle}";
+                          final statusColor = ch.statusColor;
+                          final statusText = ch.statusDisplay;
+
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? (CC.isDark
+                                      ? CC.primary.withValues(alpha: 0.12)
+                                      : CC.surface)
+                                  : CC.searchBackground,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: isSelected
+                                    ? CC.primary
+                                    : CC.stroke.withValues(alpha: 0.4),
+                                width: isSelected ? 2 : 1,
+                              ),
+                            ),
+                            child: ListTile(
+                              dense: true,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 6,
+                              ),
+                              leading: Container(
+                                width: 42,
+                                height: 42,
+                                decoration: BoxDecoration(
+                                  color: isYt
+                                      ? const Color(0xFFFF0000).withValues(alpha: 0.08)
+                                      : const Color(0xFFE1306C).withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isYt
+                                        ? const Color(0xFFFF0000).withValues(alpha: 0.2)
+                                        : const Color(0xFFE1306C).withValues(alpha: 0.2),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: isYt
+                                      ? CW.youtubeIcon(size: 22)
+                                      : CW.instagramIcon(size: 22),
+                                ),
+                              ),
+                              title: Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      ch.name.isNotEmpty
+                                          ? ch.name
+                                          : displayHandle,
+                                      style: TS.bodySmall(
+                                        color: CC.textPrimary,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w700
+                                            : FontWeight.w600,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  8.width,
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: statusColor.withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(
+                                        color: statusColor.withValues(alpha: 0.3),
+                                        width: 0.8,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          width: 5,
+                                          height: 5,
+                                          decoration: BoxDecoration(
+                                            color: statusColor,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                        4.width,
+                                        Text(
+                                          statusText,
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w600,
+                                            color: statusColor,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              subtitle: Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: Text(
+                                  displayHandle,
+                                  style: TS
+                                      .caption(color: CC.textSecondary)
+                                      .copyWith(fontSize: 11),
+                                ),
+                              ),
+                              trailing: isSelected
+                                  ? Container(
+                                      width: 24,
+                                      height: 24,
+                                      decoration: BoxDecoration(
+                                        color: CC.primary,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.check_rounded,
+                                        color: Colors.white,
+                                        size: 16,
+                                      ),
+                                    )
+                                  : Container(
+                                      width: 24,
+                                      height: 24,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: CC.stroke.withValues(
+                                            alpha: CC.isDark ? 0.4 : 0.7,
+                                          ),
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                    ),
+                              onTap: () {
+                                Navigator.pop(ctx);
+                                controller.selectChannel(ch);
+                              },
+                            ),
+                          );
+                        }).toList(),
+                      );
+                    }),
+
+                    14.height,
+                    // Link to connect new channel
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: CC.primary),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        icon: Icon(
+                          Icons.add_rounded,
+                          color: CC.primary,
+                          size: 18,
+                        ),
+                        label: Text(
+                          "Manage / Connect Channels",
+                          style: TS.bodySmall(
+                            color: CC.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          Get.to(() => const ConnectAccountsView());
+                        },
+                      ),
+                    ),
+                    8.height,
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // ── 2. MONTH & HORIZONTAL DATE STRIP ────────────────────────────────────────
+  // ════════════════════════════════════════════════════════════════════════════
+
+  Widget _buildMonthAndWeeklyStrip(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      decoration: BoxDecoration(
+        color: CC.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: CC.isDark
+                ? CC.black.withValues(alpha: 0.3)
+                : CC.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Month navigation bar
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.calendar_month_rounded,
+                  size: 18,
+                  color: CC.primary,
+                ),
+                6.width,
+                Expanded(
+                  child: Obx(
+                    () => FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        controller.currentMonthName,
+                        style: TS.sectionTitle(
+                          color: CC.textPrimary,
+                          fontSize: 15,
+                        ),
+                        maxLines: 1,
+                      ),
+                    ),
+                  ),
+                ),
+                6.width,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Quick "Today" jump button
+                    InkWell(
+                      onTap: () => controller.jumpToToday(),
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: CC.primary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: CC.primary.withValues(alpha: 0.25),
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Text(
+                          "Today",
+                          style: TS
+                              .caption(
+                                color: CC.primary,
+                                fontWeight: FontWeight.w700,
+                              )
+                              .copyWith(fontSize: 11),
+                        ),
+                      ),
+                    ),
+                    6.width,
+                    InkWell(
+                      onTap: () => controller.previousMonth(),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: CC.isDark
+                              ? CC.whiteText.withValues(alpha: 0.06)
+                              : CC.black.withValues(alpha: 0.04),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.chevron_left_rounded,
+                          color: CC.textPrimary,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                    4.width,
+                    InkWell(
+                      onTap: () => controller.nextMonth(),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: CC.isDark
+                              ? CC.whiteText.withValues(alpha: 0.06)
+                              : CC.black.withValues(alpha: 0.04),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.chevron_right_rounded,
+                          color: CC.textPrimary,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          12.height,
+
+          // Days Horizontal Carousel Strip
+          _buildMonthStripView(),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMonthStripView() {
     return Obx(() {
       final days = controller.daysList;
       return SizedBox(
-        height: 76,
+        height: 74,
         child: ListView.separated(
           controller: controller.scrollController,
           scrollDirection: Axis.horizontal,
@@ -329,24 +718,16 @@ class CalendarView extends GetView<CalendarController> {
             final fullDate = item["fullDate"] as DateTime;
             final isSelected = item["isSelected"] as bool;
             final hasDot = item["hasDot"] as bool;
-            final dotColorType = item["dotColor"] as String;
-
-            Color dotColor = CC.primary;
-            if (dotColorType == "amber") {
-              dotColor = Colors.amber;
-            }
 
             return GestureDetector(
               onTap: () => controller.selectDay(fullDate),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
-                width: 44,
-                padding: const EdgeInsets.symmetric(vertical: 4),
+                width: 48,
+                padding: const EdgeInsets.symmetric(vertical: 5),
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? CC.primary.withValues(alpha: 0.12)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
+                  color: isSelected ? CC.primary : Colors.transparent,
+                  borderRadius: BorderRadius.circular(14),
                   border: isSelected
                       ? Border.all(color: CC.primary, width: 1.2)
                       : null,
@@ -359,46 +740,37 @@ class CalendarView extends GetView<CalendarController> {
                       dayStr,
                       style: TS
                           .caption(
-                            color: isSelected ? CC.primary : CC.textSecondary,
+                            color: isSelected
+                                ? CC.whiteText.withValues(alpha: 0.9)
+                                : CC.textSecondary,
                             fontWeight: isSelected
                                 ? FontWeight.w700
                                 : FontWeight.w500,
                           )
                           .copyWith(fontSize: 11),
                     ),
-                    3.height,
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 180),
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        color: isSelected ? CC.primary : Colors.transparent,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Text(
-                          "$dateNum",
-                          style: TS
-                              .bodySmall(
-                                color: isSelected
-                                    ? CC.whiteText
-                                    : CC.textPrimary,
-                                fontWeight: isSelected
-                                    ? FontWeight.w700
-                                    : FontWeight.w600,
-                              )
-                              .copyWith(fontSize: 13),
-                        ),
-                      ),
+                    4.height,
+                    Text(
+                      "$dateNum",
+                      style: TS
+                          .bodySmall(
+                            color: isSelected
+                                ? CC.whiteText
+                                : CC.textPrimary,
+                            fontWeight: isSelected
+                                ? FontWeight.w800
+                                : FontWeight.w600,
+                          )
+                          .copyWith(fontSize: 14),
                     ),
-                    2.height,
+                    4.height,
                     Container(
-                      width: 4,
-                      height: 4,
+                      width: 5,
+                      height: 5,
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? CC.primary
-                            : (hasDot ? dotColor : Colors.transparent),
+                            ? CC.whiteText
+                            : (hasDot ? CC.primary : Colors.transparent),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -412,10 +784,13 @@ class CalendarView extends GetView<CalendarController> {
     });
   }
 
-  /// Filter Category Pills
+  // ════════════════════════════════════════════════════════════════════════════
+  // ── 3. FILTER PILLS ─────────────────────────────────────────────────────────
+  // ════════════════════════════════════════════════════════════════════════════
+
   Widget _buildFilterPills() {
     return SizedBox(
-      height: 38,
+      height: 36,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         clipBehavior: Clip.none,
@@ -432,8 +807,8 @@ class CalendarView extends GetView<CalendarController> {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 18,
-                  vertical: 8,
+                  horizontal: 16,
+                  vertical: 7,
                 ),
                 decoration: BoxDecoration(
                   color: isSelected ? CC.primary : CC.surface,
@@ -441,11 +816,18 @@ class CalendarView extends GetView<CalendarController> {
                   border: Border.all(
                     color: isSelected
                         ? CC.primary
-                        : CC.stroke.withValues(alpha: 0.6),
+                        : CC.stroke.withValues(alpha: 0.55),
                     width: 1,
                   ),
-                  boxShadow: !isSelected
+                  boxShadow: isSelected
                       ? [
+                          BoxShadow(
+                            color: CC.primary.withValues(alpha: 0.25),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : [
                           BoxShadow(
                             color: CC.isDark
                                 ? CC.black.withValues(alpha: 0.2)
@@ -453,8 +835,7 @@ class CalendarView extends GetView<CalendarController> {
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
-                        ]
-                      : [],
+                        ],
                 ),
                 child: Center(
                   child: Text(
@@ -466,7 +847,7 @@ class CalendarView extends GetView<CalendarController> {
                               ? FontWeight.w700
                               : FontWeight.w500,
                         )
-                        .copyWith(fontSize: 13),
+                        .copyWith(fontSize: 12),
                   ),
                 ),
               ),
@@ -477,7 +858,52 @@ class CalendarView extends GetView<CalendarController> {
     );
   }
 
-  /// Post Card Component
+  // ════════════════════════════════════════════════════════════════════════════
+  // ── 4. SECTION HEADER & POST CARD ───────────────────────────────────────────
+  // ════════════════════════════════════════════════════════════════════════════
+
+  Widget _buildSectionHeader(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            Obx(
+              () => Text(
+                "Posts for ${controller.selectedDateFormatted}",
+                style: TS.sectionTitle(
+                  color: CC.textPrimary,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ],
+        ),
+        Obx(() {
+          final count = controller.filteredTodayPosts.length;
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+            decoration: BoxDecoration(
+              color: count > 0
+                  ? CC.primary.withValues(alpha: 0.12)
+                  : CC.stroke.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              "$count post${count == 1 ? '' : 's'}",
+              style: TS
+                  .caption(
+                    color: count > 0 ? CC.primary : CC.textSecondary,
+                    fontWeight: FontWeight.w700,
+                  )
+                  .copyWith(fontSize: 11),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
   Widget _buildPostCard({
     required BuildContext context,
     required Map<String, dynamic> post,
@@ -490,8 +916,9 @@ class CalendarView extends GetView<CalendarController> {
     final platformTag = post["platformTag"] as String;
     final time = post["time"] as String;
     final aiTime = post["aiTime"] as String;
-    final aiIconType = post["aiIconType"] as String? ?? "sparkle";
     final status = post["status"] as String;
+    final isPosted = status == "Posted";
+    final isScheduled = status == "Scheduled";
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -505,83 +932,65 @@ class CalendarView extends GetView<CalendarController> {
         boxShadow: [
           BoxShadow(
             color: CC.isDark
-                ? CC.black.withValues(alpha: 0.45)
-                : CC.black.withValues(alpha: 0.08),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
+                ? CC.black.withValues(alpha: 0.35)
+                : CC.black.withValues(alpha: 0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Platform & Status Badges
           Row(
             children: [
-              _buildPlatformIcon(platform),
-              8.width,
-
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: platform == "YouTube" || platform == "Instagram"
-                      ? const Color(0xFFFDE8EC)
-                      : (CC.isDark
-                            ? CC.whiteText.withValues(alpha: 0.08)
-                            : CC.black.withValues(alpha: 0.05)),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  platformTag,
-                  style: TS
-                      .caption(
-                        color: platform == "YouTube" || platform == "Instagram"
-                            ? const Color(0xFFD81B60)
-                            : CC.textPrimary,
-                        fontWeight: FontWeight.w600,
-                      )
-                      .copyWith(fontSize: 11),
-                ),
-              ),
+              _buildPlatformBadge(platform, platformTag),
               const Spacer(),
 
-              // Status Badge
+              // Status Pill
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: status == "Scheduled" || status == "Posted"
+                  color: isPosted
                       ? const Color(0xFFE8F5E9)
-                      : (CC.isDark
-                            ? CC.whiteText.withValues(alpha: 0.08)
-                            : CC.black.withValues(alpha: 0.05)),
+                      : (isScheduled
+                          ? const Color(0xFFE3F2FD)
+                          : (CC.isDark
+                              ? CC.whiteText.withValues(alpha: 0.08)
+                              : CC.black.withValues(alpha: 0.05))),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      status == "Scheduled" || status == "Posted"
-                          ? Icons.check_circle_outline_rounded
-                          : Icons.description_outlined,
+                      isPosted
+                          ? Icons.check_circle_rounded
+                          : (isScheduled
+                              ? Icons.alarm_on_rounded
+                              : Icons.edit_note_rounded),
                       size: 13,
-                      color: status == "Scheduled" || status == "Posted"
+                      color: isPosted
                           ? const Color(0xFF2E7D32)
-                          : CC.textSecondary,
+                          : (isScheduled
+                              ? const Color(0xFF1976D2)
+                              : CC.textSecondary),
                     ),
                     4.width,
                     Text(
                       status,
                       style: TS
                           .caption(
-                            color: status == "Scheduled" || status == "Posted"
+                            color: isPosted
                                 ? const Color(0xFF2E7D32)
-                                : CC.textSecondary,
-                            fontWeight: FontWeight.w600,
+                                : (isScheduled
+                                    ? const Color(0xFF1976D2)
+                                    : CC.textSecondary),
+                            fontWeight: FontWeight.w700,
                           )
                           .copyWith(fontSize: 11),
                     ),
@@ -590,7 +999,7 @@ class CalendarView extends GetView<CalendarController> {
               ),
               6.width,
 
-              // Action Options Menu
+              // 3-Dots Action Options Menu
               PopupMenuButton<String>(
                 icon: Icon(
                   Icons.more_vert_rounded,
@@ -622,18 +1031,18 @@ class CalendarView extends GetView<CalendarController> {
                         ),
                         8.width,
                         Text(
-                          "Schedule Post",
+                          "Schedule / Reschedule",
                           style: TS.bodySmall(color: CC.textPrimary),
                         ),
                       ],
                     ),
                   ),
-                  if (status != "Posted")
+                  if (!isPosted)
                     PopupMenuItem(
                       value: 'mark_posted',
                       child: Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.check_circle_outline_rounded,
                             size: 16,
                             color: Colors.green,
@@ -646,7 +1055,7 @@ class CalendarView extends GetView<CalendarController> {
                         ],
                       ),
                     ),
-                  if (status == "Scheduled" || status == "Posted")
+                  if (isScheduled || isPosted)
                     PopupMenuItem(
                       value: 'revert_draft',
                       child: Row(
@@ -668,14 +1077,16 @@ class CalendarView extends GetView<CalendarController> {
               ),
             ],
           ),
-          12.height,
+          10.height,
 
+          // Post Title
           Text(
             title,
             style: TS.sectionTitle(color: CC.textPrimary, fontSize: 15),
           ),
           8.height,
 
+          // Time Info Row
           Row(
             children: [
               Icon(
@@ -690,28 +1101,29 @@ class CalendarView extends GetView<CalendarController> {
                     .caption(color: CC.textSecondary)
                     .copyWith(fontSize: 12),
               ),
-              12.width,
-              Icon(
-                aiIconType == "chart"
-                    ? Icons.bar_chart_rounded
-                    : Icons.schedule_rounded,
-                size: 14,
-                color: CC.primary,
-              ),
-              4.width,
-              Expanded(
-                child: Text(
-                  aiTime,
-                  style: TS
-                      .caption(color: CC.primary, fontWeight: FontWeight.w700)
-                      .copyWith(fontSize: 12),
-                  overflow: TextOverflow.ellipsis,
+              if (aiTime.isNotEmpty) ...[
+                12.width,
+                Icon(
+                  Icons.lightbulb_outline_rounded,
+                  size: 14,
+                  color: CC.primary,
                 ),
-              ),
+                4.width,
+                Expanded(
+                  child: Text(
+                    aiTime,
+                    style: TS
+                        .caption(color: CC.primary, fontWeight: FontWeight.w700)
+                        .copyWith(fontSize: 12),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ],
           ),
           14.height,
 
+          // Quick Action Buttons
           Row(
             children: [
               Expanded(
@@ -719,19 +1131,22 @@ class CalendarView extends GetView<CalendarController> {
                   onTap: () => controller.copyEverything(context, post),
                   borderRadius: BorderRadius.circular(10),
                   child: Container(
-                    height: 40,
+                    height: 38,
                     decoration: BoxDecoration(
                       color: CC.isDark
                           ? CC.whiteText.withValues(alpha: 0.06)
                           : CC.black.withValues(alpha: 0.04),
                       borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: CC.stroke.withValues(alpha: 0.5),
+                      ),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
                           Icons.content_copy_rounded,
-                          size: 15,
+                          size: 14,
                           color: CC.textPrimary,
                         ),
                         6.width,
@@ -753,47 +1168,53 @@ class CalendarView extends GetView<CalendarController> {
               Expanded(
                 child: InkWell(
                   onTap: () {
-                    if (status == "Posted") {
+                    if (isPosted) {
                       controller.updateDraftStatus(
                         draftId: id,
                         status: "DRAFT",
                       );
-                    } else {
+                    } else if (isScheduled) {
                       controller.updateDraftStatus(
                         draftId: id,
                         status: "POSTED",
                       );
+                    } else {
+                      _pickScheduleDateTime(context, id);
                     }
                   },
                   borderRadius: BorderRadius.circular(10),
                   child: Container(
-                    height: 40,
+                    height: 38,
                     decoration: BoxDecoration(
-                      color: status == "Posted" ? CC.darkPopUpBack : CC.primary,
+                      color: isPosted
+                          ? (CC.isDark
+                              ? CC.whiteText.withValues(alpha: 0.08)
+                              : CC.black.withValues(alpha: 0.06))
+                          : CC.primary,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          status == "Posted"
+                          isPosted
                               ? Icons.undo_rounded
-                              : Icons.near_me_rounded,
-                          size: 15,
-                          color: status == "Posted"
-                              ? CC.textPrimary
-                              : CC.whiteText,
+                              : (isScheduled
+                                  ? Icons.check_rounded
+                                  : Icons.calendar_month_rounded),
+                          size: 14,
+                          color: isPosted ? CC.textPrimary : CC.whiteText,
                         ),
                         6.width,
                         Text(
-                          status == "Posted"
-                              ? "Revert to Draft"
-                              : "Mark as Posted",
+                          isPosted
+                              ? "Revert Draft"
+                              : (isScheduled
+                                  ? "Mark as Posted"
+                                  : "Schedule"),
                           style: TS
                               .bodySmall(
-                                color: status == "Posted"
-                                    ? CC.textPrimary
-                                    : CC.whiteText,
+                                color: isPosted ? CC.textPrimary : CC.whiteText,
                                 fontWeight: FontWeight.w700,
                               )
                               .copyWith(fontSize: 12),
@@ -810,26 +1231,207 @@ class CalendarView extends GetView<CalendarController> {
     );
   }
 
-  Widget _buildPlatformIcon(String platform) {
-    if (platform.toLowerCase().contains("youtube")) {
-      return CW.youtubeIcon(size: 26);
-    } else {
-      return CW.instagramIcon(size: 26);
-    }
+  Widget _buildPlatformBadge(String platform, String platformTag) {
+    final isYt = platform.toLowerCase().contains("youtube");
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: isYt
+            ? const Color(0xFFFF0000).withValues(alpha: 0.08)
+            : const Color(0xFFE1306C).withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isYt
+              ? const Color(0xFFFF0000).withValues(alpha: 0.2)
+              : const Color(0xFFE1306C).withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          isYt ? CW.youtubeIcon(size: 14) : CW.instagramIcon(size: 14),
+          6.width,
+          Text(
+            platformTag,
+            style: TS
+                .caption(
+                  color: isYt ? const Color(0xFFD32F2F) : const Color(0xFFC2185B),
+                  fontWeight: FontWeight.w700,
+                )
+                .copyWith(fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // ── 5. UPCOMING POSTS & EMPTY STATES ────────────────────────────────────────
+  // ════════════════════════════════════════════════════════════════════════════
+
+  Widget _buildUpcomingSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "Upcoming & Drafts",
+              style: TS.sectionTitle(
+                color: CC.textPrimary,
+                fontSize: 16,
+              ),
+            ),
+            Obx(() {
+              final count = controller.filteredUpcomingPosts.length;
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                decoration: BoxDecoration(
+                  color: count > 0
+                      ? CC.primary.withValues(alpha: 0.12)
+                      : CC.stroke.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  "$count post${count == 1 ? '' : 's'}",
+                  style: TS
+                      .caption(
+                        color: count > 0 ? CC.primary : CC.textSecondary,
+                        fontWeight: FontWeight.w700,
+                      )
+                      .copyWith(fontSize: 11),
+                ),
+              );
+            }),
+          ],
+        ),
+        12.height,
+        Obx(() {
+          if (controller.isLoading.value) {
+            return _buildLoadingSkeleton();
+          }
+
+          final list = controller.filteredUpcomingPosts;
+          if (list.isEmpty) {
+            return _buildEmptySection(
+              "No other upcoming posts or drafts for this filter",
+            );
+          }
+          return Column(
+            children: list
+                .asMap()
+                .entries
+                .map(
+                  (entry) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _buildPostCard(
+                      context: context,
+                      post: entry.value,
+                      index: entry.key,
+                      isToday: false,
+                    ),
+                  ),
+                )
+                .toList(),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _buildEmptyDateSection(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
+      decoration: BoxDecoration(
+        color: CC.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: CC.primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Icon(
+                Icons.event_note_rounded,
+                size: 26,
+                color: CC.primary,
+              ),
+            ),
+          ),
+          12.height,
+          Text(
+            "No Posts Scheduled",
+            style: TS.sectionTitle(color: CC.textPrimary, fontSize: 15),
+          ),
+          4.height,
+          Text(
+            "You haven't scheduled any content for ${controller.selectedDateFormatted}",
+            style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 12),
+            textAlign: TextAlign.center,
+          ),
+          14.height,
+          InkWell(
+            onTap: () => _showCreateDraftSheet(context),
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: CC.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.add_rounded,
+                    size: 16,
+                    color: CC.primary,
+                  ),
+                  6.width,
+                  Text(
+                    "Plan a Post for this day",
+                    style: TS.bodySmall(
+                      color: CC.primary,
+                      fontWeight: FontWeight.w700,
+                    ).copyWith(fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildEmptySection(String message) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
       decoration: BoxDecoration(
         color: CC.surface,
         borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+          width: 1,
+        ),
       ),
       child: Center(
         child: Text(
           message,
-          style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 13),
+          style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 12),
         ),
       ),
     );
@@ -844,23 +1446,47 @@ class CalendarView extends GetView<CalendarController> {
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Container(
-                width: 32,
-                height: 32,
+                width: 70,
+                height: 24,
                 decoration: BoxDecoration(
-                  color: CC.stroke,
-                  shape: BoxShape.circle,
+                  color: CC.stroke.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(6),
                 ),
               ),
-              12.width,
-              Expanded(child: Container(height: 16, color: CC.stroke)),
+              const Spacer(),
+              Container(
+                width: 60,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: CC.stroke.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
             ],
           ),
-          12.height,
-          Container(height: 12, width: double.infinity, color: CC.stroke),
+          14.height,
+          Container(
+            height: 16,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: CC.stroke.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          10.height,
+          Container(
+            height: 12,
+            width: 180,
+            decoration: BoxDecoration(
+              color: CC.stroke.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
         ],
       ),
     );
@@ -876,16 +1502,36 @@ class CalendarView extends GetView<CalendarController> {
       ),
       child: Column(
         children: [
-          Text(error, style: TS.bodySmall(color: CC.error)),
+          Icon(
+            Icons.error_outline_rounded,
+            color: CC.error,
+            size: 28,
+          ),
+          8.height,
+          Text(
+            error,
+            style: TS.bodySmall(color: CC.error),
+            textAlign: TextAlign.center,
+          ),
           12.height,
           OutlinedButton(
             onPressed: () => controller.fetchDrafts(),
-            child: const Text("Retry"),
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: CC.primary),
+            ),
+            child: Text(
+              "Retry",
+              style: TS.bodySmall(color: CC.primary, fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),
     );
   }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // ── 6. CREATE & SCHEDULE DRAFT BOTTOM SHEET ────────────────────────────────
+  // ════════════════════════════════════════════════════════════════════════════
 
   Future<void> _pickScheduleDateTime(
     BuildContext context,
@@ -894,11 +1540,9 @@ class CalendarView extends GetView<CalendarController> {
     final now = DateTime.now();
     final pickedDate = await showDatePicker(
       context: context,
-      initialDate: controller.selectedDate.value.isBefore(now)
-          ? now
-          : controller.selectedDate.value,
-      firstDate: now,
-      lastDate: DateTime(now.year + 2),
+      initialDate: controller.selectedDate.value,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(now.year + 5),
     );
 
     if (pickedDate == null) return;
@@ -929,16 +1573,17 @@ class CalendarView extends GetView<CalendarController> {
     final titleCtrl = TextEditingController();
     final scriptCtrl = TextEditingController();
     String selectedContentType = 'SHORT'; // SHORT, LONG_FORM, REEL
-    final now = DateTime.now();
-    DateTime selectedScheduleDate = controller.selectedDate.value.isBefore(now)
-        ? now
-        : controller.selectedDate.value;
+    DateTime selectedScheduleDate = controller.selectedDate.value;
     TimeOfDay selectedScheduleTime = const TimeOfDay(hour: 18, minute: 15);
+    ChannelOption? selectedAccount = controller.selectedChannel.value ??
+        (controller.availableChannels.isNotEmpty
+            ? controller.availableChannels.first
+            : null);
 
     CW
         .showCustomBottomSheet(
           context: context,
-          title: "Create & Schedule Post",
+          title: "New Post",
           titleIcon: Icons.edit_calendar_rounded,
           children: [
             StatefulBuilder(
@@ -947,7 +1592,7 @@ class CalendarView extends GetView<CalendarController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Content Type",
+                      "Content Format",
                       style: TS.caption(
                         color: CC.textSecondary,
                         fontWeight: FontWeight.w600,
@@ -981,7 +1626,7 @@ class CalendarView extends GetView<CalendarController> {
                         ),
                       ],
                     ),
-                    16.height,
+                    14.height,
                     CW.commonTextFormField(
                       controller: titleCtrl,
                       hintText: "Enter post title or concept...",
@@ -1010,8 +1655,8 @@ class CalendarView extends GetView<CalendarController> {
                               final picked = await showDatePicker(
                                 context: context,
                                 initialDate: selectedScheduleDate,
-                                firstDate: DateTime.now(),
-                                lastDate: DateTime(DateTime.now().year + 2),
+                                firstDate: DateTime(2020),
+                                lastDate: DateTime(DateTime.now().year + 5),
                               );
                               if (picked != null) {
                                 setModalState(
@@ -1103,24 +1748,6 @@ class CalendarView extends GetView<CalendarController> {
                         ),
                       ],
                     ),
-                    10.height,
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.lightbulb_outline_rounded,
-                          size: 14,
-                          color: CC.primary,
-                        ),
-                        6.width,
-                        Text(
-                          "Pixo AI Peak Engagement: 6:15 PM",
-                          style: TS.caption(
-                            color: CC.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
                     20.height,
                     Row(
                       children: [
@@ -1144,6 +1771,7 @@ class CalendarView extends GetView<CalendarController> {
                               }
                               CW.dismissBottomSheet();
                               await controller.createContentDraft(
+                                accountId: selectedAccount?.id,
                                 title: titleCtrl.text.trim(),
                                 contentType: selectedContentType,
                                 scriptData: scriptCtrl.text.trim().isNotEmpty
@@ -1163,7 +1791,7 @@ class CalendarView extends GetView<CalendarController> {
                         10.width,
                         Expanded(
                           child: CW.commonBtn(
-                            title: "Schedule Post",
+                            title: "Schedule",
                             onTap: () async {
                               if (titleCtrl.text.trim().isEmpty) {
                                 AppToast.error(
@@ -1180,6 +1808,7 @@ class CalendarView extends GetView<CalendarController> {
                               );
                               CW.dismissBottomSheet();
                               await controller.createAndScheduleContentDraft(
+                                accountId: selectedAccount?.id,
                                 title: titleCtrl.text.trim(),
                                 contentType: selectedContentType,
                                 scriptData: scriptCtrl.text.trim().isNotEmpty

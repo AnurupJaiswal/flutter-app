@@ -5,6 +5,7 @@ import 'package:lala_ai/app/modules/studio/widgets/pixo_message_bubble_widget.da
 import 'package:lala_ai/app/modules/studio/widgets/studio_drawer_sidebar.dart';
 import 'package:lala_ai/app/modules/studio/widgets/studio_message_composer.dart';
 import 'package:lala_ai/utils/common_widget.dart';
+import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
 import 'package:lala_ai/utils/theme/theme_service.dart';
@@ -44,12 +45,44 @@ class StudioConversationView extends GetView<StudioController> {
                   ),
               ],
             ),
-            titleWidget: Obx(() => Text(
-                  controller.activeChat.value?.title ?? "Conversation",
-                  style: TS.sectionTitle(fontSize: 14),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                )),
+            titleWidget: Obx(() {
+              final activeSession = controller.activeChat.value;
+              final title = activeSession?.title ?? "Conversation";
+              return InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: activeSession != null
+                    ? () {
+                        CW.showRenameBottomSheet(
+                          context: context,
+                          initialTitle: activeSession.title,
+                          onSave: (newTitle) {
+                            controller.renameSession(activeSession, newTitle);
+                          },
+                        );
+                      }
+                    : null,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          title,
+                          style: TS.sectionTitle(fontSize: 14),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (activeSession != null) ...[
+                        4.width,
+                        Icon(Icons.edit_outlined, size: 13, color: CC.textSecondary),
+                      ],
+                    ],
+                  ),
+                ),
+              );
+            }),
             actions: [
               IconButton(
                 icon: Icon(Icons.add_comment_outlined, color: CC.primary, size: 18),

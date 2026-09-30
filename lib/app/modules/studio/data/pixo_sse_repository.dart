@@ -109,12 +109,21 @@ class PixoSseRepository {
       return;
     }
 
-    debugPrint('[Pixo SSE Response] <--- HTTP ${response.statusCode} ${response.statusMessage ?? ""}');
-
     if (response.statusCode != 200) {
       debugPrint('[Pixo SSE Error] Stream request failed with status HTTP ${response.statusCode}');
-      yield PixoErrorEvent(
-          message: 'HTTP ${response.statusCode}: ${response.statusMessage}');
+      String friendlyError = 'Unable to connect to the assistant right now. Please try again.';
+      if (response.statusCode == 401) {
+        friendlyError = 'Your session has expired. Please sign in again to continue.';
+      } else if (response.statusCode == 403) {
+        friendlyError = 'You do not have permission to access this resource or an upgrade is required.';
+      } else if (response.statusCode == 404) {
+        friendlyError = 'The requested conversation could not be found.';
+      } else if (response.statusCode == 429) {
+        friendlyError = 'Too many requests. Please wait a moment before trying again.';
+      } else if (response.statusCode != null && response.statusCode! >= 500) {
+        friendlyError = 'The server is temporarily unavailable. Please try again shortly.';
+      }
+      yield PixoErrorEvent(message: friendlyError);
       return;
     }
 

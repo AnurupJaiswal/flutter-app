@@ -10,9 +10,7 @@ import 'package:lala_ai/networking/api_endpoints.dart';
 import 'package:lala_ai/networking/api_error_handler.dart';
 import 'package:lala_ai/networking/api_response.dart';
 import 'package:lala_ai/utils/common_methods.dart';
-import 'package:lala_ai/utils/extensions.dart';
-import 'package:lala_ai/utils/theme/color_constant.dart';
-import 'package:lala_ai/utils/theme/text_style.dart';
+import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/Models/creator_profile_model.dart';
 import 'package:lala_ai/Models/connected_accounts_model.dart';
 import 'package:lala_ai/Models/subscription_model.dart';
@@ -275,64 +273,23 @@ class ApiService {
   }
 
 
-  /// Logout confirmation dialog with Black + Blue theme
+  /// Logout confirmation bottom sheet with Black + Blue theme
   static Future<void> logoutWithConfirmation() async {
-    await Get.dialog(
-      AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: CC.border, width: 1),
-        ),
-        backgroundColor: CC.surface,
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: CC.error.withOpacityValue(0.15),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.logout_rounded, color: CC.error, size: 22),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              "Sign Out",
-              style: TS.sectionTitle(color: CC.text),
-            ),
-          ],
-        ),
-        content: Text(
-          "Are you sure you want to sign out of your account?",
-          style: TS.body(color: CC.subText),
-        ),
-        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text(
-              "Cancel",
-              style: TS.button(color: CC.subText),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: CC.error,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-            ),
-            onPressed: () async {
-              Get.back();
-              await logout();
-            },
-            child: Text(
-              "Sign Out",
-              style: TS.button(color: CC.whiteText),
-            ),
-          ),
-        ],
-      ),
+    final context = Get.context;
+    if (context == null) {
+      await logout();
+      return;
+    }
+    await CW.showConfirmationBottomSheet(
+      context: context,
+      title: "Sign Out",
+      subtitle: "You will need to sign in again to access your account",
+      message: "Are you sure you want to sign out of your account?",
+      confirmLabel: "Sign Out",
+      icon: Icons.logout_rounded,
+      onConfirm: () async {
+        await logout();
+      },
     );
   }
 

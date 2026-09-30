@@ -191,9 +191,9 @@ class StudioDrawerSidebar extends GetView<StudioController> {
       ),
       onSelected: (val) {
         if (val == 'rename') {
-          _showRenameDialog(context, session);
+          _showRenameBottomSheet(context, session);
         } else if (val == 'delete') {
-          _showDeleteDialog(context, session);
+          _showDeleteBottomSheet(context, session);
         }
       },
       itemBuilder: (ctx) => [
@@ -234,73 +234,31 @@ class StudioDrawerSidebar extends GetView<StudioController> {
     Navigator.of(context).maybePop();
   }
 
-  void _showRenameDialog(BuildContext context, ChatSessionModel session) {
-    final textController = TextEditingController(text: session.title);
-    Get.dialog(
-      AlertDialog(
-        backgroundColor: CC.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: CC.stroke),
-        ),
-        title: Text("Rename Chat", style: TS.sectionTitle(color: CC.textPrimary)),
-        content: CW.commonTextFormField(
-          controller: textController,
-          hintText: "Chat title",
-          autoFocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text("Cancel", style: TS.caption(color: CC.textSecondary)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: CC.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            onPressed: () {
-              Get.back();
-              controller.renameSession(session, textController.text);
-            },
-            child: Text("Save", style: TS.button(fontSize: 13)),
-          ),
-        ],
-      ),
+  void _showRenameBottomSheet(BuildContext context, ChatSessionModel session) {
+    _closeDrawer(context);
+    CW.showRenameBottomSheet(
+      context: context,
+      initialTitle: session.title,
+      onSave: (newTitle) {
+        controller.renameSession(session, newTitle);
+      },
     );
   }
 
-  void _showDeleteDialog(BuildContext context, ChatSessionModel session) {
-    Get.dialog(
-      AlertDialog(
-        backgroundColor: CC.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: CC.stroke),
-        ),
-        title: Text("Delete Chat", style: TS.sectionTitle(color: CC.textPrimary)),
-        content: Text(
-          "Are you sure you want to delete \"${session.title}\"?",
-          style: TS.bodySmall(color: CC.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text("Cancel", style: TS.caption(color: CC.textSecondary)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: CC.error,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            onPressed: () {
-              Get.back();
-              controller.deleteSession(session);
-            },
-            child: Text("Delete", style: TS.button(fontSize: 13)),
-          ),
-        ],
-      ),
+  void _showDeleteBottomSheet(BuildContext context, ChatSessionModel session) {
+    _closeDrawer(context);
+    CW.showConfirmationBottomSheet(
+      context: context,
+      title: "Delete Chat",
+      subtitle: "This action cannot be undone",
+      message: "Are you sure you want to delete \"${session.title}\"?",
+      confirmLabel: "Delete",
+      confirmButtonColor: CC.error,
+      icon: Icons.delete_outline_rounded,
+      iconColor: CC.error,
+      onConfirm: () {
+        controller.deleteSession(session);
+      },
     );
   }
 }

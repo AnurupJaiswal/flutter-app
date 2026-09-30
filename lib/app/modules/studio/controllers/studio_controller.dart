@@ -561,17 +561,93 @@ class StudioController extends GetxController {
   void _finaliseAssistantMessage(int index, {String? errorMessage}) {
     if (index >= 0 && index < pixoMessages.length) {
       final existing = pixoMessages[index];
-      final fallback = existing.textContent.trim().isNotEmpty
-          ? existing.textContent
-          : "Sorry, I couldn't complete that request. Please check your connection and try again.";
+      final formattedText = _formatErrorMessage(errorMessage) ??
+          (existing.textContent.trim().isNotEmpty
+              ? existing.textContent
+              : "I'm having trouble processing that right now. Please try again in a moment.");
       pixoMessages[index] = existing.copyWith(
         isStreaming: false,
         renderMode: PixoRenderMode.text,
-        hasError: errorMessage != null,
-        errorMessage: errorMessage,
-        textContent: errorMessage ?? fallback,
+        hasError: false,
+        errorMessage: null,
+        textContent: formattedText,
       );
     }
+  }
+
+  String? _formatErrorMessage(String? rawError) {
+    if (rawError == null || rawError.trim().isEmpty) return null;
+    final trimmed = rawError.trim();
+    final lower = trimmed.toLowerCase();
+
+    // 1. HTTP and Auth codes
+    if (lower.contains('401') || lower.contains('unauthorized')) {
+      return "Your session has expired. Please sign in again to continue.";
+    }
+    if (lower.contains('403') || lower.contains('forbidden')) {
+      return "Access denied. A subscription upgrade may be required.";
+    }
+    if (lower.contains('404') || lower.contains('not found')) {
+      return "The requested conversation or resource could not be found.";
+    }
+    if (lower.contains('429') || lower.contains('too many requests')) {
+      return "You've sent too many requests. Please wait a moment and try again.";
+    }
+    if (lower.contains('500') ||
+        lower.contains('502') ||
+        lower.contains('503') ||
+        lower.contains('504') ||
+        lower.contains('server error')) {
+      return "The server is temporarily experiencing issues. Please try again shortly.";
+    }
+
+    // 2. Network errors
+    if (lower.contains('socketexception') ||
+        lower.contains('connection refused') ||
+        lower.contains('network error') ||
+        lower.contains('timeout')) {
+      return "Connection error. Please check your internet connection and try again.";
+    }
+
+    // 3. Known backend status strings
+    if (trimmed == 'ENTITY_RESOLUTION_FAILURE' ||
+        trimmed.contains('ENTITY_RESOLUTION_FAILURE')) {
+      return "I couldn't resolve or identify the channel or entity you mentioned. Please double-check the channel name or link and try again.";
+    }
+    if (trimmed == 'ENTITY_NOT_FOUND' || trimmed.contains('ENTITY_NOT_FOUND')) {
+      return "I couldn't find the requested channel or video details. Please ensure the information is correct and try again.";
+    }
+    if (trimmed == 'CONTEXT_UNAVAILABLE' ||
+        trimmed.contains('CONTEXT_UNAVAILABLE')) {
+      return "Context data for this request is currently unavailable. Please rephrase or try again.";
+    }
+    if (trimmed == 'PROVIDER_UNAVAILABLE' ||
+        trimmed.contains('PROVIDER_UNAVAILABLE')) {
+      return "The AI engine is temporarily busy. Please try again shortly.";
+    }
+    if (trimmed == 'USAGE_LIMIT_REACHED' ||
+        trimmed.contains('USAGE_LIMIT_REACHED')) {
+      return "You have reached your daily limit for this feature. Please upgrade to Pro to unlock unlimited requests.";
+    }
+    if (trimmed == 'ENTITLEMENT_DENIED' ||
+        trimmed.contains('ENTITLEMENT_DENIED')) {
+      return "This feature is available on our Pro plan. Please upgrade your subscription to unlock it.";
+    }
+
+    // 4. Any other ALL_CAPS codes
+    if (RegExp(r'^[A-Z0-9_]+$').hasMatch(trimmed)) {
+      final readable = trimmed.toLowerCase().replaceAll('_', ' ');
+      return "Unable to complete request ($readable). Please try again.";
+    }
+
+    // 5. Clean any "HTTP xxx" or "Exception: " prefix if present
+    if (trimmed.startsWith('HTTP ') ||
+        trimmed.startsWith('Exception:') ||
+        trimmed.startsWith('Stream error:')) {
+      return "Something went wrong while connecting. Please try again in a moment.";
+    }
+
+    return trimmed;
   }
 
   void _removeAssistantPlaceholder(int index) {

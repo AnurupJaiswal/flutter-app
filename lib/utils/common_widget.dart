@@ -439,7 +439,7 @@ class CW {
     );
   }
 
-  /// Minimal Avatar Icon
+  /// Clean Lala AI & User Avatar
   static Widget aiAvatar({
     double size = 28,
     bool isAssistant = true,
@@ -451,13 +451,17 @@ class CW {
         height: size,
         decoration: BoxDecoration(
           color: CC.tealSubtle,
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: CC.primary.withValues(alpha: 0.3), width: 0.7),
+          borderRadius: BorderRadius.circular(size * 0.28),
+          border: Border.all(color: CC.primary.withValues(alpha: 0.3), width: 0.8),
         ),
         child: Center(
           child: Text(
             "L",
-            style: TS.caption(color: CC.primary, fontWeight: FontWeight.w700),
+            style: TS.caption(
+              color: CC.primary,
+              fontWeight: FontWeight.w700,
+              fontSize: size * 0.44,
+            ),
           ),
         ),
       );
@@ -468,13 +472,13 @@ class CW {
       height: size,
       decoration: BoxDecoration(
         color: CC.surface,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: CC.stroke, width: 0.7),
+        shape: BoxShape.circle,
+        border: Border.all(color: CC.stroke, width: 0.8),
       ),
       child: Center(
         child: Text(
           (userInitial != null && userInitial.isNotEmpty) ? userInitial[0].toUpperCase() : "U",
-          style: TS.caption(color: CC.textSecondary, fontWeight: FontWeight.w700),
+          style: TS.caption(color: CC.textPrimary, fontWeight: FontWeight.w700, fontSize: size * 0.42),
         ),
       ),
     );
@@ -498,6 +502,237 @@ class CW {
     }
     // Fallback if no context was provided or if context method failed
     Get.back();
+  }
+
+  /// Sleek BottomSheet for editing / renaming chat title or any item
+  static Future<void> showRenameBottomSheet({
+    required BuildContext context,
+    required String initialTitle,
+    required ValueChanged<String> onSave,
+    String sheetTitle = "Rename Chat",
+    String hintText = "Chat title",
+    String subtitle = "Enter a new title for this conversation",
+  }) {
+    final textController = TextEditingController(text: initialTitle);
+    return showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
+          ),
+          child: SafeArea(
+            child: Material(
+              color: CC.surface,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Drag Handle
+                    Center(
+                      child: Container(
+                        width: 36,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: CC.stroke,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    // Header
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: CC.primary.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(Icons.edit_outlined, color: CC.primary, size: 18),
+                        ),
+                        12.width,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(sheetTitle, style: TS.sectionTitle(color: CC.textPrimary)),
+                              2.height,
+                              Text(subtitle, style: TS.caption(color: CC.textSecondary)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    18.height,
+                    // Text Field
+                    CW.commonTextFormField(
+                      controller: textController,
+                      hintText: hintText,
+                      autoFocus: true,
+                    ),
+                    20.height,
+                    // Action Buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(color: CC.stroke),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            onPressed: () => dismissBottomSheet(sheetContext),
+                            child: Text("Cancel", style: TS.bodyMedium(color: CC.textSecondary)),
+                          ),
+                        ),
+                        12.width,
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: CC.primary,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              elevation: 0,
+                            ),
+                            onPressed: () {
+                              final text = textController.text.trim();
+                              dismissBottomSheet(sheetContext);
+                              if (text.isNotEmpty) {
+                                onSave(text);
+                              }
+                            },
+                            child: Text("Save", style: TS.button(fontSize: 13)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Modern confirmation BottomSheet replacing standard AlertDialogs
+  static Future<void> showConfirmationBottomSheet({
+    required BuildContext context,
+    required String title,
+    required String message,
+    required VoidCallback onConfirm,
+    String confirmLabel = "Confirm",
+    String cancelLabel = "Cancel",
+    IconData icon = Icons.warning_amber_rounded,
+    Color? iconColor,
+    Color? confirmButtonColor,
+    String? subtitle,
+  }) {
+    final effectiveIconColor = iconColor ?? CC.error;
+    final effectiveConfirmColor = confirmButtonColor ?? CC.error;
+
+    return showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Material(
+            color: CC.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: CC.stroke,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: effectiveIconColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(icon, color: effectiveIconColor, size: 20),
+                      ),
+                      12.width,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(title, style: TS.sectionTitle(color: CC.textPrimary)),
+                            if (subtitle != null) ...[
+                              2.height,
+                              Text(subtitle, style: TS.caption(color: CC.textSecondary)),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  16.height,
+                  Text(
+                    message,
+                    style: TS.body(color: CC.textSecondary),
+                  ),
+                  22.height,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: CC.stroke),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          onPressed: () => dismissBottomSheet(sheetContext),
+                          child: Text(cancelLabel, style: TS.bodyMedium(color: CC.textSecondary)),
+                        ),
+                      ),
+                      12.width,
+                      Expanded(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: effectiveConfirmColor,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            elevation: 0,
+                          ),
+                          onPressed: () {
+                            dismissBottomSheet(sheetContext);
+                            onConfirm();
+                          },
+                          child: Text(confirmLabel, style: TS.button(fontSize: 13)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   /// Custom BottomSheet System matching Manage Categories design standard

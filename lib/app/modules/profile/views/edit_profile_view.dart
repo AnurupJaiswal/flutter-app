@@ -483,44 +483,21 @@ class _EditProfileViewState extends State<EditProfileView> {
 
   void _showPermissionDeniedDialog(ImageSource source) {
     final isCamera = source == ImageSource.camera;
-    showDialog<void>(
+    CW.showConfirmationBottomSheet(
       context: context,
-      builder: (dialogCtx) => AlertDialog(
-        backgroundColor: CC.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          "${isCamera ? 'Camera' : 'Gallery'} Access Required",
-          style: TS
-              .sectionTitle(color: CC.textPrimary, fontWeight: FontWeight.w600)
-              .copyWith(fontSize: 16),
-        ),
-        content: Text(
-          isCamera
-              ? "Lala AI needs camera access to take your profile photo. "
-                  "Please go to Settings → Apps → Lala AI → Permissions and enable Camera."
-              : "Lala AI needs photo library access so you can pick a profile picture. "
-                  "Please go to Settings → Apps → Lala AI → Permissions and enable Photos.",
-          style: TS.body(color: CC.textSecondary).copyWith(fontSize: 13, height: 1.5),
-        ),
-        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogCtx).pop(),
-            child: Text("Not Now",
-                style: TS.bodyMedium(color: CC.textSecondary)),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(dialogCtx).pop();
-              AppToast.info(
-                  "Go to Settings → Apps → Lala AI → Permissions");
-            },
-            child: Text("Open Settings",
-                style: TS.bodyMedium(
-                    color: CC.primary, fontWeight: FontWeight.w600)),
-          ),
-        ],
-      ),
+      title: "${isCamera ? 'Camera' : 'Gallery'} Access Required",
+      subtitle: "Permission settings",
+      message: isCamera
+          ? "Lala AI needs camera access to take your profile photo. Please go to Settings → Apps → Lala AI → Permissions and enable Camera."
+          : "Lala AI needs photo library access so you can pick a profile picture. Please go to Settings → Apps → Lala AI → Permissions and enable Photos.",
+      icon: isCamera ? Icons.camera_alt_outlined : Icons.photo_library_outlined,
+      iconColor: CC.primary,
+      cancelLabel: "Not Now",
+      confirmLabel: "Open Settings",
+      confirmButtonColor: CC.primary,
+      onConfirm: () {
+        AppToast.info("Go to Settings → Apps → Lala AI → Permissions");
+      },
     );
   }
 

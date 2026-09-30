@@ -3,19 +3,14 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:lala_ai/app/modules/studio/data/pixo_message.dart';
 import 'package:lala_ai/app/modules/studio/widgets/pixo_tool_result_card.dart';
+import 'package:lala_ai/core/widgets/app_markdown_view.dart';
 import 'package:lala_ai/utils/app_toast.dart';
 import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
 
-/// Renders a single Pixo message in the conversation list.
-///
-/// Golden rule (M10.4):
-/// - [PixoRenderMode.toolResult] → [PixoToolResultCard] structured widget
-/// - [PixoRenderMode.text] / [PixoRenderMode.streaming] → markdown text bubble
-///
-/// A single message can contain BOTH (tool result card above, text below).
+/// Renders a single Pixo message in the conversation list with a sleek modern design.
 class PixoMessageBubbleWidget extends StatelessWidget {
   final PixoMessage message;
   final VoidCallback? onRegenerate;
@@ -42,148 +37,201 @@ class PixoMessageBubbleWidget extends StatelessWidget {
     );
   }
 
-  // ── User bubble ───────────────────────────────────────────────────────────
+  // ── Modern User Bubble ───────────────────────────────────────────────────
 
   Widget _buildUserMessage(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 20, left: 56),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Flexible(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: CC.surface,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(10),
-                  topRight: Radius.circular(10),
-                  bottomLeft: Radius.circular(10),
-                  bottomRight: Radius.circular(2),
-                ),
-                border: Border.all(color: CC.stroke, width: 0.8),
-                boxShadow: [
-                  BoxShadow(
-                    color: CC.black.withOpacityValue(0.03),
-                    blurRadius: 4,
-                    offset: const Offset(0, 1),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  SelectableText(
-                    message.textContent,
-                    style: TS.body(color: CC.textPrimary),
-                  ),
-                  4.height,
-                  Text(
-                    DateFormat('hh:mm a').format(message.timestamp),
-                    style: TS.caption(color: CC.textSecondary, fontSize: 10),
-                  ),
-                ],
-              ),
+      margin: const EdgeInsets.only(bottom: 18, left: 48, right: 6),
+      alignment: Alignment.centerRight,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.78,
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+          decoration: BoxDecoration(
+            color: CC.primary,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(18),
+              topRight: Radius.circular(18),
+              bottomLeft: Radius.circular(18),
+              bottomRight: Radius.circular(4),
             ),
+            boxShadow: [
+              BoxShadow(
+                color: CC.primary.withValues(alpha: 0.22),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
-          8.width,
-          CW.aiAvatar(size: 26, isAssistant: false),
-        ],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SelectableText(
+                message.textContent,
+                style: TS.body(color: Colors.white).copyWith(
+                  height: 1.38,
+                  letterSpacing: -0.1,
+                ),
+              ),
+              4.height,
+              Text(
+                DateFormat('hh:mm a').format(message.timestamp),
+                style: TS.caption(
+                  color: Colors.white.withValues(alpha: 0.75),
+                  fontSize: 10,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  // ── Assistant bubble ──────────────────────────────────────────────────────
+  // ── Modern Assistant Bubble ──────────────────────────────────────────────
 
   Widget _buildAssistantMessage(BuildContext context) {
+    final hasContent = message.textContent.trim().isNotEmpty;
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 24),
+      margin: const EdgeInsets.only(bottom: 20, left: 6, right: 40),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CW.aiAvatar(size: 26, isAssistant: true),
-          12.width,
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── Header row ──
-                Row(
-                  children: [
-                    Text(
-                      'Lala AI',
-                      style: TS.caption(
-                        color: CC.textPrimary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    8.width,
-                    Text(
-                      DateFormat('hh:mm a').format(message.timestamp),
-                      style: TS.caption(color: CC.grey, fontSize: 10),
-                    ),
-                    if (message.isStreaming) ...[
-                      8.width,
-                      SizedBox(
-                        width: 10,
-                        height: 10,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 1.5,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(CC.primary),
-                        ),
-                      ),
-                    ],
-                  ],
+          // AI Brand Avatar
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: CW.aiAvatar(size: 28, isAssistant: true),
+          ),
+          10.width,
+          // Assistant Message Bubble Container
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(14, 11, 14, 11),
+              decoration: BoxDecoration(
+                color: CC.isDark
+                    ? const Color(0xFF191A1E)
+                    : const Color(0xFFF3F5F8),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(4),
+                  topRight: Radius.circular(18),
+                  bottomLeft: Radius.circular(18),
+                  bottomRight: Radius.circular(18),
                 ),
-
-                6.height,
-
-                // ── TOOL_RESULT rendering path (M10.4) ──
-                // Rendered ABOVE conversational text — never parse from tokens.
-                if (message.hasToolResult) ...[
-                  PixoToolResultCard(
-                      payload: message.toolResultPayload!),
-                ],
-
-                // ── Error state ──
-                if (message.hasError) ...[
-                  _buildErrorBubble(),
-                ] else if (message.textContent.isNotEmpty) ...[
-                  // ── TOKEN rendering path (M10.4) ──
-                  // Markdown text streamed from TOKEN events.
-                  _buildTextContent(),
-                ] else if (message.isStreaming &&
-                    !message.hasToolResult) ...[
-                  // Still waiting for first token
-                  _buildStreamingPlaceholder(),
-                ],
-
-                6.height,
-
-                // ── Action toolbar ──
-                if (!message.isStreaming)
+                border: Border.all(
+                  color: CC.isDark
+                      ? const Color(0xFF28292E)
+                      : const Color(0xFFE5E8ED),
+                  width: 0.8,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Header Row
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildActionButton(
-                        icon: Icons.copy_rounded,
-                        tooltip: 'Copy',
-                        onTap: () {
-                          Clipboard.setData(
-                              ClipboardData(text: message.textContent));
-                          AppToast.success('Copied to clipboard');
-                        },
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Lala AI',
+                            style: TS.caption(
+                              color: CC.primary,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 11.5,
+                            ),
+                          ),
+                          if (message.isStreaming) ...[
+                            8.width,
+                            SizedBox(
+                              width: 9,
+                              height: 9,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 1.4,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(CC.primary),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                      if (onRegenerate != null)
-                        _buildActionButton(
-                          icon: Icons.refresh_rounded,
-                          tooltip: 'Regenerate',
-                          onTap: onRegenerate,
-                        ),
+                      Text(
+                        DateFormat('hh:mm a').format(message.timestamp),
+                        style: TS.caption(color: CC.grey, fontSize: 10),
+                      ),
                     ],
                   ),
-              ],
+
+                  6.height,
+
+                  // Tool result payload (Audit, trends, compare card)
+                  if (message.hasToolResult) ...[
+                    PixoToolResultCard(payload: message.toolResultPayload!),
+                    if (hasContent) 8.height,
+                  ],
+
+                  // Conversational Text / Markdown
+                  if (hasContent) ...[
+                    _buildTextContent(),
+                  ] else if (message.isStreaming && !message.hasToolResult) ...[
+                    _buildStreamingPlaceholder(),
+                  ],
+
+                  // Action toolbar (compact bottom-right aligned)
+                  if (!message.isStreaming && hasContent) ...[
+                    8.height,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        _buildActionButton(
+                          icon: Icons.copy_rounded,
+                          tooltip: 'Copy',
+                          onTap: () {
+                            Clipboard.setData(
+                              ClipboardData(text: message.textContent),
+                            );
+                            AppToast.success('Copied to clipboard');
+                          },
+                        ),
+                        if (onRegenerate != null)
+                          _buildActionButton(
+                            icon: Icons.refresh_rounded,
+                            tooltip: 'Regenerate',
+                            onTap: onRegenerate,
+                          ),
+                        if (onLike != null) ...[
+                          _buildActionButton(
+                            icon: message.isLiked == true
+                                ? Icons.thumb_up_alt_rounded
+                                : Icons.thumb_up_off_alt_rounded,
+                            color: message.isLiked == true
+                                ? CC.primary
+                                : CC.grey,
+                            tooltip: 'Helpful',
+                            onTap: () => onLike!(true),
+                          ),
+                          _buildActionButton(
+                            icon: message.isLiked == false
+                                ? Icons.thumb_down_alt_rounded
+                                : Icons.thumb_down_off_alt_rounded,
+                            color: message.isLiked == false
+                                ? CC.error
+                                : CC.grey,
+                            tooltip: 'Not helpful',
+                            onTap: () => onLike!(false),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
         ],
@@ -192,43 +240,25 @@ class PixoMessageBubbleWidget extends StatelessWidget {
   }
 
   Widget _buildTextContent() {
-    return SelectableText(
-      message.textContent,
-      style: TS.body(color: CC.textPrimary),
+    return AppMarkdownView(
+      data: message.textContent,
+      baseStyle: TS.body(color: CC.textPrimary).copyWith(
+        height: 1.45,
+      ),
     );
   }
 
   Widget _buildStreamingPlaceholder() {
-    return Row(
-      children: [
-        _BlinkingDot(),
-        4.width,
-        _BlinkingDot(delay: const Duration(milliseconds: 200)),
-        4.width,
-        _BlinkingDot(delay: const Duration(milliseconds: 400)),
-      ],
-    );
-  }
-
-  Widget _buildErrorBubble() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: CC.error.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: CC.error.withValues(alpha: 0.25), width: 0.8),
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.error_outline_rounded, color: CC.error, size: 14),
-          8.width,
-          Expanded(
-            child: Text(
-              message.errorMessage ??
-                  'Something went wrong. Please try again.',
-              style: TS.bodySmall(color: CC.error),
-            ),
-          ),
+          _BlinkingDot(),
+          5.width,
+          _BlinkingDot(delay: const Duration(milliseconds: 200)),
+          5.width,
+          _BlinkingDot(delay: const Duration(milliseconds: 400)),
         ],
       ),
     );
@@ -240,15 +270,16 @@ class PixoMessageBubbleWidget extends StatelessWidget {
     required VoidCallback? onTap,
     Color? color,
   }) {
-    return IconButton(
-      visualDensity: VisualDensity.compact,
-      iconSize: 15,
-      splashRadius: 14,
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-      icon: Icon(icon, color: color ?? CC.grey),
-      tooltip: tooltip,
-      onPressed: onTap,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(6),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(5),
+          child: Icon(icon, size: 14, color: color ?? CC.grey),
+        ),
+      ),
     );
   }
 }
@@ -278,7 +309,7 @@ class _BlinkingDotState extends State<_BlinkingDot>
     Future.delayed(widget.delay, () {
       if (mounted) _ctrl.repeat(reverse: true);
     });
-    _anim = Tween<double>(begin: 0.3, end: 1.0).animate(
+    _anim = Tween<double>(begin: 0.25, end: 1.0).animate(
       CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
     );
   }
@@ -323,7 +354,9 @@ class PixoReconnectingBanner extends StatelessWidget {
             color: CC.warning.withValues(alpha: 0.10),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-                color: CC.warning.withValues(alpha: 0.25), width: 0.8),
+              color: CC.warning.withValues(alpha: 0.25),
+              width: 0.8,
+            ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -333,8 +366,7 @@ class PixoReconnectingBanner extends StatelessWidget {
                 height: 12,
                 child: CircularProgressIndicator(
                   strokeWidth: 1.5,
-                  valueColor:
-                      AlwaysStoppedAnimation<Color>(CC.warning),
+                  valueColor: AlwaysStoppedAnimation<Color>(CC.warning),
                 ),
               ),
               10.width,

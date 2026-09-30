@@ -82,7 +82,6 @@ class _StudioViewState extends State<StudioView> with WidgetsBindingObserver {
                           Scaffold.of(scaffoldContext).openDrawer(),
                     ),
                   ),
-            titleWidget: Obx(() => _buildStatusChip(_ctrl.streamState.value)),
             actions: [
               IconButton(
                 icon: Icon(Icons.add_comment_outlined,
@@ -165,92 +164,6 @@ class _StudioViewState extends State<StudioView> with WidgetsBindingObserver {
 
         return mainContent;
       },
-    );
-  }
-
-  Widget _buildStatusChip(PixoStreamState state) {
-    String label = '';
-    Color color = CC.primary;
-
-    switch (state) {
-      case PixoStreamState.idle:
-      case PixoStreamState.completed:
-        return const SizedBox.shrink();
-      case PixoStreamState.start:
-        label = 'Connecting...';
-        color = CC.primary;
-      case PixoStreamState.contextReady:
-        label = 'Fetching context...';
-        color = CC.primary;
-      case PixoStreamState.toolResult:
-        label = 'Processing command...';
-        color = CC.primary;
-      case PixoStreamState.generating:
-        label = 'Generating...';
-        color = CC.primary;
-      case PixoStreamState.reconnecting:
-        label = 'Reconnecting...';
-        color = CC.warning;
-      case PixoStreamState.error:
-        label = 'Error';
-        color = CC.error;
-      case PixoStreamState.entitlementDenied:
-        label = 'Upgrade required';
-        color = CC.warning;
-      case PixoStreamState.usageLimitReached:
-        label = 'Limit reached';
-        color = CC.error;
-      case PixoStreamState.providerUnavailable:
-        label = 'Provider down';
-        color = CC.error;
-      case PixoStreamState.contextUnavailable:
-        label = 'Not found';
-        color = CC.error;
-      case PixoStreamState.cancelled:
-        label = 'Stopped';
-        color = CC.textSecondary;
-    }
-
-    final isSpinning = state == PixoStreamState.generating ||
-        state == PixoStreamState.start ||
-        state == PixoStreamState.contextReady ||
-        state == PixoStreamState.toolResult ||
-        state == PixoStreamState.reconnecting;
-
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 250),
-      child: Container(
-        key: ValueKey(label),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(20),
-          border:
-              Border.all(color: color.withValues(alpha: 0.25), width: 0.8),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (isSpinning)
-              Padding(
-                padding: const EdgeInsets.only(right: 5),
-                child: SizedBox(
-                  width: 8,
-                  height: 8,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 1.2,
-                    valueColor: AlwaysStoppedAnimation<Color>(color),
-                  ),
-                ),
-              ),
-            Text(label,
-                style: TS.caption(
-                    color: color,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600)),
-          ],
-        ),
-      ),
     );
   }
 

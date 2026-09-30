@@ -17,6 +17,9 @@ class CalendarController extends GetxController {
   final isSubmitting = false.obs;
   final errorMessage = "".obs;
 
+  final availableChannels = <ChannelOption>[].obs;
+  final selectedChannel = Rxn<ChannelOption>();
+
   static DateTime get _todayDate {
     final now = DateTime.now();
     return DateTime(now.year, now.month, now.day);
@@ -62,6 +65,12 @@ class CalendarController extends GetxController {
     return "${_monthNames[d.month - 1]} ${d.day}";
   }
 
+  bool get isCurrentMonthSelected {
+    final now = DateTime.now();
+    final d = currentDisplayMonth.value;
+    return d.year == now.year && d.month == now.month;
+  }
+
   final serverDrafts = <ContentDraftModel>[].obs;
   final allPosts = <Map<String, dynamic>>[].obs;
 
@@ -91,6 +100,10 @@ class CalendarController extends GetxController {
           date.year == selectedDate.value.year &&
           date.month == selectedDate.value.month &&
           date.day == selectedDate.value.day;
+      final isToday =
+          date.year == _todayDate.year &&
+          date.month == _todayDate.month &&
+          date.day == _todayDate.day;
       final hasPost = _hasPostOnDate(date);
 
       return {
@@ -98,6 +111,7 @@ class CalendarController extends GetxController {
         "date": date.day,
         "fullDate": date,
         "isSelected": isSelected,
+        "isToday": isToday,
         "hasDot": hasPost,
         "dotColor": "teal",
       };
@@ -155,10 +169,30 @@ class CalendarController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _initChannels();
     fetchDrafts();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       scrollToSelectedDate(animate: false);
     });
+  }
+
+  void _initChannels() {
+    if (Get.isRegistered<HomeController>()) {
+      final homeCtrl = Get.find<HomeController>();
+      if (homeCtrl.availableChannels.isNotEmpty) {
+        availableChannels.assignAll(homeCtrl.availableChannels);
+        selectedChannel.value = homeCtrl.selectedChannel.value;
+      }
+      // Listen to channel changes from HomeController if any
+      ever(homeCtrl.availableChannels, (channels) {
+        availableChannels.assignAll(channels);
+      });
+    }
+  }
+
+  void selectChannel(ChannelOption? channel) {
+    selectedChannel.value = channel;
+    fetchDrafts();
   }
 
   @override
@@ -172,8 +206,8 @@ class CalendarController extends GetxController {
     isLoading.value = true;
     errorMessage.value = "";
     try {
-      dynamic accountId;
-      if (Get.isRegistered<HomeController>()) {
+      dynamic accountId = selectedChannel.value?.id;
+      if (accountId == null && Get.isRegistered<HomeController>()) {
         accountId = Get.find<HomeController>().activeConnectedAccountId.value;
       }
 
@@ -474,6 +508,18 @@ class CalendarController extends GetxController {
       );
     } else {
       scrollController.jumpTo(targetOffset);
+    }
+  }
+
+  void jumpToToday() {
+    final now = _todayDate;
+    final isDifferentMonth = currentDisplayMonth.value.year != now.year ||
+        currentDisplayMonth.value.month != now.month;
+    currentDisplayMonth.value = DateTime(now.year, now.month, 1);
+    selectedDate.value = now;
+    scrollToSelectedDate(animate: true);
+    if (isDifferentMonth) {
+      fetchDrafts();
     }
   }
 

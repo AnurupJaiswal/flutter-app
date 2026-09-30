@@ -46,12 +46,44 @@ class ChatConversationView extends GetView<ChatController> {
               ),
           ],
         ),
-        titleWidget: Obx(() => Text(
-              controller.activeChat.value?.title ?? "Conversation",
-              style: TS.sectionTitle(fontSize: 14),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            )),
+        titleWidget: Obx(() {
+          final activeSession = controller.activeChat.value;
+          final title = activeSession?.title ?? "Conversation";
+          return InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: activeSession != null
+                ? () {
+                    CW.showRenameBottomSheet(
+                      context: context,
+                      initialTitle: activeSession.title,
+                      onSave: (newTitle) {
+                        controller.renameSession(activeSession, newTitle);
+                      },
+                    );
+                  }
+                : null,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      title,
+                      style: TS.sectionTitle(fontSize: 14),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (activeSession != null) ...[
+                    4.width,
+                    Icon(Icons.edit_outlined, size: 13, color: CC.textSecondary),
+                  ],
+                ],
+              ),
+            ),
+          );
+        }),
         actions: [
           IconButton(
             icon: Icon(Icons.add_comment_outlined, color: CC.primary, size: 18),
