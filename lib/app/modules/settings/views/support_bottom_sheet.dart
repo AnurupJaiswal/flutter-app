@@ -10,8 +10,14 @@ import 'package:lala_ai/app/modules/settings/controllers/settings_controller.dar
 void showContactSupportSheet(BuildContext context) {
   final msgController = TextEditingController();
   final settingsController = Get.find<SettingsController>();
-  String selectedCategory = "GENERAL";
-  final categories = ["GENERAL", "BILLING", "TECHNICAL", "FEATURE_REQUEST"];
+  String selectedCategory = "OTHER";
+  final categoriesMap = {
+    "OTHER": "General / Other",
+    "BILLING_SUBSCRIPTION": "Billing & Subscription",
+    "TECHNICAL_ISSUE": "Technical Issue",
+    "ACCOUNT_SYNC": "Account Sync",
+    "FEATURE_REQUEST": "Feature Request",
+  };
 
   CW.showCustomBottomSheet(
     context: context,
@@ -45,10 +51,10 @@ void showContactSupportSheet(BuildContext context) {
                     isExpanded: true,
                     dropdownColor: CC.surface,
                     style: TS.body(color: CC.textPrimary),
-                    items: categories.map((String value) {
+                    items: categoriesMap.entries.map((entry) {
                       return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
+                        value: entry.key,
+                        child: Text(entry.value),
                       );
                     }).toList(),
                     onChanged: (newValue) {
@@ -64,7 +70,7 @@ void showContactSupportSheet(BuildContext context) {
               16.height,
               CW.commonTextFormField(
                 controller: msgController,
-                hintText: "Describe your issue or question...",
+                hintText: "Describe your issue or question (min 10 chars)...",
                 labelText: "Your Message",
                 maxLines: 4,
               ),
@@ -76,8 +82,8 @@ void showContactSupportSheet(BuildContext context) {
                   onTap: isLoading
                       ? () {}
                       : () async {
-                          if (msgController.text.trim().isEmpty) {
-                            CM.showToast("Please enter a message");
+                          if (msgController.text.trim().length < 10) {
+                            CM.showToast("Please enter at least 10 characters");
                             return;
                           }
                           setState(() {
@@ -85,8 +91,8 @@ void showContactSupportSheet(BuildContext context) {
                           });
                           try {
                             // Wait for the controller method
-                            await settingsController.createSupportTicket(msgController.text.trim());
-                            if (context.mounted) {
+                            bool success = await settingsController.createSupportTicket(msgController.text.trim(), category: selectedCategory);
+                            if (success && context.mounted) {
                               CW.dismissBottomSheet();
                             }
                           } catch (e) {
