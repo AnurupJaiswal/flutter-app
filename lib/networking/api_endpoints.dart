@@ -244,4 +244,11 @@ class ApiEndpoints {
   /// Single conversation detail.
   static String pixoConversationDetail(dynamic conversationId) =>
       '/api/v1/pixo/conversations/$conversationId';
+
+  // --- Support Tickets Endpoints ---
+  static const String supportTickets = '/api/v1/support/tickets';
+  static String supportTicketDetail(dynamic ticketId) =>
+      '/api/v1/support/tickets/$ticketId';
+  static String supportTicketReply(dynamic ticketId) =>
+      '/api/v1/support/tickets/$ticketId/reply';
 }

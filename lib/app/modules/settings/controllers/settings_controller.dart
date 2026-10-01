@@ -3,6 +3,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:lala_ai/app/modules/authentication/data/auth_repository.dart';
 import 'package:lala_ai/app/routes/app_routes.dart';
 import 'package:lala_ai/utils/common_methods.dart';
+import 'package:lala_ai/networking/api_service.dart';
+import 'package:lala_ai/networking/api_endpoints.dart';
 
 class SettingsController extends GetxController {
   final AuthRepository authRepository;
@@ -107,6 +109,29 @@ class SettingsController extends GetxController {
 
   Future<void> deleteAccount() async {
     CM.showToast("Account deletion request submitted. Our support team will process your request within 24-48 hours.");
+  }
+
+  Future<bool> createSupportTicket(String message, {String category = "GENERAL"}) async {
+    try {
+      final response = await ApiService.post(
+        ApiEndpoints.supportTickets,
+        body: {
+          "category": category,
+          "subject": "In-App Support Request",
+          "message": message,
+        },
+      );
+      if (response.isSuccess) {
+        CM.showToast("Support ticket created! We'll reply shortly.");
+        return true;
+      } else {
+        CM.showToast("Failed to create ticket: ${response.message}");
+        return false;
+      }
+    } catch (e) {
+      CM.showToast("Error: Failed to submit ticket.");
+      return false;
+    }
   }
 
   void clearLocalCache() {

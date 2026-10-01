@@ -12,6 +12,7 @@ import 'package:lala_ai/utils/common_widget.dart';
 import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
+import 'package:lala_ai/app/modules/settings/views/support_bottom_sheet.dart';
 import 'package:lala_ai/utils/theme/theme_service.dart';
 
 class SettingsView extends GetView<SettingsController> {
@@ -852,28 +853,6 @@ class SettingsView extends GetView<SettingsController> {
 
 
   void _showContactSupportBottomSheet(BuildContext context) {
-    final msgController = TextEditingController();
-    CW.showCustomBottomSheet(
-      context: context,
-      title: "Contact 24/7 Support",
-      titleIcon: Icons.support_agent_rounded,
-      children: [
-        Text("Our creator support team typically responds within 1 hour.", style: TS.caption(color: CC.textSecondary)),
-        12.height,
-        CW.commonTextFormField(
-          controller: msgController,
-          hintText: "Describe your issue or question...",
-          labelText: "Your Message",
-        ),
-        16.height,
-        CW.commonBtn(
-          title: "Send Message",
-          onTap: () {
-            CW.dismissBottomSheet();
-            CM.showToast("Support ticket created! We'll reply shortly.");
-          },
-        ),
-      ],
-    ).then((_) => msgController.dispose());
+    showContactSupportSheet(context);
   }
 }
