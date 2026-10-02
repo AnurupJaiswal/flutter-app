@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:lala_ai/app/data/repositories/trend_repository.dart';
 import 'package:lala_ai/app/data/repositories/dashboard_repository.dart';
 import 'package:lala_ai/app/modules/authentication/data/auth_repository.dart';
+import 'package:lala_ai/app/data/repositories/calendar_repository.dart';
 import 'package:lala_ai/networking/api_service.dart';
 import 'package:lala_ai/utils/app_toast.dart';
 import 'package:lala_ai/utils/extensions.dart';
@@ -272,7 +273,19 @@ class HomeController extends GetxController {
     bool isRefresh = false,
   }) async {
     try {
-      final audit = await dashboardRepository.getDashboardOverview(channelId);
+      ChannelAuditData? audit = await dashboardRepository.getDashboardOverview(channelId);
+      
+      // If no data exists yet, trigger an audit first
+      if (audit == null) {
+        isAuditing.value = true;
+        final triggered = await dashboardRepository.triggerAudit(channelId);
+        if (triggered) {
+          // Re-fetch after triggering
+          audit = await dashboardRepository.getDashboardOverview(channelId);
+        }
+        isAuditing.value = false;
+      }
+
       if (audit != null) {
         hasAuditData.value = true;
         healthScore.value = audit.healthScore;
@@ -299,6 +312,7 @@ class HomeController extends GetxController {
       if (!isRefresh) {
         hasAuditData.value = false;
       }
+      isAuditing.value = false;
     }
   }
 
@@ -308,28 +322,42 @@ class HomeController extends GetxController {
       final todos = await dashboardRepository.getTodos(
         connectedAccountId: channelId,
       );
-      toDoItems.assignAll(
-        todos
-            .map(
-              (t) => {
-                "id": t.id,
-                "title": t.title,
-                "subtitle":
-                    t.subtitle ??
-                    (t.expectedOutcome.isNotEmpty
-                        ? t.expectedOutcome
-                        : "Recommended by AI"),
-                "details": t.details ?? t.expectedOutcome,
-                "isDone": t.isDone,
-                "tag": t.tag,
-                "source": "Channel Audit",
-                "impact": t.expectedOutcome,
-                "priority": t.priority,
-                "dueDate": t.dueDate ?? "This Week",
-              },
-            )
-            .toList(),
-      );
+      
+      final mappedTodos = todos.map((t) => {
+        "id": t.id,
+        "title": t.title,
+        "subtitle": t.subtitle ?? (t.expectedOutcome.isNotEmpty ? t.expectedOutcome : "Recommended by AI"),
+        "details": t.details ?? t.expectedOutcome,
+        "isDone": t.isDone,
+        "tag": t.tag,
+        "source": "Channel Audit",
+        "impact": t.expectedOutcome,
+        "priority": t.priority,
+        "dueDate": t.dueDate ?? "This Week",
+      }).toList();
+
+      List<Map<String, dynamic>> mappedCalendarItems = [];
+      try {
+        final calendarRes = await ApiCalendarRepository().getDrafts(accountId: channelId);
+        if (calendarRes.isSuccess && calendarRes.data != null) {
+          mappedCalendarItems = calendarRes.data!.map((c) => {
+            "id": "cal_${c.id}",
+            "title": c.title,
+            "subtitle": c.statusDisplay,
+            "details": c.scriptData ?? "Scheduled Content",
+            "isDone": c.isPosted,
+            "tag": "Calendar",
+            "source": c.platformTag,
+            "impact": "Consistency",
+            "priority": "MEDIUM",
+            "dueDate": c.scheduledAt != null ? c.scheduledAt.toString().split(' ')[0] : "Upcoming",
+          }).toList();
+        }
+      } catch (e) {
+        debugPrint("fetch Calendar Drafts error: $e");
+      }
+
+      toDoItems.assignAll([...mappedTodos, ...mappedCalendarItems]);
     } catch (e) {
       debugPrint("fetchTodos error: $e");
     }
@@ -500,8 +528,11 @@ class HomeController extends GetxController {
   }
 
   Future<void> toggleToDoItem(dynamic id) async {
+    final strId = id.toString();
+    final isCalendar = strId.startsWith("cal_");
+
     final index = toDoItems.indexWhere(
-      (item) => item['id'].toString() == id.toString(),
+      (item) => item['id'].toString() == strId,
     );
     if (index != -1) {
       final current = toDoItems[index]['isDone'] as bool;
@@ -509,11 +540,23 @@ class HomeController extends GetxController {
       toDoItems[index] = {...toDoItems[index], 'isDone': newStatus};
       toDoItems.refresh();
 
-      // Sync with server
-      final success = await dashboardRepository.updateTodoStatus(id, newStatus);
+      bool success = false;
+      if (isCalendar) {
+        final realId = strId.substring(4);
+        final statusString = newStatus ? 'POSTED' : 'DRAFT';
+        final res = await ApiCalendarRepository().updateDraftStatus(
+          draftId: realId,
+          status: statusString,
+        );
+        success = res.isSuccess;
+      } else {
+        // Sync with server
+        success = await dashboardRepository.updateTodoStatus(id, newStatus);
+      }
+
       if (success) {
         if (newStatus) {
-          AppToast.success("Action item marked as completed!");
+          AppToast.success(isCalendar ? "Post marked as Published!" : "Action item marked as completed!");
         }
       } else {
         // Rollback on failure
@@ -525,8 +568,14 @@ class HomeController extends GetxController {
   }
 
   Future<void> removeToDoItem(dynamic id) async {
+    final strId = id.toString();
+    if (strId.startsWith("cal_")) {
+      AppToast.info("Scheduled posts must be deleted from the Calendar tab.");
+      return;
+    }
+
     final index = toDoItems.indexWhere(
-      (item) => item['id'].toString() == id.toString(),
+      (item) => item['id'].toString() == strId,
     );
     if (index == -1) return;
 

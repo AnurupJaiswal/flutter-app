@@ -1205,7 +1205,7 @@ class HomeView extends GetView<HomeController> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "Creator To-Dos",
+              "Action Items & Schedule",
               style: TS.sectionTitle(color: CC.textPrimary, fontSize: 16),
             ),
             Obx(() {
@@ -1234,7 +1234,7 @@ class HomeView extends GetView<HomeController> {
         ),
         6.height,
         Text(
-          "AI-generated tasks to boost your channel reach",
+          "Manage your tasks and upcoming calendar posts",
           style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 11),
         ),
         10.height,
@@ -1291,7 +1291,7 @@ class HomeView extends GetView<HomeController> {
                   Icon(Icons.checklist_rounded, size: 32, color: CC.grey),
                   8.height,
                   Text(
-                    "No active To-Dos",
+                    "No active tasks or scheduled posts",
                     style: TS.bodySmall(
                       color: CC.textPrimary,
                       fontWeight: FontWeight.w600,
@@ -1299,7 +1299,7 @@ class HomeView extends GetView<HomeController> {
                   ),
                   4.height,
                   Text(
-                    "Tap '+ To-Do' on any audit recommendation above to add tasks.",
+                    "Tap '+ To-Do' on any audit recommendation to add tasks, or schedule posts in the Calendar tab.",
                     textAlign: TextAlign.center,
                     style: TS
                         .caption(color: CC.textSecondary)
@@ -1317,31 +1317,41 @@ class HomeView extends GetView<HomeController> {
               final subtitle = item['subtitle'] as String? ?? "";
               final isDone = item['isDone'] as bool? ?? false;
               final tag = item['tag'] as String? ?? "";
+              final isCalendar = id.toString().startsWith("cal_");
 
               return Container(
-                margin: const EdgeInsets.only(bottom: 10),
+                margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
                   color: isDone
                       ? CC.surface.withValues(alpha: 0.5)
                       : CC.surface,
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: isDone ? null : [
+                    BoxShadow(
+                      color: CC.primary.withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                   border: Border.all(
                     color: isDone
                         ? CC.stroke.withValues(alpha: 0.2)
-                        : CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
-                    width: 1,
+                        : (isCalendar 
+                            ? Colors.deepPurpleAccent.withValues(alpha: 0.4) 
+                            : CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6)),
+                    width: isCalendar && !isDone ? 1.5 : 1,
                   ),
                 ),
                 child: Material(
                   color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(16),
                   child: InkWell(
                     onTap: () => _showToDoDetailsBottomSheet(context, item),
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(16),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
+                        horizontal: 16,
+                        vertical: 14,
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -1352,17 +1362,17 @@ class HomeView extends GetView<HomeController> {
                             onTap: () => controller.toggleToDoItem(id),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
-                              width: 22,
-                              height: 22,
-                              margin: const EdgeInsets.only(right: 12),
+                              width: 24,
+                              height: 24,
+                              margin: const EdgeInsets.only(right: 14),
                               decoration: BoxDecoration(
-                                color: isDone ? CC.primary : Colors.transparent,
-                                borderRadius: BorderRadius.circular(6),
+                                color: isDone ? (isCalendar ? Colors.deepPurpleAccent : CC.primary) : Colors.transparent,
+                                borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
                                   color: isDone
-                                      ? CC.primary
-                                      : CC.grey.withValues(alpha: 0.6),
-                                  width: 1.8,
+                                      ? (isCalendar ? Colors.deepPurpleAccent : CC.primary)
+                                      : (isCalendar ? Colors.deepPurpleAccent.withValues(alpha: 0.6) : CC.grey.withValues(alpha: 0.6)),
+                                  width: 2,
                                 ),
                               ),
                               child: isDone
@@ -1370,7 +1380,7 @@ class HomeView extends GetView<HomeController> {
                                       child: Icon(
                                         Icons.check_rounded,
                                         color: CC.whiteText,
-                                        size: 15,
+                                        size: 16,
                                       ),
                                     )
                                   : null,
@@ -1382,34 +1392,50 @@ class HomeView extends GetView<HomeController> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(
-                                  title,
-                                  style: TS
-                                      .bodySmall(
-                                        color: isDone
-                                            ? CC.textSecondary
-                                            : CC.textPrimary,
-                                        fontWeight: FontWeight.w600,
-                                      )
-                                      .copyWith(
-                                        fontSize: 13,
-                                        decoration: isDone
-                                            ? TextDecoration.lineThrough
-                                            : null,
-                                        decorationColor: CC.textSecondary,
+                                Row(
+                                  children: [
+                                    if (isCalendar) ...[
+                                      Icon(
+                                        Icons.event_note_rounded,
+                                        size: 14,
+                                        color: isDone ? CC.textSecondary : Colors.deepPurpleAccent,
                                       ),
+                                      4.width,
+                                    ],
+                                    Expanded(
+                                      child: Text(
+                                        title,
+                                        style: TS
+                                            .bodySmall(
+                                              color: isDone
+                                                  ? CC.textSecondary
+                                                  : CC.textPrimary,
+                                              fontWeight: FontWeight.w700,
+                                            )
+                                            .copyWith(
+                                              fontSize: 14,
+                                              decoration: isDone
+                                                  ? TextDecoration.lineThrough
+                                                  : null,
+                                              decorationColor: CC.textSecondary,
+                                            ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                                 if (subtitle.isNotEmpty) ...[
-                                  3.height,
+                                  4.height,
                                   Text(
                                     subtitle,
                                     style: TS
                                         .caption(
                                           color: CC.textSecondary.withValues(
-                                            alpha: 0.8,
+                                            alpha: 0.85,
                                           ),
                                         )
-                                        .copyWith(fontSize: 11),
+                                        .copyWith(fontSize: 11.5),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -1417,18 +1443,18 @@ class HomeView extends GetView<HomeController> {
                               ],
                             ),
                           ),
-                          10.width,
+                          12.width,
                           // Tag
                           if (tag.isNotEmpty) ...[
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
+                                horizontal: 10,
+                                vertical: 5,
                               ),
                               decoration: BoxDecoration(
                                 color: isDone
                                     ? CC.stroke.withValues(alpha: 0.2)
-                                    : CC.primary.withValues(alpha: 0.12),
+                                    : (isCalendar ? Colors.deepPurpleAccent.withValues(alpha: 0.12) : CC.primary.withValues(alpha: 0.12)),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -1437,13 +1463,13 @@ class HomeView extends GetView<HomeController> {
                                     .caption(
                                       color: isDone
                                           ? CC.textSecondary
-                                          : CC.primary,
+                                          : (isCalendar ? Colors.deepPurpleAccent : CC.primary),
                                       fontWeight: FontWeight.w700,
                                     )
-                                    .copyWith(fontSize: 10),
+                                    .copyWith(fontSize: 10, letterSpacing: 0.3),
                               ),
                             ),
-                            6.width,
+                            8.width,
                           ],
                           // Delete Button
                           GestureDetector(

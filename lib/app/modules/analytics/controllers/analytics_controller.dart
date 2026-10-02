@@ -244,7 +244,19 @@ class AnalyticsController extends GetxController {
       topContentItems.assignAll((results[4] as List<AnalyticsTopContentItem>?) ?? []);
 
       if (channelId != null && results.length > 5) {
-        final audit = results[5] as ChannelAuditData?;
+        ChannelAuditData? audit = results[5] as ChannelAuditData?;
+        
+        // If no data exists yet, trigger an audit first
+        if (audit == null) {
+          isAuditing.value = true;
+          final triggered = await dashboardRepository.triggerAudit(channelId);
+          if (triggered) {
+            // Re-fetch after triggering
+            audit = await dashboardRepository.getDashboardOverview(channelId);
+          }
+          isAuditing.value = false;
+        }
+
         if (audit != null) {
           auditData.value = audit;
           hasAuditData.value = true;
@@ -273,6 +285,7 @@ class AnalyticsController extends GetxController {
       }
     } catch (e) {
       debugPrint("Error fetching analytics data: $e");
+      isAuditing.value = false;
     }
   }
 
