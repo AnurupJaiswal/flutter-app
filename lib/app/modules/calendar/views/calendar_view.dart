@@ -1013,8 +1013,6 @@ class CalendarView extends GetView<CalendarController> {
                 onSelected: (val) {
                   if (val == 'schedule') {
                     _pickScheduleDateTime(context, id);
-                  } else if (val == 'revert_draft') {
-                    controller.updateDraftStatus(draftId: id, status: 'DRAFT');
                   } else if (val == 'mark_posted') {
                     controller.updateDraftStatus(draftId: id, status: 'POSTED');
                   }
@@ -1050,24 +1048,6 @@ class CalendarView extends GetView<CalendarController> {
                           8.width,
                           Text(
                             "Mark as Posted",
-                            style: TS.bodySmall(color: CC.textPrimary),
-                          ),
-                        ],
-                      ),
-                    ),
-                  if (isScheduled || isPosted)
-                    PopupMenuItem(
-                      value: 'revert_draft',
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.undo_rounded,
-                            size: 16,
-                            color: CC.textSecondary,
-                          ),
-                          8.width,
-                          Text(
-                            "Revert to Draft",
                             style: TS.bodySmall(color: CC.textPrimary),
                           ),
                         ],
@@ -1164,66 +1144,53 @@ class CalendarView extends GetView<CalendarController> {
                   ),
                 ),
               ),
-              10.width,
-              Expanded(
-                child: InkWell(
-                  onTap: () {
-                    if (isPosted) {
-                      controller.updateDraftStatus(
-                        draftId: id,
-                        status: "DRAFT",
-                      );
-                    } else if (isScheduled) {
-                      controller.updateDraftStatus(
-                        draftId: id,
-                        status: "POSTED",
-                      );
-                    } else {
-                      _pickScheduleDateTime(context, id);
-                    }
-                  },
-                  borderRadius: BorderRadius.circular(10),
-                  child: Container(
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: isPosted
-                          ? (CC.isDark
-                              ? CC.whiteText.withValues(alpha: 0.08)
-                              : CC.black.withValues(alpha: 0.06))
-                          : CC.primary,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          isPosted
-                              ? Icons.undo_rounded
-                              : (isScheduled
-                                  ? Icons.check_rounded
-                                  : Icons.calendar_month_rounded),
-                          size: 14,
-                          color: isPosted ? CC.textPrimary : CC.whiteText,
-                        ),
-                        6.width,
-                        Text(
-                          isPosted
-                              ? "Revert Draft"
-                              : (isScheduled
-                                  ? "Mark as Posted"
-                                  : "Schedule"),
-                          style: TS
-                              .bodySmall(
-                                color: isPosted ? CC.textPrimary : CC.whiteText,
-                                fontWeight: FontWeight.w700,
-                              )
-                              .copyWith(fontSize: 12),
-                        ),
-                      ],
+              if (!isPosted) ...[
+                10.width,
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      if (isScheduled) {
+                        controller.updateDraftStatus(
+                          draftId: id,
+                          status: "POSTED",
+                        );
+                      } else {
+                        _pickScheduleDateTime(context, id);
+                      }
+                    },
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: CC.primary,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            isScheduled
+                                ? Icons.check_rounded
+                                : Icons.calendar_month_rounded,
+                            size: 14,
+                            color: CC.whiteText,
+                          ),
+                          6.width,
+                          Text(
+                            isScheduled ? "Mark as Posted" : "Schedule",
+                            style: TS
+                                .bodySmall(
+                                  color: CC.whiteText,
+                                  fontWeight: FontWeight.w700,
+                                )
+                                .copyWith(fontSize: 12),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ],
           ),
         ],
@@ -1579,6 +1546,8 @@ class CalendarView extends GetView<CalendarController> {
         (controller.availableChannels.isNotEmpty
             ? controller.availableChannels.first
             : null);
+    bool isSavingDraft = false;
+    bool isScheduling = false;
 
     CW
         .showCustomBottomSheet(
@@ -1762,61 +1731,116 @@ class CalendarView extends GetView<CalendarController> {
                                 color: CC.stroke.withValues(alpha: 0.6),
                               ),
                             ),
-                            onPressed: () async {
-                              if (titleCtrl.text.trim().isEmpty) {
-                                AppToast.error(
-                                  "Please enter a title for your draft.",
-                                );
-                                return;
-                              }
-                              CW.dismissBottomSheet();
-                              await controller.createContentDraft(
-                                accountId: selectedAccount?.id,
-                                title: titleCtrl.text.trim(),
-                                contentType: selectedContentType,
-                                scriptData: scriptCtrl.text.trim().isNotEmpty
-                                    ? scriptCtrl.text.trim()
-                                    : null,
-                              );
-                            },
-                            child: Text(
-                              "Save as Draft",
-                              style: TS.bodySmall(
-                                color: CC.textPrimary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                            onPressed: (isSavingDraft || isScheduling)
+                                ? null
+                                : () async {
+                                    if (titleCtrl.text.trim().isEmpty) {
+                                      AppToast.error(
+                                        "Please enter a title for your draft.",
+                                      );
+                                      return;
+                                    }
+                                    setModalState(() => isSavingDraft = true);
+                                    try {
+                                      final success =
+                                          await controller.createContentDraft(
+                                        accountId: selectedAccount?.id,
+                                        title: titleCtrl.text.trim(),
+                                        contentType: selectedContentType,
+                                        scriptData:
+                                            scriptCtrl.text.trim().isNotEmpty
+                                                ? scriptCtrl.text.trim()
+                                                : null,
+                                      );
+                                      if (success) {
+                                        if (ctx.mounted) {
+                                          CW.dismissBottomSheet(ctx);
+                                        }
+                                      } else {
+                                        if (ctx.mounted) {
+                                          setModalState(
+                                              () => isSavingDraft = false);
+                                        }
+                                      }
+                                    } catch (_) {
+                                      if (ctx.mounted) {
+                                        setModalState(
+                                            () => isSavingDraft = false);
+                                      }
+                                    }
+                                  },
+                            child: isSavingDraft
+                                ? SizedBox(
+                                    height: 18,
+                                    width: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor:
+                                          AlwaysStoppedAnimation<Color>(
+                                        CC.textPrimary,
+                                      ),
+                                    ),
+                                  )
+                                : Text(
+                                    "Save as Draft",
+                                    style: TS.bodySmall(
+                                      color: CC.textPrimary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                           ),
                         ),
                         10.width,
                         Expanded(
                           child: CW.commonBtn(
                             title: "Schedule",
-                            onTap: () async {
-                              if (titleCtrl.text.trim().isEmpty) {
-                                AppToast.error(
-                                  "Please enter a title for your draft.",
-                                );
-                                return;
-                              }
-                              final localScheduledAt = DateTime(
-                                selectedScheduleDate.year,
-                                selectedScheduleDate.month,
-                                selectedScheduleDate.day,
-                                selectedScheduleTime.hour,
-                                selectedScheduleTime.minute,
-                              );
-                              CW.dismissBottomSheet();
-                              await controller.createAndScheduleContentDraft(
-                                accountId: selectedAccount?.id,
-                                title: titleCtrl.text.trim(),
-                                contentType: selectedContentType,
-                                scriptData: scriptCtrl.text.trim().isNotEmpty
-                                    ? scriptCtrl.text.trim()
-                                    : null,
-                                localScheduledAt: localScheduledAt,
-                              );
-                            },
+                            isLoading: isScheduling,
+                            onTap: (isSavingDraft || isScheduling)
+                                ? null
+                                : () async {
+                                    if (titleCtrl.text.trim().isEmpty) {
+                                      AppToast.error(
+                                        "Please enter a title for your draft.",
+                                      );
+                                      return;
+                                    }
+                                    final localScheduledAt = DateTime(
+                                      selectedScheduleDate.year,
+                                      selectedScheduleDate.month,
+                                      selectedScheduleDate.day,
+                                      selectedScheduleTime.hour,
+                                      selectedScheduleTime.minute,
+                                    );
+                                    setModalState(() => isScheduling = true);
+                                    try {
+                                      final success = await controller
+                                          .createAndScheduleContentDraft(
+                                        accountId: selectedAccount?.id,
+                                        title: titleCtrl.text.trim(),
+                                        contentType: selectedContentType,
+                                        scriptData:
+                                            scriptCtrl.text.trim().isNotEmpty
+                                                ? scriptCtrl.text.trim()
+                                                : null,
+                                        localScheduledAt: localScheduledAt,
+                                      );
+                                      if (success) {
+                                        if (ctx.mounted) {
+                                          CW.dismissBottomSheet(ctx);
+                                        }
+                                      } else {
+                                        if (ctx.mounted) {
+                                          setModalState(
+                                              () => isScheduling = false);
+                                        }
+                                      }
+                                    } catch (_) {
+                                      if (ctx.mounted) {
+                                        setModalState(
+                                            () => isScheduling = false);
+                                      }
+                                    }
+                                  },
                           ),
                         ),
                       ],

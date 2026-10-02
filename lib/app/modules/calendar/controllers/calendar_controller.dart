@@ -318,6 +318,7 @@ class CalendarController extends GetxController {
         allPosts.add(_convertDraftToPostMap(created));
         allPosts.refresh();
         AppToast.success("Content draft created!");
+        fetchDrafts();
         return true;
       } else {
         // DO NOT add mock data! Show exact server error message!
@@ -387,6 +388,7 @@ class CalendarController extends GetxController {
         final formattedTime =
             "${_monthNames[localScheduledAt.month - 1]} ${localScheduledAt.day} at ${localScheduledAt.hour > 12 ? localScheduledAt.hour - 12 : (localScheduledAt.hour == 0 ? 12 : localScheduledAt.hour)}:${localScheduledAt.minute.toString().padLeft(2, '0')} ${localScheduledAt.hour >= 12 ? 'PM' : 'AM'}";
         AppToast.success("Post created & scheduled for $formattedTime!");
+        fetchDrafts();
         return true;
       } else {
         // Draft created, but scheduling failed
