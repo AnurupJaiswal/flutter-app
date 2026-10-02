@@ -208,6 +208,13 @@ class ApiEndpoints {
   static String disconnectPlatform(String platform) =>
       '/api/v1/creators/me/connections/${platform.toUpperCase()}';
 
+  // --- Notifications Endpoints ---
+  static const String notifications = '/api/v1/notifications';
+  static const String notificationsUnreadCount = '/api/v1/notifications/unread-count';
+  static String markNotificationRead(dynamic id) => '/api/v1/notifications/$id/read';
+  static const String markAllNotificationsRead = '/api/v1/notifications/read-all';
+  static String deleteNotification(dynamic id) => '/api/v1/notifications/$id';
+
   // --- Chat Endpoints ---
   static const String chats = '/api/v1/chats';
   static String chatDetails(String chatId) => '/api/v1/chats/$chatId';

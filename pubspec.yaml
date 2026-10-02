@@ -52,6 +52,8 @@ dependencies:
   app_links: ^7.2.1
   google_fonts: ^8.2.1
   flutter_markdown: ^0.7.7+1
+  firebase_core: ^4.15.0
+  firebase_messaging: ^16.7.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

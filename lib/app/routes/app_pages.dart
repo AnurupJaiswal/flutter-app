@@ -25,6 +25,8 @@ import 'package:lala_ai/app/modules/studio/views/studio_conversation_view.dart';
 import 'package:lala_ai/app/modules/studio/views/studio_view.dart';
 import 'package:lala_ai/app/modules/welcome/bindings/welcome_binding.dart';
 import 'package:lala_ai/app/modules/welcome/views/welcome_view.dart';
+import 'package:lala_ai/app/modules/notifications/views/notifications_view.dart';
+import 'package:lala_ai/app/modules/notifications/bindings/notifications_binding.dart';
 import 'package:lala_ai/app/routes/app_routes.dart';
 import 'package:lala_ai/app/routes/auth_middleware.dart';
 
@@ -167,6 +169,13 @@ class AppPages {
       page: () => const ResetPasswordView(),
       transition: Transition.fadeIn,
       middlewares: [GuestGuardMiddleware()],
+    ),
+    GetPage(
+      name: Routes.NOTIFICATIONS,
+      page: () => const NotificationsView(),
+      binding: NotificationsBinding(),
+      transition: Transition.rightToLeftWithFade,
+      middlewares: [AuthGuardMiddleware()],
     ),
   ];
 }

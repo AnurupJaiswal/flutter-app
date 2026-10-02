@@ -8,9 +8,22 @@ import 'package:lala_ai/utils/keyboard_dismiss_wrapper.dart';
 import 'package:lala_ai/core/deep_link/deep_link_service.dart';
 import 'package:lala_ai/utils/theme/app_theme.dart';
 import 'package:lala_ai/utils/theme/theme_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:lala_ai/services/push_notification_service.dart';
+// Note: This file will be generated when you run `flutterfire configure`
+import 'firebase_options.dart'; 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    await PushNotificationService().init();
+  } catch (e) {
+    debugPrint("Firebase init failed (Did you run flutterfire configure?): $e");
+  }
 
   // Production Crash Prevention: Gracefully handle any unexpected render errors
   FlutterError.onError = (FlutterErrorDetails details) {

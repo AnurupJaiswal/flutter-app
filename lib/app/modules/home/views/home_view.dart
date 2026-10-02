@@ -11,6 +11,7 @@ import 'package:lala_ai/app/modules/connect_accounts/views/connect_accounts_view
 import 'package:lala_ai/app/modules/connect_accounts/widgets/connect_account_hero_widget.dart';
 import 'package:lala_ai/app/modules/profile/views/profile_view.dart';
 import 'package:lala_ai/app/routes/app_routes.dart';
+import 'package:lala_ai/app/modules/notifications/controllers/notifications_controller.dart';
 import 'package:lala_ai/core/widgets/skeleton/app_skeleton.dart';
 import 'package:lala_ai/networking/api_service.dart';
 
@@ -54,20 +55,32 @@ class HomeView extends GetView<HomeController> {
                     size: 22,
                   ),
                   splashRadius: 20,
-                  onPressed: () {},
+                  onPressed: () {
+                    Get.toNamed(Routes.NOTIFICATIONS);
+                  },
                 ),
-                Positioned(
-                  top: 14,
-                  right: 14,
-                  child: Container(
-                    width: 7,
-                    height: 7,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFFF3B30),
-                      shape: BoxShape.circle,
+                Obx(() {
+                  final notifCtrl = Get.isRegistered<NotificationsController>() 
+                      ? Get.find<NotificationsController>() 
+                      : null;
+                  
+                  if (notifCtrl == null || notifCtrl.unreadCount.value == 0) {
+                    return const SizedBox.shrink();
+                  }
+                  
+                  return Positioned(
+                    top: 14,
+                    right: 14,
+                    child: Container(
+                      width: 7,
+                      height: 7,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFF3B30),
+                        shape: BoxShape.circle,
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                }),
               ],
             ),
             IconButton(

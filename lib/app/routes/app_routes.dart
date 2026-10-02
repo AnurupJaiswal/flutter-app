@@ -24,6 +24,7 @@ abstract class Routes {
   static const PRIVACY_POLICY = _Paths.PRIVACY_POLICY;
   static const TERMS_CONDITIONS = _Paths.TERMS_CONDITIONS;
   static const RESET_PASSWORD = _Paths.RESET_PASSWORD;
+  static const NOTIFICATIONS = _Paths.NOTIFICATIONS;
 }
 
 abstract class _Paths {
@@ -50,4 +51,5 @@ abstract class _Paths {
   static const PRIVACY_POLICY = '/privacy-policy';
   static const TERMS_CONDITIONS = '/terms-conditions';
   static const RESET_PASSWORD = '/reset-password';
+  static const NOTIFICATIONS = '/notifications';
 }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "358304825654",
+    "project_id": "lala-ai-b4075",
+    "storage_bucket": "lala-ai-b4075.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:358304825654:android:b1b8fb7f0f2043e3a4f397",
+        "android_client_info": {
+          "package_name": "com.lalaai.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCUqZnFZHYvott94E_Jw2Mbq2B4qUfHP3s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

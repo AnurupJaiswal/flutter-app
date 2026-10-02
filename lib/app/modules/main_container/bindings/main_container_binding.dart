@@ -16,6 +16,7 @@ import 'package:lala_ai/app/modules/settings/controllers/settings_controller.dar
 import 'package:lala_ai/app/modules/trending/controllers/trending_controller.dart';
 import 'package:lala_ai/app/modules/studio/controllers/studio_controller.dart';
 import 'package:lala_ai/app/modules/studio/data/pixo_sse_repository.dart';
+import 'package:lala_ai/app/modules/notifications/controllers/notifications_controller.dart';
 
 class MainContainerBinding extends Bindings {
   @override
@@ -60,6 +61,10 @@ class MainContainerBinding extends Bindings {
                 ? Get.find<AuthRepository>()
                 : ApiAuthRepository(),
           ));
+    }
+    
+    if (!Get.isRegistered<NotificationsController>()) {
+      Get.put<NotificationsController>(NotificationsController(), permanent: true);
     }
   }
 }
