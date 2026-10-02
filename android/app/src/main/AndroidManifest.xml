@@ -22,7 +22,7 @@
 
     <application
         android:name="${applicationName}"
-        android:enableOnBackInvokedCallback="true"
+        android:enableOnBackInvokedCallback="false"
         android:icon="@mipmap/ic_launcher"
         android:label="Lala Ai"
         android:roundIcon="@mipmap/ic_launcher_round">

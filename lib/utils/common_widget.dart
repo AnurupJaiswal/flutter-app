@@ -749,20 +749,24 @@ class CW {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
-        return SafeArea(
-          child: Material(
-            color: CC.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Drag Handle
-                  Center(
-                    child: Container(
-                      width: 36,
+        return AnimatedPadding(
+          padding: MediaQuery.of(sheetContext).viewInsets,
+          duration: const Duration(milliseconds: 100),
+          child: SafeArea(
+            child: Material(
+              color: CC.surface,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              child: SingleChildScrollView(
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Drag Handle
+                      Center(
+                        child: Container(
+                          width: 36,
                       height: 4,
                       margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
@@ -844,10 +848,12 @@ class CW {
               ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
-  }
+  },
+);
+}
 
   /// Reusable Logout Confirmation Bottom Sheet
   static Future<T?> showLogoutSheet<T>({

@@ -13,6 +13,7 @@ import 'package:lala_ai/utils/extensions.dart';
 import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
 import 'package:lala_ai/app/modules/settings/views/support_bottom_sheet.dart';
+import 'package:lala_ai/app/modules/support/views/support_list_view.dart';
 import 'package:lala_ai/utils/theme/theme_service.dart';
 
 class SettingsView extends GetView<SettingsController> {
@@ -108,9 +109,9 @@ class SettingsView extends GetView<SettingsController> {
                   _divider(),
                   _navTile(
                     icon: Icons.support_agent_rounded,
-                    title: "Contact Support",
-                    subtitle: "24/7 creator support desk",
-                    onTap: () => _showContactSupportBottomSheet(context),
+                    title: "Support Center",
+                    subtitle: "24/7 creator support & tickets",
+                    onTap: () => Get.to(() => const SupportListView()),
                   ),
                   _divider(),
                   _navTile(
@@ -465,8 +466,43 @@ class SettingsView extends GetView<SettingsController> {
                         title: "Apply Theme",
                         color: CC.primary,
                         onTap: () {
-                          themeService.setThemeMode(selectedThemeKey);
                           CW.dismissBottomSheet();
+                          Future.delayed(const Duration(milliseconds: 200), () async {
+                            final overlay = Overlay.of(context);
+                            final fadeNotifier = ValueNotifier<double>(1.0);
+                            final blinkColor = selectedThemeKey == ThemeService.themeDark ? Colors.black : Colors.white;
+
+                            late OverlayEntry entry;
+                            entry = OverlayEntry(
+                              builder: (ctx) {
+                                return IgnorePointer(
+                                  child: ValueListenableBuilder<double>(
+                                    valueListenable: fadeNotifier,
+                                    builder: (context, targetOpacity, child) {
+                                      return TweenAnimationBuilder<double>(
+                                        tween: Tween<double>(begin: 0.0, end: targetOpacity),
+                                        duration: const Duration(milliseconds: 250),
+                                        onEnd: () {
+                                          if (targetOpacity == 0.0) entry.remove();
+                                        },
+                                        builder: (context, value, child) {
+                                          return Opacity(
+                                            opacity: value,
+                                            child: Container(color: blinkColor),
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            );
+                            overlay.insert(entry);
+
+                            await Future.delayed(const Duration(milliseconds: 300));
+                            themeService.setThemeMode(selectedThemeKey);
+                            fadeNotifier.value = 0.0;
+                          });
                         },
                       ),
                     ),

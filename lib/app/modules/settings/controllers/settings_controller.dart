@@ -111,13 +111,13 @@ class SettingsController extends GetxController {
     CM.showToast("Account deletion request submitted. Our support team will process your request within 24-48 hours.");
   }
 
-  Future<bool> createSupportTicket(String message, {String category = "GENERAL"}) async {
+  Future<bool> createSupportTicket(String message, {String category = "GENERAL", String subject = "In-App Support Request"}) async {
     try {
       final response = await ApiService.post(
         ApiEndpoints.supportTickets,
         body: {
           "category": category,
-          "subject": "In-App Support Request",
+          "subject": subject,
           "message": message,
         },
       );

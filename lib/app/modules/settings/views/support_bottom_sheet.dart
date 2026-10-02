@@ -9,8 +9,10 @@ import 'package:lala_ai/app/modules/settings/controllers/settings_controller.dar
 
 void showContactSupportSheet(BuildContext context) {
   final msgController = TextEditingController();
+  final subjectController = TextEditingController();
   final settingsController = Get.find<SettingsController>();
   String selectedCategory = "OTHER";
+  bool isLoading = false;
   final categoriesMap = {
     "OTHER": "General / Other",
     "BILLING_SUBSCRIPTION": "Billing & Subscription",
@@ -26,8 +28,6 @@ void showContactSupportSheet(BuildContext context) {
     children: [
       StatefulBuilder(
         builder: (context, setState) {
-          bool isLoading = false;
-
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -40,15 +40,20 @@ void showContactSupportSheet(BuildContext context) {
               Text("Category", style: TS.bodySmall(color: CC.textPrimary)),
               4.height,
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                height: 46, // Match the height of the commonTextFormField
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: CC.stroke),
+                  color: CC.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: CC.stroke, width: 1),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     value: selectedCategory,
                     isExpanded: true,
+                    isDense: true,
+                    alignment: Alignment.centerLeft,
                     dropdownColor: CC.surface,
                     style: TS.body(color: CC.textPrimary),
                     items: categoriesMap.entries.map((entry) {
@@ -68,11 +73,18 @@ void showContactSupportSheet(BuildContext context) {
                 ),
               ),
               16.height,
+              Text("Subject", style: TS.bodySmall(color: CC.textPrimary)),
+              4.height,
+              CW.commonTextFormField(
+                controller: subjectController,
+                hintText: "Brief summary of your issue...",
+              ),
+              16.height,
+              Text("Your Message", style: TS.bodySmall(color: CC.textPrimary)),
+              4.height,
               CW.commonTextFormField(
                 controller: msgController,
                 hintText: "Describe your issue or question (min 10 chars)...",
-                labelText: "Your Message",
-                maxLines: 4,
               ),
               16.height,
               SizedBox(
@@ -82,8 +94,12 @@ void showContactSupportSheet(BuildContext context) {
                   onTap: isLoading
                       ? () {}
                       : () async {
+                          if (subjectController.text.trim().isEmpty) {
+                            CM.showToast("Please enter a subject");
+                            return;
+                          }
                           if (msgController.text.trim().length < 10) {
-                            CM.showToast("Please enter at least 10 characters");
+                            CM.showToast("Please enter at least 10 characters for the message");
                             return;
                           }
                           setState(() {
@@ -91,9 +107,13 @@ void showContactSupportSheet(BuildContext context) {
                           });
                           try {
                             // Wait for the controller method
-                            bool success = await settingsController.createSupportTicket(msgController.text.trim(), category: selectedCategory);
+                            bool success = await settingsController.createSupportTicket(
+                              msgController.text.trim(), 
+                              category: selectedCategory,
+                              subject: subjectController.text.trim(),
+                            );
                             if (success && context.mounted) {
-                              CW.dismissBottomSheet();
+                              Get.back(); // Auto-close bottom sheet on success
                             }
                           } catch (e) {
                             // Ignore error for now
@@ -112,5 +132,8 @@ void showContactSupportSheet(BuildContext context) {
         },
       ),
     ],
-  ).then((_) => msgController.dispose());
+  ).then((_) {
+    msgController.dispose();
+    subjectController.dispose();
+  });
 }

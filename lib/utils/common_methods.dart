@@ -65,4 +65,13 @@ class CM {
       return "Unknown";
     }
   }
+
+  /// Formats an ALL_CAPS_ENUM string into Title Case (e.g., "TECHNICAL_ISSUE" -> "Technical Issue")
+  static String formatEnum(String? value) {
+    if (value == null || value.isEmpty) return '';
+    return value.replaceAll('_', ' ').split(' ').map((word) {
+      if (word.isEmpty) return '';
+      return word[0].toUpperCase() + word.substring(1).toLowerCase();
+    }).join(' ');
+  }
 }

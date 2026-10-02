@@ -10,6 +10,7 @@ import 'package:lala_ai/utils/theme/color_constant.dart';
 import 'package:lala_ai/utils/theme/text_style.dart';
 import 'package:lala_ai/app/modules/settings/controllers/settings_controller.dart';
 import 'package:lala_ai/app/modules/settings/views/support_bottom_sheet.dart';
+import 'package:lala_ai/app/modules/support/views/support_list_view.dart';
 
 class FaqItemData {
   final dynamic id;
@@ -91,7 +92,7 @@ class _FaqViewState extends State<FaqView> {
   }
 
   void _showContactSupportSheet(BuildContext context) {
-    showContactSupportSheet(context);
+    Get.to(() => const SupportListView());
   }
 
   @override
