@@ -39,11 +39,36 @@ class PushNotificationService {
 
       debugPrint('User granted permission: ${settings.authorizationStatus}');
 
+      // Enable iOS foreground presentation options (alert, badge, sound)
+      await _fcm.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: false,
+        sound: true,
+      );
+
       // 2. Setup Background Message Handler
       FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-      // 3. Get the token (Send this to your backend)
-      String? token = await _fcm.getToken();
+      // 3. On iOS, wait for APNs token before requesting FCM token
+      if (!kIsWeb && Platform.isIOS) {
+        String? apnsToken = await _fcm.getAPNSToken();
+        if (apnsToken == null) {
+          debugPrint("Waiting for iOS APNs token...");
+          for (int i = 0; i < 5 && apnsToken == null; i++) {
+            await Future.delayed(const Duration(seconds: 1));
+            apnsToken = await _fcm.getAPNSToken();
+          }
+        }
+        debugPrint("APNs token: $apnsToken");
+      }
+
+      // 4. Get the token (Send this to your backend)
+      String? token;
+      try {
+        token = await _fcm.getToken();
+      } catch (e) {
+        debugPrint("Failed to get FCM token: $e");
+      }
       
       debugPrint("\n=======================================================");
       debugPrint("🔥 [FIREBASE FCM TOKEN] 🔥");

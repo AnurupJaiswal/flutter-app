@@ -1,0 +1,15 @@
+{
+  "Simulator Target Bundle": "com.lalaai.app",
+  "aps": {
+    "alert": {
+      "title": "🎉 Test Notification",
+      "body": "Push notifications are working on your iOS Simulator!"
+    },
+    "sound": "default",
+    "badge": 1
+  },
+  "data": {
+    "type": "announcement",
+    "click_action": "FLUTTER_NOTIFICATION_CLICK"
+  }
+}
