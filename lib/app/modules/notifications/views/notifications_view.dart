@@ -40,22 +40,34 @@ class NotificationsView extends GetView<NotificationsController> {
 
         if (controller.notifications.isEmpty) {
           return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.notifications_off_rounded, size: 64, color: CC.stroke),
-                16.height,
-                Text(
-                  "No notifications yet",
-                  style: TS.sectionTitle(color: CC.textPrimary, fontSize: 18),
-                ),
-                8.height,
-                Text(
-                  "When you receive updates, they'll show up here.",
-                  style: TS.bodySmall(color: CC.textSecondary),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    "assets/images/img_notifcation_illustration.png",
+                    height: 160,
+                    fit: BoxFit.contain,
+                  ),
+                  16.height,
+                  Text(
+                    "No Notifications Yet",
+                    style: TS.sectionTitle(color: CC.textPrimary, fontSize: 18).copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  8.height,
+                  Text(
+                    "When you receive updates, they'll show up here.",
+                    style: TS.caption(color: CC.textSecondary).copyWith(
+                      fontSize: 13,
+                      height: 1.38,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
           );
         }

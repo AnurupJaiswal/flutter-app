@@ -490,18 +490,27 @@ class CW {
   static void dismissBottomSheet([BuildContext? sheetContext]) {
     if (sheetContext != null && sheetContext.mounted) {
       final modalRoute = ModalRoute.of(sheetContext);
-      if (modalRoute != null && modalRoute.isCurrent) {
-        Navigator.of(sheetContext).pop();
+      // NEVER pop a PageRoute (screen). A BottomSheet is never a PageRoute.
+      if (modalRoute is PageRoute) {
         return;
       }
-      final nav = Navigator.of(sheetContext, rootNavigator: false);
-      if (nav.canPop()) {
-        nav.pop();
+      if (modalRoute is PopupRoute || modalRoute is ModalBottomSheetRoute) {
+        if (Navigator.of(sheetContext).canPop()) {
+          Navigator.of(sheetContext).pop();
+        }
+        return;
+      }
+      if (modalRoute != null && modalRoute.isCurrent && modalRoute is! PageRoute) {
+        if (Navigator.of(sheetContext).canPop()) {
+          Navigator.of(sheetContext).pop();
+        }
         return;
       }
     }
-    // Fallback if no context was provided or if context method failed
-    Get.back();
+    // Only call Get.back if a BottomSheet or Dialog is actually open in GetX
+    if (Get.isBottomSheetOpen == true || Get.isDialogOpen == true) {
+      Get.back();
+    }
   }
 
   /// Sleek BottomSheet for editing / renaming chat title or any item
@@ -742,10 +751,11 @@ class CW {
     required List<Widget> children,
     IconData? titleIcon,
     String? subtitle,
+    bool useRootNavigator = true,
   }) {
     return showModalBottomSheet<T>(
       context: context,
-      useRootNavigator: false,
+      useRootNavigator: useRootNavigator,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {

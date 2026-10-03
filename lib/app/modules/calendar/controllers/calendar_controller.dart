@@ -202,8 +202,10 @@ class CalendarController extends GetxController {
   }
 
   /// 1. Fetch Drafts from backend API strictly with date range & filter query parameters
-  Future<void> fetchDrafts() async {
-    isLoading.value = true;
+  Future<void> fetchDrafts({bool showLoading = true}) async {
+    if (showLoading) {
+      isLoading.value = true;
+    }
     errorMessage.value = "";
     try {
       dynamic accountId = selectedChannel.value?.id;
@@ -250,17 +252,36 @@ class CalendarController extends GetxController {
         final fetched = res.data ?? [];
         serverDrafts.assignAll(fetched);
         final mapped = fetched.map((d) => _convertDraftToPostMap(d)).toList();
-        allPosts.assignAll(mapped);
+        if (mapped.isNotEmpty || allPosts.isEmpty) {
+          allPosts.assignAll(mapped);
+        } else {
+          // Keep mapped items merged with existing local list if mapped has data
+          final existingIds = mapped.map((p) => p["id"].toString()).toSet();
+          for (final post in mapped) {
+            final idx = allPosts.indexWhere((p) => p["id"].toString() == post["id"].toString());
+            if (idx != -1) {
+              allPosts[idx] = post;
+            } else {
+              allPosts.add(post);
+            }
+          }
+          allPosts.removeWhere((p) => p["id"] != null && !existingIds.contains(p["id"].toString()) && p["status"] != "Draft");
+          allPosts.refresh();
+        }
       } else {
-        errorMessage.value = res.message.isNotEmpty
-            ? res.message
-            : "Failed to load content drafts.";
-        allPosts.clear();
+        if (showLoading || allPosts.isEmpty) {
+          errorMessage.value = res.message.isNotEmpty
+              ? res.message
+              : "Failed to load content drafts.";
+          allPosts.clear();
+        }
       }
     } catch (e) {
       debugPrint("CalendarController fetchDrafts error: $e");
-      errorMessage.value = "Failed to load content drafts: $e";
-      allPosts.clear();
+      if (showLoading || allPosts.isEmpty) {
+        errorMessage.value = "Failed to load content drafts: $e";
+        allPosts.clear();
+      }
     } finally {
       isLoading.value = false;
     }
@@ -318,7 +339,7 @@ class CalendarController extends GetxController {
         allPosts.add(_convertDraftToPostMap(created));
         allPosts.refresh();
         AppToast.success("Content draft created!");
-        fetchDrafts();
+        await fetchDrafts(showLoading: false);
         return true;
       } else {
         // DO NOT add mock data! Show exact server error message!
@@ -388,7 +409,7 @@ class CalendarController extends GetxController {
         final formattedTime =
             "${_monthNames[localScheduledAt.month - 1]} ${localScheduledAt.day} at ${localScheduledAt.hour > 12 ? localScheduledAt.hour - 12 : (localScheduledAt.hour == 0 ? 12 : localScheduledAt.hour)}:${localScheduledAt.minute.toString().padLeft(2, '0')} ${localScheduledAt.hour >= 12 ? 'PM' : 'AM'}";
         AppToast.success("Post created & scheduled for $formattedTime!");
-        fetchDrafts();
+        await fetchDrafts(showLoading: false);
         return true;
       } else {
         // Draft created, but scheduling failed

@@ -118,43 +118,31 @@ class CalendarView extends GetView<CalendarController> {
 
                 // ── Floating Action Button (New Post Draft) ─────────────────
                 Positioned(
-                  right: 16,
+                  right: 18,
                   bottom: 20,
-                  child: GestureDetector(
+                  child: InkWell(
                     onTap: () => _showCreateDraftSheet(context),
+                    borderRadius: BorderRadius.circular(28),
                     child: Container(
-                      height: 52,
-                      padding: const EdgeInsets.symmetric(horizontal: 18),
+                      width: 56,
+                      height: 56,
                       decoration: BoxDecoration(
                         color: CC.primary,
-                        borderRadius: BorderRadius.circular(26),
+                        shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: CC.primary.withValues(alpha: 0.35),
-                            blurRadius: 14,
-                            offset: const Offset(0, 5),
+                            color: CC.primary.withValues(alpha: 0.4),
+                            blurRadius: 16,
+                            offset: const Offset(0, 6),
                           ),
                         ],
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.add_rounded,
-                            color: CC.whiteText,
-                            size: 22,
-                          ),
-                          6.width,
-                          Text(
-                            "New Post",
-                            style: TS
-                                .bodySmall(
-                                  color: CC.whiteText,
-                                  fontWeight: FontWeight.w700,
-                                )
-                                .copyWith(fontSize: 14),
-                          ),
-                        ],
+                      child: const Center(
+                        child: Icon(
+                          Icons.add_rounded,
+                          color: CC.whiteText,
+                          size: 28,
+                        ),
                       ),
                     ),
                   ),
@@ -589,102 +577,74 @@ class CalendarView extends GetView<CalendarController> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(
-                  Icons.calendar_month_rounded,
-                  size: 18,
-                  color: CC.primary,
-                ),
-                6.width,
-                Expanded(
-                  child: Obx(
-                    () => FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        controller.currentMonthName,
-                        style: TS.sectionTitle(
-                          color: CC.textPrimary,
-                          fontSize: 15,
-                        ),
-                        maxLines: 1,
-                      ),
+                // Left Arrow (Previous Month)
+                InkWell(
+                  onTap: () => controller.previousMonth(),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: CC.isDark
+                          ? CC.whiteText.withValues(alpha: 0.06)
+                          : CC.black.withValues(alpha: 0.04),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.chevron_left_rounded,
+                      color: CC.textPrimary,
+                      size: 20,
                     ),
                   ),
                 ),
-                6.width,
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Quick "Today" jump button
-                    InkWell(
-                      onTap: () => controller.jumpToToday(),
-                      borderRadius: BorderRadius.circular(10),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: CC.primary.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: CC.primary.withValues(alpha: 0.25),
-                            width: 0.8,
-                          ),
-                        ),
-                        child: Text(
-                          "Today",
-                          style: TS
-                              .caption(
-                                color: CC.primary,
-                                fontWeight: FontWeight.w700,
-                              )
-                              .copyWith(fontSize: 11),
+
+                // Centered Month Title with Calendar Icon
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.calendar_month_rounded,
+                        size: 18,
+                        color: CC.primary,
+                      ),
+                      8.width,
+                      Obx(
+                        () => Text(
+                          controller.currentMonthName,
+                          style: TS.sectionTitle(
+                            color: CC.textPrimary,
+                            fontSize: 16,
+                          ).copyWith(fontWeight: FontWeight.w700),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                    ),
-                    6.width,
-                    InkWell(
-                      onTap: () => controller.previousMonth(),
+                    ],
+                  ),
+                ),
+
+                // Right Arrow (Next Month)
+                InkWell(
+                  onTap: () => controller.nextMonth(),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: CC.isDark
+                          ? CC.whiteText.withValues(alpha: 0.06)
+                          : CC.black.withValues(alpha: 0.04),
                       borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: CC.isDark
-                              ? CC.whiteText.withValues(alpha: 0.06)
-                              : CC.black.withValues(alpha: 0.04),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.chevron_left_rounded,
-                          color: CC.textPrimary,
-                          size: 18,
-                        ),
-                      ),
                     ),
-                    4.width,
-                    InkWell(
-                      onTap: () => controller.nextMonth(),
-                      borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: CC.isDark
-                              ? CC.whiteText.withValues(alpha: 0.06)
-                              : CC.black.withValues(alpha: 0.04),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.chevron_right_rounded,
-                          color: CC.textPrimary,
-                          size: 18,
-                        ),
-                      ),
+                    child: Icon(
+                      Icons.chevron_right_rounded,
+                      color: CC.textPrimary,
+                      size: 20,
                     ),
-                  ],
+                  ),
                 ),
               ],
             ),
@@ -911,324 +871,234 @@ class CalendarView extends GetView<CalendarController> {
     required bool isToday,
   }) {
     final id = post["id"];
-    final title = post["title"] as String;
-    final platform = post["platform"] as String;
-    final platformTag = post["platformTag"] as String;
-    final time = post["time"] as String;
-    final aiTime = post["aiTime"] as String;
-    final status = post["status"] as String;
+    final title = (post["title"] as String?) ?? "Untitled Post";
+    final platform = (post["platform"] as String?) ?? "YouTube";
+    final platformTag = (post["platformTag"] as String?) ?? "Video";
+    final time = (post["time"] as String?) ?? "";
+    final status = (post["status"] as String?) ?? "Draft";
+    final caption = (post["caption"] as String?) ?? "";
     final isPosted = status == "Posted";
     final isScheduled = status == "Scheduled";
+    final isYt = platform.toLowerCase().contains("youtube");
+
+    final statusColor = isPosted
+        ? const Color(0xFF22C55E)
+        : (isScheduled ? const Color(0xFF007AFF) : CC.textSecondary);
+
+    final statusIcon = isPosted
+        ? Icons.verified_rounded
+        : (isScheduled ? Icons.schedule_rounded : Icons.edit_note_rounded);
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: CC.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
+          color: CC.isDark
+              ? const Color(0xFF1E293B)
+              : const Color(0xFFE2E8F0),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
             color: CC.isDark
-                ? CC.black.withValues(alpha: 0.35)
-                : CC.black.withValues(alpha: 0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+                ? Colors.black.withValues(alpha: 0.25)
+                : const Color(0x08000000),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Platform & Status Badges
-          Row(
-            children: [
-              _buildPlatformBadge(platform, platformTag),
-              const Spacer(),
-
-              // Status Pill
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── 1. Top Meta Line (Platform & Status - NO PILLS, NO 3-DOTS) ────
+            Row(
+              children: [
+                isYt ? CW.youtubeIcon(size: 18) : CW.instagramIcon(size: 18),
+                8.width,
+                Text(
+                  platformTag,
+                  style: TS.bodySmall(
+                    color: CC.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ).copyWith(fontSize: 13),
                 ),
-                decoration: BoxDecoration(
-                  color: isPosted
-                      ? const Color(0xFFE8F5E9)
-                      : (isScheduled
-                          ? const Color(0xFFE3F2FD)
-                          : (CC.isDark
-                              ? CC.whiteText.withValues(alpha: 0.08)
-                              : CC.black.withValues(alpha: 0.05))),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
+                const Spacer(),
+                Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      isPosted
-                          ? Icons.check_circle_rounded
-                          : (isScheduled
-                              ? Icons.alarm_on_rounded
-                              : Icons.edit_note_rounded),
-                      size: 13,
-                      color: isPosted
-                          ? const Color(0xFF2E7D32)
-                          : (isScheduled
-                              ? const Color(0xFF1976D2)
-                              : CC.textSecondary),
+                      statusIcon,
+                      size: 15,
+                      color: statusColor,
                     ),
-                    4.width,
+                    5.width,
                     Text(
                       status,
-                      style: TS
-                          .caption(
-                            color: isPosted
-                                ? const Color(0xFF2E7D32)
-                                : (isScheduled
-                                    ? const Color(0xFF1976D2)
-                                    : CC.textSecondary),
-                            fontWeight: FontWeight.w700,
-                          )
-                          .copyWith(fontSize: 11),
+                      style: TS.caption(
+                        color: statusColor,
+                        fontWeight: FontWeight.w700,
+                      ).copyWith(fontSize: 13),
                     ),
                   ],
                 ),
-              ),
-              6.width,
+              ],
+            ),
+            14.height,
 
-              // 3-Dots Action Options Menu
-              PopupMenuButton<String>(
-                icon: Icon(
-                  Icons.more_vert_rounded,
-                  color: CC.textSecondary,
-                  size: 18,
+            // ── 2. Post Title ───────────────────────────────────────────────
+            Text(
+              title,
+              style: TS.sectionTitle(
+                color: CC.textPrimary,
+                fontSize: 17,
+              ).copyWith(
+                fontWeight: FontWeight.w700,
+                height: 1.3,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+
+            // Optional Caption / Script Notes Inline
+            if (caption.trim().isNotEmpty) ...[
+              8.height,
+              Text(
+                caption.trim(),
+                style: TS.caption(color: CC.textSecondary).copyWith(
+                  fontSize: 13,
+                  height: 1.35,
                 ),
-                color: CC.surface,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                onSelected: (val) {
-                  if (val == 'schedule') {
-                    _pickScheduleDateTime(context, id);
-                  } else if (val == 'mark_posted') {
-                    controller.updateDraftStatus(draftId: id, status: 'POSTED');
-                  }
-                },
-                itemBuilder: (ctx) => [
-                  PopupMenuItem(
-                    value: 'schedule',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_month_rounded,
-                          size: 16,
-                          color: CC.primary,
-                        ),
-                        8.width,
-                        Text(
-                          "Schedule / Reschedule",
-                          style: TS.bodySmall(color: CC.textPrimary),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (!isPosted)
-                    PopupMenuItem(
-                      value: 'mark_posted',
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.check_circle_outline_rounded,
-                            size: 16,
-                            color: Colors.green,
-                          ),
-                          8.width,
-                          Text(
-                            "Mark as Posted",
-                            style: TS.bodySmall(color: CC.textPrimary),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
-          ),
-          10.height,
+            14.height,
 
-          // Post Title
-          Text(
-            title,
-            style: TS.sectionTitle(color: CC.textPrimary, fontSize: 15),
-          ),
-          8.height,
-
-          // Time Info Row
-          Row(
-            children: [
-              Icon(
-                Icons.access_time_rounded,
-                size: 14,
-                color: CC.textSecondary,
-              ),
-              4.width,
-              Text(
-                time,
-                style: TS
-                    .caption(color: CC.textSecondary)
-                    .copyWith(fontSize: 12),
-              ),
-              if (aiTime.isNotEmpty) ...[
-                12.width,
+            // ── 3. Date & Time Row ──────────────────────────────────────────
+            Row(
+              children: [
                 Icon(
-                  Icons.lightbulb_outline_rounded,
-                  size: 14,
-                  color: CC.primary,
+                  Icons.calendar_today_outlined,
+                  size: 15,
+                  color: CC.textSecondary.withValues(alpha: 0.8),
                 ),
-                4.width,
+                8.width,
                 Expanded(
                   child: Text(
-                    aiTime,
-                    style: TS
-                        .caption(color: CC.primary, fontWeight: FontWeight.w700)
-                        .copyWith(fontSize: 12),
+                    time,
+                    style: TS.caption(color: CC.textSecondary).copyWith(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
-            ],
-          ),
-          14.height,
+            ),
+            18.height,
 
-          // Quick Action Buttons
-          Row(
-            children: [
-              Expanded(
-                child: InkWell(
-                  onTap: () => controller.copyEverything(context, post),
-                  borderRadius: BorderRadius.circular(10),
-                  child: Container(
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: CC.isDark
-                          ? CC.whiteText.withValues(alpha: 0.06)
-                          : CC.black.withValues(alpha: 0.04),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: CC.stroke.withValues(alpha: 0.5),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.content_copy_rounded,
-                          size: 14,
-                          color: CC.textPrimary,
-                        ),
-                        6.width,
-                        Text(
-                          "Copy Details",
-                          style: TS
-                              .bodySmall(
-                                color: CC.textPrimary,
-                                fontWeight: FontWeight.w600,
-                              )
-                              .copyWith(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              if (!isPosted) ...[
-                10.width,
+            // ── 4. Action Buttons Bar ───────────────────────────────────────
+            Row(
+              children: [
                 Expanded(
                   child: InkWell(
-                    onTap: () {
-                      if (isScheduled) {
-                        controller.updateDraftStatus(
-                          draftId: id,
-                          status: "POSTED",
-                        );
-                      } else {
-                        _pickScheduleDateTime(context, id);
-                      }
-                    },
-                    borderRadius: BorderRadius.circular(10),
+                    onTap: () => controller.copyEverything(context, post),
+                    borderRadius: BorderRadius.circular(12),
                     child: Container(
-                      height: 38,
+                      height: 42,
                       decoration: BoxDecoration(
-                        color: CC.primary,
-                        borderRadius: BorderRadius.circular(10),
+                        color: CC.isDark
+                            ? const Color(0xFF1E293B)
+                            : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: CC.isDark
+                              ? const Color(0xFF334155)
+                              : const Color(0xFFE2E8F0),
+                        ),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            isScheduled
-                                ? Icons.check_rounded
-                                : Icons.calendar_month_rounded,
-                            size: 14,
-                            color: CC.whiteText,
+                            Icons.copy_rounded,
+                            size: 15,
+                            color: CC.textPrimary,
                           ),
-                          6.width,
+                          7.width,
                           Text(
-                            isScheduled ? "Mark as Posted" : "Schedule",
-                            style: TS
-                                .bodySmall(
-                                  color: CC.whiteText,
-                                  fontWeight: FontWeight.w700,
-                                )
-                                .copyWith(fontSize: 12),
+                            "Copy Details",
+                            style: TS.bodySmall(
+                              color: CC.textPrimary,
+                              fontWeight: FontWeight.w700,
+                            ).copyWith(fontSize: 13),
                           ),
                         ],
                       ),
                     ),
                   ),
                 ),
+                if (!isPosted) ...[
+                  12.width,
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        if (isScheduled) {
+                          controller.updateDraftStatus(
+                            draftId: id,
+                            status: "POSTED",
+                          );
+                        } else {
+                          _pickScheduleDateTime(context, id);
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF007AFF),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF007AFF).withValues(alpha: 0.25),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              isScheduled
+                                  ? Icons.check_rounded
+                                  : Icons.calendar_month_rounded,
+                              size: 15,
+                              color: Colors.white,
+                            ),
+                            7.width,
+                            Text(
+                              isScheduled ? "Mark as Posted" : "Schedule",
+                              style: TS.bodySmall(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ).copyWith(fontSize: 13),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ],
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPlatformBadge(String platform, String platformTag) {
-    final isYt = platform.toLowerCase().contains("youtube");
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: isYt
-            ? const Color(0xFFFF0000).withValues(alpha: 0.08)
-            : const Color(0xFFE1306C).withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isYt
-              ? const Color(0xFFFF0000).withValues(alpha: 0.2)
-              : const Color(0xFFE1306C).withValues(alpha: 0.2),
-          width: 1,
+            ),
+          ],
         ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          isYt ? CW.youtubeIcon(size: 14) : CW.instagramIcon(size: 14),
-          6.width,
-          Text(
-            platformTag,
-            style: TS
-                .caption(
-                  color: isYt ? const Color(0xFFD32F2F) : const Color(0xFFC2185B),
-                  fontWeight: FontWeight.w700,
-                )
-                .copyWith(fontSize: 11),
-          ),
-        ],
       ),
     );
   }
@@ -1309,96 +1179,82 @@ class CalendarView extends GetView<CalendarController> {
   }
 
   Widget _buildEmptyDateSection(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
-      decoration: BoxDecoration(
-        color: CC.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
-          width: 1,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Image.asset(
+              "assets/images/img_clock_illustration.png",
+              height: 140,
+              fit: BoxFit.contain,
+            ),
+            12.height,
+            Text(
+              "No Posts Scheduled",
+              style: TS.sectionTitle(
+                color: CC.textPrimary,
+                fontSize: 16,
+              ).copyWith(fontWeight: FontWeight.w700),
+              textAlign: TextAlign.center,
+            ),
+            6.height,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                "You haven't scheduled any content for ${controller.selectedDateFormatted}",
+                style: TS.caption(color: CC.textSecondary).copyWith(
+                  fontSize: 13,
+                  height: 1.35,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
         ),
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: CC.primary.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Icon(
-                Icons.event_note_rounded,
-                size: 26,
-                color: CC.primary,
-              ),
-            ),
-          ),
-          12.height,
-          Text(
-            "No Posts Scheduled",
-            style: TS.sectionTitle(color: CC.textPrimary, fontSize: 15),
-          ),
-          4.height,
-          Text(
-            "You haven't scheduled any content for ${controller.selectedDateFormatted}",
-            style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 12),
-            textAlign: TextAlign.center,
-          ),
-          14.height,
-          InkWell(
-            onTap: () => _showCreateDraftSheet(context),
-            borderRadius: BorderRadius.circular(10),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: CC.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.add_rounded,
-                    size: 16,
-                    color: CC.primary,
-                  ),
-                  6.width,
-                  Text(
-                    "Plan a Post for this day",
-                    style: TS.bodySmall(
-                      color: CC.primary,
-                      fontWeight: FontWeight.w700,
-                    ).copyWith(fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
 
   Widget _buildEmptySection(String message) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
-      decoration: BoxDecoration(
-        color: CC.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: CC.stroke.withValues(alpha: CC.isDark ? 0.35 : 0.6),
-          width: 1,
-        ),
-      ),
-      child: Center(
-        child: Text(
-          message,
-          style: TS.caption(color: CC.textSecondary).copyWith(fontSize: 12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Image.asset(
+              "assets/images/img_draft_illustration.png",
+              height: 140,
+              fit: BoxFit.contain,
+            ),
+            12.height,
+            Text(
+              "No Upcoming Drafts",
+              style: TS.sectionTitle(
+                color: CC.textPrimary,
+                fontSize: 16,
+              ).copyWith(fontWeight: FontWeight.w700),
+              textAlign: TextAlign.center,
+            ),
+            6.height,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                message,
+                style: TS.caption(color: CC.textSecondary).copyWith(
+                  fontSize: 13,
+                  height: 1.35,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -1852,8 +1708,10 @@ class CalendarView extends GetView<CalendarController> {
           ],
         )
         .then((_) {
-          titleCtrl.dispose();
-          scriptCtrl.dispose();
+          Future.delayed(const Duration(milliseconds: 350), () {
+            titleCtrl.dispose();
+            scriptCtrl.dispose();
+          });
         });
   }
 

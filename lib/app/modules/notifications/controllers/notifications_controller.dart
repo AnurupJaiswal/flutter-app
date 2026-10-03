@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import 'package:lala_ai/app/data/repositories/notification_repository.dart';
 import 'package:flutter/material.dart';
-import 'package:lala_ai/utils/common_widget.dart';
+import 'package:lala_ai/utils/app_toast.dart';
 
 class NotificationsController extends GetxController {
   final NotificationRepository _repository = NotificationRepository();
